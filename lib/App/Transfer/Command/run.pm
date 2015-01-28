@@ -667,7 +667,14 @@ sub type_lookup_db {
     $p->{where}             = {};
     $p->{where}{$field_src} = $lookup_val;
     $p->{fields}            = $field_dst;
-    $p->{engine}            = $self->target->engine;
+    $p->{engine} = $self->writer->target->engine;   # XXX Add a target
+                                                    # config atribute
+                                                    # for the
+                                                    # lookup_db
+                                                    # config, or is OK
+                                                    # to use the
+                                                    # destination
+                                                    # target?
     $p->{logfld} = $info->{logfld};
     $p->{logidx} = $info->{logidx};
     my $result_aref = $self->transform->do_transform( $step->method, $p );
