@@ -430,7 +430,6 @@ sub type_split {
 
     my $field_src = $step->field_src;
 
-    # TODO: factor out this tests?
     unless ( exists $columns->{$field_src} ) {
         hurl type_split => __x( "Error in recipe (split): no such field '{field}'",
             field => $field_src );
