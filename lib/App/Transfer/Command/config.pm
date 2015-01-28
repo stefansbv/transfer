@@ -18,9 +18,9 @@ extends qw(App::Transfer);
 
 parameter 'action' => (
     is            => 'rw',
-    isa           => enum( [qw(set get)] ),
+    isa           => enum( [qw(set dump)] ),
     required      => 1,
-    documentation => q[Action name ( set | get ).],
+    documentation => q[Subcommands: set | dump.],
 );
 
 has 'context' => (
@@ -51,8 +51,8 @@ sub execute {
         # $self->create_config($url, $path);
     }
 
-    # Get
-    if ( $self->action eq 'get' ) {
+    # dump
+    if ( $self->action eq 'dump' ) {
         my %conf = $self->config->dump;
         say "Current config:";
         say " none!" if scalar keys %conf == 0;
