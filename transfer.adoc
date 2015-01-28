@@ -1,0 +1,66 @@
+The Recipe file
+===============
+Stefan Suciu <stefan@s2i2.ro>
+1.0, 2015-01-17
+:toc:
+:icons: font
+:quick-uri: http://s2i2.ro/projects/app-transfer/
+
+WARNING: This is work in progres...
+
+== The Header
+
+```
+<recipe>
+  version               = 1
+  formatversion         = 2
+  name                  = Test recipe
+  description           = Does this and that...
+  table                 = siruta
+  reader                = excel
+  <writer>
+    target              = siruta
+  </writer>
+</recipe>
+```
+
+=== The Header Attributes
+
+recipeversion :: The version of the recipe
+formatversion :: The version of the recipe format.  The current recipe format value is 2.
+name          :: The name of the recipe.
+description   :: A description of the recipe.
+table         :: The destination table name.
+reader        :: The reader module name.  The implemented modules are: *excel*, *csv* and *db*.
+writer        :: The writer module name:  The implemented modules are: *db*.
+
+In the *App::Transfer* recipe file:
+
+```
+<source>
+  reader        = excel
+  file          = siruta.xls
+</source>
+
+<destination>
+  writer        = db
+  target        = siruta
+</destination>
+```
+
+The target configuration is like this:
+
+```
+<target siruta>
+  uri           = db:firebird://user:pass@localhost//home/fbdb/siruta.fdb
+</target>
+```
+
+Alternatively, in the *App::Transfer* configuration files:
+
+```
+[target "siruta"]
+        uri = db:firebird://user:pass@localhost//home/fbdb/siruta.fdb
+[engine "firebird"]
+        target = siruta
+```

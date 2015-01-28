@@ -1,0 +1,9 @@
+#!/usr/bin/env perl
+# PODNAME: transfer
+# ABSTRACT: Transfer command
+
+use App::Transfer;
+
+my $cmd = App::Transfer->new_with_command;
+
+$cmd->execute;
