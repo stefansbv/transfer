@@ -50,6 +50,7 @@ sub insert {
         $self->dbh->prepare($stmt)->execute(@bind);
     }
     catch {
+        print "EE: $_\n";                    # XXX
         hurl insert => __x(
             'Insert failed: "{error}" for record "{record}"',
             error  => $_,
