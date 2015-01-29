@@ -8,7 +8,7 @@ use MooseX::Types::Path::Tiny qw(File);
 use MooseX::Iterator;
 use Locale::TextDomain 1.20 qw(App::Transfer);
 use List::Util qw{any};
-use Text::CSV_XS;
+use Text::CSV;
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
@@ -40,11 +40,11 @@ has 'options' => (
 
 has 'csv' => (
     is       => 'ro',
-    isa      => 'Text::CSV_XS',
+    isa      => 'Text::CSV',
     lazy     => 1,
     init_arg => undef,
     default => sub {
-        return Text::CSV_XS->new(
+        return Text::CSV->new(
             {   sep_char       => ';',
                 always_quote   => 0,
                 binary         => 1,
@@ -87,27 +87,29 @@ has _contents => (
     is      => 'ro',
     isa     => 'ArrayRef',
     lazy    => 1,
-    default => sub {
-        my $self = shift;
-        my $csv  = $self->csv;
-        open my $fh, "<:encoding(utf8)", $self->input
-            or die "Error opening CSV: $!";
-        my $header = $self->get_header(0)->{header};
-        my @cols = @{$csv->getline($fh)};
-        my $row = {};
-        my @records;
-        $csv->bind_columns( \@{$row}{@cols} );
-        while ( $csv->getline($fh) ) {
-            my $record = {};
-            foreach my $col (@cols) {
-                $record->{ $header->{$col} } = $row->{$col};
-            }
-            push @records, $record;
-        }
-        close $fh;
-        return \@records;
-    },
+    builder => '_build_contents',
 );
+
+sub _build_contents {
+    my $self = shift;
+    my $csv  = $self->csv;
+    open my $fh, "<:encoding(utf8)", $self->input
+        or die "Error opening CSV: $!";
+    my $header = $self->get_header(0)->{header};
+    my @cols   = @{ $csv->getline($fh) };
+    my $row    = {};
+    my @records;
+    $csv->bind_columns( \@{$row}{@cols} );
+    while ( $csv->getline($fh) ) {
+        my $record = {};
+        foreach my $col (@cols) {
+            $record->{ $header->{$col} } = $row->{$col};
+        }
+        push @records, $record;
+    }
+    close $fh;
+    return \@records;
+}
 
 has 'contents_iter' => (
     metaclass    => 'Iterable',
@@ -120,7 +122,6 @@ sub get_data {
     my @records;
     while ( $iter->has_next ) {
         my $row = $iter->next;
-
         # Only records with at least one defined value
         push @records, $row if any { defined($_) } values %{$row};
     }
@@ -135,5 +136,11 @@ __PACKAGE__->meta->make_immutable;
 
 App::Transfer::Reader::CSV - Read a CSV file and return the contents
 as AoH.
+
+The input file must be in UTF8 format and the output is also UTF8 to
+be inserted in the database.
+
+TODO: Consider Text::CSV::Encoded.  Tests failed for v0.22 with
+"Wide character in subroutine entry...".
 
 =cut
