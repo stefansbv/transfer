@@ -103,7 +103,18 @@ sub _build_contents {
     while ( $csv->getline($fh) ) {
         my $record = {};
         foreach my $col (@cols) {
-            $record->{ $header->{$col} } = $row->{$col};
+            if (exists $header->{$col}) {
+                $record->{ $header->{$col} } = $row->{$col};
+            }
+            else {
+                hurl {
+                    ident   => 'csv',
+                    message => __x(
+                        'Header map <--> CSV file header inconsistency. Column "{col}" not found.',
+                        col => $col,
+                    )
+                };
+            }
         }
         push @records, $record;
     }
