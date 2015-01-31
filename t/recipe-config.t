@@ -1,5 +1,3 @@
-#!perl
-
 use 5.010;
 use strict;
 use warnings;
@@ -8,7 +6,6 @@ use Path::Class;
 use Test::Most;
 
 use App::Transfer::Recipe;
-use Data::Dumper;
 
 subtest 'Config section: from excel to db' => sub {
     ok my $recipe_file = file( 't', 'recipes', 'recipe.conf' ), "the recipe file";
@@ -28,12 +25,10 @@ subtest 'Config section: from excel to db' => sub {
 };
 
 subtest 'Config section: from excel to db - no file' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe-config-2.conf' ), "the recipe file";
+    ok my $recipe_file = file( 't', 'recipes', 'recipe4options-2.conf' ), "the recipe file";
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
-    # throws_ok { $recipe->source;
-    #         } 'App::Transfer::X', 'Should die if --file does not exist';
     isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
     is $recipe->destination->writer, 'db', 'has writer db';
     is $recipe->destination->target, 'siruta', 'has target';
@@ -41,7 +36,7 @@ subtest 'Config section: from excel to db - no file' => sub {
 };
 
 subtest 'Config section: missing' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe-config-0.conf' ), "the recipe file";
+    ok my $recipe_file = file( 't', 'recipes', 'recipe4options-0.conf' ), "the recipe file";
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
@@ -60,7 +55,7 @@ subtest 'Config section: missing' => sub {
 };
 
 subtest 'Config section: from db to excel' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe-config-1.conf' ), "the recipe file";
+    ok my $recipe_file = file( 't', 'recipes', 'recipe4options-1.conf' ), "the recipe file";
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';

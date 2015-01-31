@@ -1,5 +1,3 @@
-#!perl
-
 use 5.010;
 use strict;
 use warnings;
@@ -18,7 +16,7 @@ BEGIN {
 # Reader
 
 subtest '"db" reader: no options; no config; all from recipe config' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe-db.conf' ),
+    ok my $recipe_file = file( 't', 'recipes', 'recipe4options-4.conf' ),
         "Recipe file";
     ok my $transfer
         = App::Transfer->new( recipe_file => $recipe_file->stringify, ),
@@ -29,16 +27,16 @@ subtest '"db" reader: no options; no config; all from recipe config' => sub {
         options  => $cli_options,
         rw_type  => 'reader',
     ), 'new options instance';
-    is $options->uri_str, 'db:firebird://localhost//home/fbdb/siruta.fdb',
+    is $options->uri_str, 'db:firebird://user:@localhost/name1',
         'should get uri from the recipe config section';
 
     # Have to call 'target' after 'uri_str', else we get the default
-    is $options->target, 'siruta', 'should get name from the config';
+    is $options->target, 'name1', 'should get name from the config';
 };
 
 subtest '"db" reader: no options; name, uri from config; reader, writer from recipe' => sub {
     chdir 't';
-    ok my $recipe_file = file('recipes', 'recipe-config-3.conf' ),
+    ok my $recipe_file = file('recipes', 'recipe4options-3.conf' ),
         "Recipe file with minimum config section";
     ok my $transfer
         = App::Transfer->new( recipe_file => $recipe_file->stringify, ),
@@ -59,7 +57,7 @@ subtest '"db" reader: no options; name, uri from config; reader, writer from rec
 
 subtest '"db" reader: uri option; no config; reader, writer from recipe' => sub {
     chdir 't';
-    ok my $recipe_file = file('recipes', 'recipe-config-3.conf' ),
+    ok my $recipe_file = file('recipes', 'recipe4options-3.conf' ),
         "Recipe file with minimum config section";
     ok my $transfer
         = App::Transfer->new( recipe_file => $recipe_file->stringify, ),
@@ -82,7 +80,7 @@ subtest '"db" reader: uri option; no config; reader, writer from recipe' => sub 
 
 subtest '"db" reader: target option; uri from config; reader, writer from recipe' => sub {
     chdir 't';
-    ok my $recipe_file = file('recipes', 'recipe-config-3.conf' ),
+    ok my $recipe_file = file('recipes', 'recipe4options-3.conf' ),
         "Recipe file with minimum config section";
     ok my $transfer
         = App::Transfer->new( recipe_file => $recipe_file->stringify, ),
@@ -106,7 +104,7 @@ subtest '"db" reader: target option; uri from config; reader, writer from recipe
 # Writer
 
 subtest '"db" writer: no options; no config; all from recipe config' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe-db.conf' ),
+    ok my $recipe_file = file( 't', 'recipes', 'recipe4options-4.conf' ),
         "Recipe file";
     ok my $transfer
         = App::Transfer->new( recipe_file => $recipe_file->stringify, ),
@@ -117,16 +115,16 @@ subtest '"db" writer: no options; no config; all from recipe config' => sub {
         options  => $cli_options,
         rw_type  => 'writer',
     ), 'new options instance';
-    is $options->uri_str, 'db:firebird://localhost//home/fbdb/siruta.fdb',
+    is $options->uri_str, 'db:firebird://user:@localhost/name2',
         'should get uri from the recipe config section';
 
     # Have to call 'target' after 'uri_str', else we get the default
-    is $options->target, 'siruta', 'should get name from the config';
+    is $options->target, 'name2', 'should get name from the config';
 };
 
 subtest '"db" writer: no options; name, uri from config; reader, writer from recipe' => sub {
     chdir 't';
-    ok my $recipe_file = file('recipes', 'recipe-config-3.conf' ),
+    ok my $recipe_file = file('recipes', 'recipe4options-3.conf' ),
         "Recipe file with minimum config section";
     ok my $transfer
         = App::Transfer->new( recipe_file => $recipe_file->stringify, ),
@@ -147,7 +145,7 @@ subtest '"db" writer: no options; name, uri from config; reader, writer from rec
 
 subtest '"db" writer: uri option; no config; reader, writer from recipe' => sub {
     chdir 't';
-    ok my $recipe_file = file('recipes', 'recipe-config-3.conf' ),
+    ok my $recipe_file = file('recipes', 'recipe4options-3.conf' ),
         "Recipe file with minimum config section";
     ok my $transfer
         = App::Transfer->new( recipe_file => $recipe_file->stringify, ),
@@ -170,7 +168,7 @@ subtest '"db" writer: uri option; no config; reader, writer from recipe' => sub 
 
 subtest '"db" writer: target option; uri from config; reader, writer from recipe' => sub {
     chdir 't';
-    ok my $recipe_file = file('recipes', 'recipe-config-3.conf' ),
+    ok my $recipe_file = file('recipes', 'recipe4options-3.conf' ),
         "Recipe file with minimum config section";
     ok my $transfer
         = App::Transfer->new( recipe_file => $recipe_file->stringify, ),
@@ -204,10 +202,10 @@ subtest '"file" reader: no options; no config; all from recipe config' => sub {
         rw_type  => 'reader',
     ), 'new options instance';
     is $options->file, file('t', 'siruta.xls'),
-        'should get file from the recipe config section';
+        'should get file from the CLI options';
 };
 
-subtest '"file" reader: file option; no config; ignore recipe config' => sub {
+subtest '"file" reader: input_file option; no config; ignore recipe config' => sub {
     ok my $recipe_file = file( 't', 'recipes', 'recipe-xls.conf' ),
         "Recipe file";
     ok my $transfer
@@ -222,7 +220,7 @@ subtest '"file" reader: file option; no config; ignore recipe config' => sub {
         rw_type  => 'reader',
     ), 'new options instance';
     is $options->file, file('t', 'some', 'other', 'test.xls'),
-        'should get file from the recipe config section';
+        'should get file from the CLI options';
 };
 
 done_testing;
