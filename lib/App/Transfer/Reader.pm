@@ -14,8 +14,6 @@ has transfer => (
     isa      => 'App::Transfer',
     required => 1,
     handles  => [qw(
-        comment
-        emit
         debug
     )],
 );

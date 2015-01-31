@@ -20,9 +20,8 @@ has dbh => (
     default => sub {
         my $self = shift;
         my $uri  = $self->uri;
-        #$self->use_driver;
+        $self->use_driver;
         my $dsn = $uri->dbi_dsn;
-
         return DBI->connect($dsn, scalar $uri->user, scalar $uri->password, {
             $uri->query_params,
             PrintError       => 0,
@@ -39,6 +38,10 @@ has dbh => (
         });
     }
 );
+
+sub key    { 'pg' }
+sub name   { 'PostgreSQL' }
+sub driver { 'DBD::Pg 2.0' }
 
 sub get_info {
     my ($self, $table) = @_;
@@ -82,6 +85,8 @@ sub get_info {
         $flds_type->{$field} = $flds_ref->{$field};
         $flds_type->{$field}{type} = 'varchar'
             if $flds_type->{$field}{type} eq 'character varying';
+        $flds_type->{$field}{type} = 'char'
+            if $flds_type->{$field}{type} eq 'character';
     }
 
     return $flds_type;
