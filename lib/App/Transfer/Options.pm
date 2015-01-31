@@ -1,6 +1,6 @@
 package App::Transfer::Options;
 
-# ABSTRACT: Reader and writer options
+# ABSTRACT: Reader or writer options builder
 
 use 5.010001;
 use Moose;
@@ -9,18 +9,31 @@ use App::Transfer::X qw(hurl);
 use Try::Tiny;
 use namespace::autoclean;
 
+# Parameters
+
 has transfer => (
     is       => 'ro',
     isa      => 'App::Transfer',
     required => 1,
     handles  => [qw(
-        comment
-        emit
-        debug
         warn
-        warn_literal
     )],
 );
+
+has 'options' => (
+    is      => 'ro',
+    isa     => 'Maybe[HashRef]',
+    lazy    => 1,
+    default => sub { {} },
+);
+
+has 'rw_type' => (
+    is       => 'rw',
+    isa      => 'Str',
+    required => 1,
+);
+
+# End parameters
 
 has 'config' => (
     is      => 'ro',
@@ -40,19 +53,6 @@ has 'recipe' => (
         my $self = shift;
         return $self->transfer->recipe;
     },
-);
-
-has 'options' => (
-    is      => 'ro',
-    isa     => 'Maybe[HashRef]',
-    lazy    => 1,
-    default => sub { {} },
-);
-
-has 'rw_type' => (
-    is       => 'rw',
-    isa      => 'Str',
-    required => 1,
 );
 
 has 'target' => (
@@ -196,8 +196,11 @@ sub _build_db_options {
         }
     }
 
-    hurl options =>
-            __x( "Failed to set an URI option" ) unless $uri;
+    hurl options => __x(
+        "The db {rw_type} must have a valid target or URI option or configuration.",
+        rw_type => $rw_type
+    ) unless $uri;
+
     return;
 }
 
@@ -208,5 +211,88 @@ sub _get_uri_from_config {
 }
 
 __PACKAGE__->meta->make_immutable;
+
+__END__
+
+=head1 Name
+
+App::Transfer::Options - Reader or writer options builder
+
+=head1 Synopsis
+
+  my $options = App::Transfer::Options->new(
+      transfer => $transfer,
+      options  => $cli_options,
+      rw_type  => 'reader',
+  );
+
+=head1 Description
+
+App::Transfer::Options builds the attributes from the command line
+options provided by the user, the configurations find in the recipes
+and the application configuration files, in this order.
+
+=head1 Interface
+
+=head3 C<new>
+
+  my $target = App::Transfer::Options->new( transfer => $transfer );
+
+Instantiates and returns an App::Transfer::Options object. The
+parameters are C<transfer>, C<options> and C<rw_type>.
+
+  my $options = App::Transfer::Options->new(
+      transfer => $transfer,
+      options  => $cli_options,
+      rw_type  => 'reader',
+  );
+
+=head2 Accessors
+
+=head3 C<transfer>
+
+  my $transfer = $target->transfer;
+
+Returns the L<App::Transfer> object that instantiated the target.
+
+=head3 C<options>
+
+Input options:
+
+=over
+
+=item input_file
+
+=item input_target
+
+=item input_uri
+
+=back
+
+Output options:
+
+=over
+
+=item output_file
+
+=item output_target
+
+=item output_uri
+
+=back
+
+=head3 C<rw_type>
+
+What kind a option to build.  Can be set to C<reader> or C<writer>.
+
+=head3 C<config>
+
+=head3 C<recipe>
+
+=head3 C<target>
+
+=head3 C<uri_str>
+
+=head3 C<file>
 
 1;
