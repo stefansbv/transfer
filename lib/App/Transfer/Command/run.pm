@@ -224,6 +224,11 @@ has '_trafo_types' => (
 sub execute {
     my $self = shift;
 
+    hurl run => __x(
+        "Unknown recipe syntax version: {version}",
+        version => $self->recipe->header->syntaxversion
+    ) if $self->recipe->header->syntaxversion != 1; # XXX ???
+
     my $io_type = $self->recipe->io_trafo_type;
     my $meth    = "transfer_$io_type";
     if ( $self->can($meth) ) {
