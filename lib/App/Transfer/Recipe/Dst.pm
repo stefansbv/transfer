@@ -21,23 +21,9 @@ sub BUILDARGS {
 
     my $p = @_ == 1 && ref $_[0] ? { %{ +shift } } : { @_ };
 
-    if ( $p->{writer} eq 'excel' or $p->{writer} eq 'csv' ) {
-        # hurl destination =>
-        #     __x( "The destination writer '{writer}' must have a 'file' attribute",
-        #     writer => $p->{writer} )
-        #     unless length( $p->{file} // '' );
-    }
-    elsif ( $p->{writer} eq 'db' ) {
-        # hurl destination =>
-        #     __x( "The destination writer 'db' must have a 'target' attribute" )
-        #     unless length( $p->{target} // '' );
-        # hurl destination =>
-        #     __x( "The destination writer 'db' must have a 'table' attribute" )
-        #     unless length( $p->{table} // '' );
-    }
-    else {
-        hurl 'The destination writer must be either "excel", "csv", or "db"';
-    }
+    hurl source =>
+        __x( "The destination section must have a 'writer' attribute" )
+        unless length( $p->{writer} // '' );
 
     return $p;
 }

@@ -21,23 +21,9 @@ sub BUILDARGS {
 
     my $p = @_ == 1 && ref $_[0] ? { %{ +shift } } : { @_ };
 
-    if ( $p->{reader} eq 'excel' or $p->{reader} eq 'csv' ) {
-        # hurl source =>
-        #     __x( "The source reader '{reader}' must have a 'file' attribute",
-        #     reader => $p->{reader} )
-        #     unless length( $p->{file} // '' );
-    }
-    elsif ( $p->{reader} eq 'db' ) {
-        # hurl source =>
-        #     __x( "The source reader 'db' must have a 'target' attribute" )
-        #     unless length( $p->{target} // '' );
-        # hurl source =>
-        #     __x( "The source reader 'db' must have a 'table' attribute" )
-        #     unless length( $p->{table} // '' );
-    }
-    else {
-        hurl 'The source reader must be either "excel", "csv", or "db"';
-    }
+    hurl source =>
+        __x( "The source section must have a 'reader' attribute" )
+        unless length( $p->{reader} // '' );
 
     return $p;
 }

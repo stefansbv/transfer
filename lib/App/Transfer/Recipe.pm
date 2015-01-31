@@ -45,7 +45,8 @@ has header => (
     default => sub {
         my $self = shift;
         return App::Transfer::Recipe::Header->new(
-            $self->recipe_data->{recipe} );
+            $self->recipe_data->{recipe} ) if $self->recipe_data->{recipe};
+        hurl header => __x( 'The recipe must have a recipe section.' );
     },
 );
 
@@ -60,7 +61,7 @@ has 'source' => (
             $self->recipe_data->{config}{source} )
             if $self->recipe_data->{config}{source};
         hurl source =>
-            __x( "The recipe must have a 'config' section with a 'source' subsection" );
+            __x( "The recipe must have a 'config' section with a 'source' subsection." );
     },
 );
 
@@ -75,7 +76,7 @@ has 'destination' => (
             $self->recipe_data->{config}{destination} )
             if $self->recipe_data->{config}{destination};
         hurl destination =>
-            __x( "The recipe must have a 'config' section with a 'destination' subsection" );
+            __x( "The recipe must have a 'config' section with a 'destination' subsection." );
     },
 );
 
