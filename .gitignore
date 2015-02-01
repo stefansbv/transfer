@@ -11,14 +11,10 @@ inc/
 *.log
 .#*
 \#*#
-errors.txt
 TAGS
-*.conf
 cover_db/
 t/output
 .build
-resource.yml
 .al
-examples/*reset.yml
 *.html
 *.sql
