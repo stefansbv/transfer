@@ -1,7 +1,5 @@
-#!/usr/bin/env perl
-
 use 5.010;
-use Test::Most tests => 33;
+use Test::Most;
 use Log::Log4perl;
 use Test::Moose;
 
@@ -9,6 +7,7 @@ use App::Transfer::Transform;
 
 BEGIN { Log::Log4perl->init('t/log.conf') }
 
+chdir 't';                          # also load plugins from t/plugins
 ok my $ttr = App::Transfer::Transform->new, 'New Transform object';
 meta_ok $ttr, "App::Transfer::Transform has a 'meta'";
 has_attribute_ok $ttr, 'plugins', '"plugins"';
@@ -131,7 +130,11 @@ TODO: {
         'Wrong date at reader Business::RO::CNP::birthday';
 }
 
+#-- Test load plugin from local ./plugins dir
+$p->{value} = 'does nothing';
+is $ttr->do_transform('test_plugin', $p), 'does nothing', 'test plugin';
+
 #-- Non existent plugin
 throws_ok { $ttr->do_transform('nosuchplugin', $p) } qr/nosuchplugin/, "No plugin for 'nosuchplugin' in 'do_transform'";
 
-# end
+done_testing;

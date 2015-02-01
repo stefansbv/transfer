@@ -26,7 +26,7 @@ sub _build_plugins {
         Module::Pluggable::Object->new(
             instantiate => 'new',
             search_path => 'App::Transfer::Plugin',
-            search_dirs => ['./plugins'],
+            search_dirs => ['plugins'],
         )->plugins,
     ];
 };
