@@ -63,10 +63,8 @@ sub run {
 
         throws_ok { $engine->dbh->do('INSERT blah INTO __bar_____') } 'App::Transfer::X',
             'Database error should be converted to Transfer exception';
-        is $@->ident, $DBI::state, 'Ident should be SQL error state';
-        like $@->message, $p{engine_err_regex}, 'The message should be from the engine';
-        like $@->previous_exception, qr/DBD::[^:]+::db do failed: /,
-            'The DBI error should be in preview_exception';
+        is $@->ident, $class->key, 'Ident should be the engine';
+        ok $@->message, 'The message should be from the translation';
 
 
         #######################################################################

@@ -7,11 +7,13 @@ use Moose;
 use Locale::TextDomain 1.20 qw(App::Transfer);
 use App::Transfer::X qw(hurl);
 use Try::Tiny;
+use Regexp::Common;
 use namespace::autoclean;
 
 extends 'App::Transfer::Engine';
 sub dbh;                                     # required by DBIEngine;
-with 'App::Transfer::Role::DBIEngine';
+with qw(App::Transfer::Role::DBIEngine
+        App::Transfer::Role::Messages);
 
 has dbh => (
     is      => 'rw',
@@ -31,13 +33,35 @@ has dbh => (
             FetchHashKeyName => 'NAME_lc',
             HandleError      => sub {
                 my ($err, $dbh) = @_;
-                $@ = $err;
-                @_ = ($dbh->state || 'DEV' => $dbh->errstr);
-                goto &hurl;
+                my ($type, $name) = $self->parse_error($err);
+                my $message = $self->get_message($type);
+                hurl firebird => __x( $message, name => $name );
             },
         });
     }
 );
+
+sub parse_error {
+    my ( $self, $err ) = @_;
+
+    my $message_type
+        = $err eq q{} ? "nomessage"
+        : $err =~ m/operation for file ($RE{quoted})/smi ? "dbnotfound:$1"
+        : $err =~ m/\-Table unknown\s*\-(.*)\-/smi       ? "relnotfound:$1"
+        : $err =~ m/\-Token unknown -\s*(.*)/smi         ? "badtoken:$1"
+        : $err =~ m/Your user name and password/smi      ? "userpass"
+        : $err =~ m/no route to host/smi                 ? "network"
+        : $err =~ m/network request to host ($RE{quoted})/smi ? "nethost:$1"
+        : $err =~ m/install_driver($RE{balanced}{-parens=>'()'})/smi ? "driver:$1"
+        : $err =~ m/not connected/smi                    ? "notconn"
+        :                                                  "unknown";
+
+    my ( $type, $name ) = split /:/x, $message_type, 2;
+    $name = $name ? $name : '';
+    $name =~ s{\n\-}{\ }xgsm;                  # cleanup
+
+    return ($type, $name);
+}
 
 sub key    { 'firebird' }
 sub name   { 'Firebird' }
