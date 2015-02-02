@@ -49,8 +49,8 @@ subtest 'Header column map' => sub {
 
 subtest 'Column transformation type' => sub {
     ok my $trafos_col = $recipe->transform->column, 'column trafos';
-    my $fields  = [qw(denloc codp)];
-    my $methods = [[qw(words_first_upper)], [qw(number_only null_ifzero)]];
+    my $fields  = [qw(codp)];
+    my $methods = [[qw(number_only null_ifzero)]];
     my $idx     = 0;
     foreach my $step ( @{$trafos_col} ) {
         my $field  = $fields->[$idx];

@@ -18,15 +18,21 @@ subtype 'ArrayRefColStep',
 subtype 'ArrayRefRowStep',
     as 'ArrayRef[App::Transfer::Recipe::Transform::Row::Step]';
 
-coerce 'ArrayRefColStep', from 'HashRef[ArrayRef]', via {
-    [ map { App::Transfer::Recipe::Transform::Col::Step->new($_) }
-            @{ $_->{step} } ];
-};
+coerce 'ArrayRefColStep'
+    => from 'HashRef[ArrayRef]' => via {
+        [ map { App::Transfer::Recipe::Transform::Col::Step->new($_) }
+          @{ $_->{step} } ] }
+    => from 'HashRef[HashRef]' => via {
+        [ App::Transfer::Recipe::Transform::Col::Step->new( $_->{step} ) ];
+    };
 
-coerce 'ArrayRefRowStep', from 'HashRef[ArrayRef]', via {
-    [ map { App::Transfer::Recipe::Transform::Row::Step->new($_) }
-            @{ $_->{step} } ];
-};
+coerce 'ArrayRefRowStep'
+    => from 'HashRef[ArrayRef]' => via {
+        [ map { App::Transfer::Recipe::Transform::Row::Step->new($_) }
+          @{ $_->{step} } ] }
+    => from 'HashRef[HashRef]' => via {
+        [ App::Transfer::Recipe::Transform::Row::Step->new( $_->{step} ) ];
+    };
 
 has 'column' => (
     is     => 'ro',
