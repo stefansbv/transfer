@@ -11,6 +11,7 @@ use MooseX::Iterator;
 use Locale::TextDomain qw(App-Transfer);
 use Path::Class;
 use App::Transfer::X qw(hurl);
+use Perl6::Form;
 use namespace::autoclean;
 
 extends qw(App::Transfer);
@@ -229,6 +230,8 @@ sub execute {
         version => $self->recipe->header->syntaxversion
     ) if $self->recipe->header->syntaxversion != 1; # XXX ???
 
+    $self->job_intro;
+
     my $io_type = $self->recipe->io_trafo_type;
     my $meth    = "transfer_$io_type";
     if ( $self->can($meth) ) {
@@ -248,10 +251,7 @@ sub transfer_file2db {
     my $table  = $self->recipe->destination->table;
     my $engine = $self->writer->target->engine;
 
-    $self->job_info_file2db;
-
-    $self->comment( __x 'Database name    : {db}',
-                    db => $engine->database );
+    $self->job_info_file2db($engine->database);
 
     hurl run => __x("No input file specified; use '--in' or set the source file in the recipe.") unless $self->reader_options->file;
 
@@ -286,12 +286,7 @@ sub transfer_db2db {
     my $src_engine = $self->reader->target->engine;
     my $dst_engine = $self->writer->target->engine;
 
-    $self->job_info_db2db;
-
-    $self->comment( __x 'Source database      : {db}',
-        db => $src_engine->database );
-    $self->comment( __x 'Destination database : {db}',
-        db => $dst_engine->database );
+    $self->job_info_db2db($src_engine->database, $dst_engine->database);
 
     hurl run => __x( "The source table '{table}' does not exists!",
         table => $src_table )
@@ -320,56 +315,123 @@ sub transfer_db2db {
 }
 
 sub job_info_db2db {
-    my $self = shift;
-    $self->comment( '-' x 18 );
-    $self->comment( __x 'Recipe           : {rn}',
-        rn => $self->recipe->header->name );
-    $self->comment( __x '  version        : {rv}',
-        rv => $self->recipe->header->version );
-    $self->comment( __x '  syntax version : {rv}',
-        rv => $self->recipe->header->version );
-    $self->comment( __x '  description    : {rd}',
-        rd => $self->recipe->header->description );
+    my ($self, $src_db, $dst_db) = @_;
 
-    $self->comment( __x 'Source table      : {it}',
-        it => $self->recipe->source->table );
-    $self->comment( __x 'Destination table : {ot}',
-        ot => $self->recipe->destination->table );
-    $self->comment( __x 'Worksheet name   : {wn}',
-        wn => $self->reader->worksheet )
-        if $self->reader->can('worksheet');
+    #-- Input
+
+    my $input_l  = __ 'Input:';
+    print form
+    " -----------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+                                  $input_l;
+    my @i_l = (__ 'table:', __ 'database:');
+    my @i_v = ($self->recipe->source->table, $src_db);
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    \@i_l,                                                              \@i_v;
+
+    #-- Output
+
+    my $output_l = __ 'Output:';
+    print form
+    " -----------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+                                 $output_l;
+    my @o_l = (__ 'table:', __ 'database:');
+    my @o_v = ($self->recipe->destination->table, $dst_db);
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    \@o_l,                                                              \@o_v;
+
     return;
 }
 
 sub job_info_file2db {
-    my $self = shift;
-    $self->comment( '-' x 18 );
-    $self->comment( __x 'Recipe           : {rn}',
-        rn => $self->recipe->header->name );
-    $self->comment( __x '  version        : {rv}',
-        rv => $self->recipe->header->version );
-    $self->comment( __x '  syntax version : {rv}',
-        rv => $self->recipe->header->version );
-    $self->comment( __x '  description    : {rd}',
-        rd => $self->recipe->header->description );
-    $self->comment( __x 'Input file       : {if}',
-        if => $self->reader_options->file );
-    $self->comment( __x 'Worksheet name   : {wn}',
-        wn => $self->reader->worksheet )
+    my ($self, $database) = @_;
+
+    #-- Input
+
+    my $input_l  = __ 'Input:';
+    print form
+    " -----------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+                                  $input_l;
+
+    my $worksheet = $self->reader->worksheet
         if $self->reader->can('worksheet');
-    $self->comment( __x 'Destination table : {rt}',
-        rt => $self->recipe->destination->table );
+    $worksheet //= 'not';
+    my @i_l = (__ 'file:', __ 'worksheet:');
+    my @i_v = ($self->reader_options->file, $worksheet);
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    \@i_l,                                                              \@i_v;
+
+    #-- Output
+
+    my $output_l = __ 'Output:';
+    print form
+    " -----------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+                                 $output_l;
+    my @o_l = (__ 'table:', __ 'database:');
+    my @o_v = ($self->recipe->destination->table, $database);
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    \@o_l,                                                              \@o_v;
+
+    return;
+}
+
+sub job_intro {
+    my $self = shift;
+
+    #-- Recipe
+
+    my $recipe_l = __ 'Recipe:';
+    my $recipe_v = $self->recipe->header->name;
+
+    my @recipe_ldet
+        = ( __ 'version:', __ 'syntax version:', __ 'description:' );
+    my @recipe_vdet = (
+        $self->recipe->header->version,
+        $self->recipe->header->syntaxversion,
+        $self->recipe->header->description,
+    );
+    print form
+    " -----------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    $recipe_l,                                                     $recipe_v;
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    \@recipe_ldet,                                             \@recipe_vdet;
+
     return;
 }
 
 sub job_summary {
     my $self = shift;
-    $self->comment( '-' x 18 );
-    $self->comment( __ 'Summary:' );
-    $self->comment( __x ' {no} records inserted',
-        no => $self->writer->records_inserted );
-    $self->comment( __x ' {no} empty records skipped',
-        no => $self->writer->records_skipped );
+
+    #-- Summary
+
+    my $summ_l = __ 'Summary:';
+    print form
+    " -----------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+                                   $summ_l;
+    my @o_l = (__ 'records inserted:', __ 'records skipped:');
+    my @o_v = ( $self->writer->records_inserted,
+                $self->writer->records_skipped );
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    \@o_l,                                                              \@o_v;
+    print form
+    " -----------------------";
     return;
 }
 
