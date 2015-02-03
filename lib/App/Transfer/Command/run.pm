@@ -253,7 +253,7 @@ sub transfer_file2db {
 
     $self->job_info_file2db($engine->database);
 
-    hurl run => __x("No input file specified; use '--in' or set the source file in the recipe.") unless $self->reader_options->file;
+    hurl run => __x("No input file specified; use '--if' or set the source file in the recipe.") unless $self->reader_options->file;
 
     hurl run => __x("The table '{table}' does not exists!",
         table => $table) unless $engine->table_exists($table);
@@ -285,8 +285,10 @@ sub transfer_db2db {
     my $dst_table  = $self->recipe->destination->table;
     my $src_engine = $self->reader->target->engine;
     my $dst_engine = $self->writer->target->engine;
+    my $src_db     = $src_engine->database;
+    my $dst_db     = $dst_engine->database;
 
-    $self->job_info_db2db($src_engine->database, $dst_engine->database);
+    $self->job_info_db2db($src_db, $dst_db);
 
     hurl run => __x( "The source table '{table}' does not exists!",
         table => $src_table )
@@ -294,6 +296,10 @@ sub transfer_db2db {
     hurl run => __x( "The destination table '{table}' does not exists!",
         table => $dst_table )
         unless $dst_engine->table_exists($dst_table);
+
+    hurl run =>
+        __x( "The source and the destination tables must be different!" )
+        if ( $src_table eq $dst_table ) and ( $src_db eq $dst_db );
 
     my $table_info = $dst_engine->get_info($dst_table);
     hurl run => __ 'No columns type info retrieved from database!'
