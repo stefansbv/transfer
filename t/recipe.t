@@ -17,7 +17,7 @@ ok my $recipe = App::Transfer::Recipe->new(
 
 subtest 'Header section' => sub {
     is $recipe->header->version, 1, 'recipe version';
-    is $recipe->header->syntaxversion, 2, 'syntax version';
+    is $recipe->header->syntaxversion, 1, 'syntax version';
     is $recipe->header->name, 'Test recipe', 'recipe name';
     is $recipe->header->description, 'Does this and that...', 'description';
 };
