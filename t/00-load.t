@@ -1,5 +1,9 @@
-#!/bin/env perl
-
+#
+# Test load the application modules.
+#
+use 5.010001;
+use strict;
+use warnings;
 use Test::More;
 
 use_ok( 'App::Transfer' );
