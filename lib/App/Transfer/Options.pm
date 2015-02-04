@@ -96,7 +96,7 @@ sub _build_file_options {
 
     # 1. Command line options
     my $opts = $self->options;
-    if ( keys $opts ) {
+    if ( keys %{$opts} ) {
 
         # 1.1 We have an FILE
         if ( $file = $opts->{$opt_file} ) {
@@ -142,7 +142,7 @@ sub _build_db_options {
 
     # 1. Command line options
     my $opts = $self->options;
-    if ( keys $opts ) {
+    if ( keys %{$opts} ) {
 
         # 1.1 We have an URI
         if ( $uri = $opts->{$opt_uri} ) {

@@ -50,7 +50,7 @@ has 'csv' => (
                 binary         => 1,
                 blank_is_undef => 1,
             }
-        ) or die "Cannot use CSV: " . Text::CSV->error_diag();
+        ) || die "Cannot use CSV: " . Text::CSV->error_diag();
     },
 );
 
