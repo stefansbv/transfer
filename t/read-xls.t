@@ -43,8 +43,9 @@ is $reader->maxrow, 0, 'initial maxrow value';
 ok $reader->maxrow(1000), 'set maxrow value';
 is $reader->maxrow, 1000, 'new maxrow value';
 
-ok my @table_names = $reader->recipe->tables->all_table_names, 'get table name(s)';
-is_deeply \@table_names, [qw{judete siruta}], 'sorted table name(s)';
+ok my @names = $reader->recipe->tables->all_table_names, 'get table name(s)';
+my @tables = sort @names;
+is_deeply \@tables, [qw{judete siruta}], 'sorted table name(s)';
 
 ok my @headers = $reader->all_headers , 'get all headers';
 foreach my $header ( $reader->all_headers ) {

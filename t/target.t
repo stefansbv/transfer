@@ -43,10 +43,12 @@ is $target->password, $uri->password, 'Password should be from URI';
 
 ##############################################################################
 # Let's look at how the object is created based on the params to new().
-# First try no params.
-throws_ok { $CLASS->new }
-    qr/\QAttribute (uri) is required/,
-    'Should get an exception for missing uri param';
+# !!! First try no params, this has a problem:
+# - found: AttributeIsRequired (Attribute (uri) is required     for v5.14,16
+# - found: AttributeIsRequired (Attribute (tranfer) is required for v5.18
+throws_ok { $CLASS->new( uri => URI::db->new('db:firebird:') ) }
+    qr/\QAttribute (transfer) is required/,
+    'Should get an exception for missing transfer param';
 
 throws_ok { $CLASS->new( transfer => $transfer ) }
     qr/\QAttribute (uri) is required/,
