@@ -5,7 +5,7 @@ package App::Transfer::Role::Messages;
 use 5.0100;
 use utf8;
 use Moose::Role;
-use Locale::TextDomain 1.20 qw(App::Transfer);
+use Locale::TextDomain 1.20 qw(App-Transfer);
 
 has '_messages' => (
     is       => 'ro',

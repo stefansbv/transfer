@@ -8,7 +8,7 @@ use Moose::Role;
 use DBI;
 use Try::Tiny;
 use App::Transfer::X qw(hurl);
-use Locale::TextDomain qw(App::Transfer);
+use Locale::TextDomain qw(App-Transfer);
 use SQL::Abstract;
 use namespace::autoclean;
 

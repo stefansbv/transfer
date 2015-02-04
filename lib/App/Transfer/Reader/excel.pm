@@ -6,7 +6,7 @@ use 5.010;
 use Moose;
 use MooseX::Types::Path::Tiny qw(File);
 use MooseX::Iterator;
-use Locale::TextDomain 1.20 qw(App::Transfer);
+use Locale::TextDomain 1.20 qw(App-Transfer);
 use List::Util qw(first any);
 use List::Compare;
 use Spreadsheet::ParseExcel;

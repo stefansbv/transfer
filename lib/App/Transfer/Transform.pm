@@ -4,7 +4,7 @@ package App::Transfer::Transform;
 
 use 5.010001;
 use Moose;
-use Locale::TextDomain 1.20 qw(App::Transfer);
+use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use Module::Pluggable::Object;
 use Log::Log4perl;

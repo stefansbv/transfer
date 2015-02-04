@@ -6,7 +6,7 @@ use 5.010001;
 use Moose;
 use Moose::Util::TypeConstraints;
 use App::Transfer::X qw(hurl);
-use Locale::TextDomain 1.20 qw(App::Transfer);
+use Locale::TextDomain 1.20 qw(App-Transfer);
 use namespace::autoclean;
 
 use App::Transfer::Recipe::Transform::Col::Step;

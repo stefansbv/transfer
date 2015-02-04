@@ -11,7 +11,7 @@ use Moose::Util::TypeConstraints;
 use MooseX::App qw(Color);
 use Path::Class;
 use List::Util qw(first);
-use Locale::TextDomain 1.20 qw(App::Transfer);
+use Locale::TextDomain 1.20 qw(App-Transfer);
 use Locale::Messages qw(bind_textdomain_filter);
 use File::Basename;
 use App::Transfer::X qw(hurl);
@@ -22,7 +22,7 @@ BEGIN {
     # Borrowed from Sqitch :)
     # Force Locale::TextDomain to encode in UTF-8 and to decode all messages.
     $ENV{OUTPUT_CHARSET} = 'UTF-8';
-    bind_textdomain_filter 'App::Transfer' => \&Encode::decode_utf8;
+    bind_textdomain_filter 'App-Transfer' => \&Encode::decode_utf8;
 }
 
 use App::Transfer::Config;

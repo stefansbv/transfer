@@ -4,7 +4,7 @@ package App::Transfer::Recipe::Header;
 
 use 5.010001;
 use Moose;
-use Locale::TextDomain 1.20 qw(App::Transfer);
+use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 

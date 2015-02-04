@@ -7,7 +7,7 @@ use List::Compare;
 use Moose;
 use MooseX::FileAttribute;
 use MooseX::Iterator;
-use Locale::TextDomain 1.20 qw(App::Transfer);
+use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use App::Transfer::Target;
 use namespace::autoclean;

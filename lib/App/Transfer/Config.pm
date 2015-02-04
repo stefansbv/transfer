@@ -7,7 +7,7 @@ use Moose;
 use Path::Class;
 use File::HomeDir;
 use Cwd;
-use Locale::TextDomain qw(App::Transfer);
+use Locale::TextDomain qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use Config::GitLike 1.09;
 use utf8;
