@@ -4,13 +4,12 @@ package App::Transfer::Recipe::Dst;
 
 use 5.010001;
 use Moose;
-use MooseX::Types::Path::Tiny qw(File);
-use Locale::TextDomain 1.20 qw(App::Transfer);
+use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
 has 'writer' => ( is => 'ro', isa => 'Str', required => 1 );
-has 'file'   => ( is => 'ro', isa =>  File, coerce => 1 );
+has 'file'   => ( is => 'ro', isa => 'Str' );
 has 'target' => ( is => 'ro', isa => 'Str' );
 has 'table'  => ( is => 'ro', isa => 'Str' );
 

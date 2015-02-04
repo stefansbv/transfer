@@ -255,6 +255,8 @@ sub transfer_file2db {
 
     hurl run => __x("No input file specified; use '--if' or set the source file in the recipe.") unless $self->reader_options->file;
 
+    hurl run => __x("Invalid input file specified; use '--if' or fix the source file in the recipe.") unless -f $self->reader_options->file->stringify;
+
     hurl run => __x("The table '{table}' does not exists!",
         table => $table) unless $engine->table_exists($table);
 
@@ -327,28 +329,28 @@ sub job_info_db2db {
 
     my $input_l  = __ 'Input:';
     print form
-    " -----------------------";
+    " -----------------------------";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
                                   $input_l;
     my @i_l = (__ 'table:', __ 'database:');
     my @i_v = ($self->recipe->source->table, $src_db);
     print form
-    "  {]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
     \@i_l,                                                              \@i_v;
 
     #-- Output
 
     my $output_l = __ 'Output:';
     print form
-    " -----------------------";
+    " -----------------------------";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
                                  $output_l;
     my @o_l = (__ 'table:', __ 'database:');
     my @o_v = ($self->recipe->destination->table, $dst_db);
     print form
-    "  {]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
     \@o_l,                                                              \@o_v;
 
     return;
@@ -361,7 +363,7 @@ sub job_info_file2db {
 
     my $input_l  = __ 'Input:';
     print form
-    " -----------------------";
+    " -----------------------------";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
                                   $input_l;
@@ -372,21 +374,21 @@ sub job_info_file2db {
     my @i_l = (__ 'file:', __ 'worksheet:');
     my @i_v = ($self->reader_options->file, $worksheet);
     print form
-    "  {]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
     \@i_l,                                                              \@i_v;
 
     #-- Output
 
     my $output_l = __ 'Output:';
     print form
-    " -----------------------";
+    " -----------------------------";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
                                  $output_l;
     my @o_l = (__ 'table:', __ 'database:');
     my @o_v = ($self->recipe->destination->table, $database);
     print form
-    "  {]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
     \@o_l,                                                              \@o_v;
 
     return;
@@ -399,7 +401,6 @@ sub job_intro {
 
     my $recipe_l = __ 'Recipe:';
     my $recipe_v = $self->recipe->header->name;
-
     my @recipe_ldet
         = ( __ 'version:', __ 'syntax version:', __ 'description:' );
     my @recipe_vdet = (
@@ -408,12 +409,12 @@ sub job_intro {
         $self->recipe->header->description,
     );
     print form
-    " -----------------------";
+    " -----------------------------";
     print form
-    "  {[[[[[[[[[[[[[[[[[[[}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
     $recipe_l,                                                     $recipe_v;
     print form
-    "  {]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
     \@recipe_ldet,                                             \@recipe_vdet;
 
     return;
@@ -426,7 +427,7 @@ sub job_summary {
 
     my $summ_l = __ 'Summary:';
     print form
-    " -----------------------";
+    " -----------------------------";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
                                    $summ_l;
@@ -434,10 +435,10 @@ sub job_summary {
     my @o_v = ( $self->writer->records_inserted,
                 $self->writer->records_skipped );
     print form
-    "  {]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
     \@o_l,                                                              \@o_v;
     print form
-    " -----------------------";
+    " -----------------------------";
     return;
 }
 

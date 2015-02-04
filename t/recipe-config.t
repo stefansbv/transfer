@@ -14,7 +14,7 @@ subtest 'Config section: from excel to db' => sub {
     ), 'new recipe instance';
     isa_ok $recipe->source, 'App::Transfer::Recipe::Src';
     is $recipe->source->reader, 'excel', 'has reader excel';
-    is $recipe->source->file->stringify, 't/siruta.xls', 'has a file';
+    is $recipe->source->file, 't/siruta.xls', 'has a file';
     is $recipe->source->target, undef, 'has no target';
     is $recipe->source->table, undef, 'has no table';
     isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
@@ -65,7 +65,7 @@ subtest 'Config section: from db to excel' => sub {
     is $recipe->source->table, 'siruta', 'has table';
     isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
     is $recipe->destination->writer, 'csv', 'has writer';
-    is $recipe->destination->file->stringify, 't/siruta.csv', 'has a file';
+    is $recipe->destination->file, 't/siruta.csv', 'has a file';
 };
 
 done_testing;

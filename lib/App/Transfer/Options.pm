@@ -4,7 +4,8 @@ package App::Transfer::Options;
 
 use 5.010001;
 use Moose;
-use Locale::TextDomain 1.20 qw(App::Transfer);
+use Path::Class;
+use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use Try::Tiny;
 use namespace::autoclean;
@@ -71,7 +72,7 @@ has uri_str => (
 
 has file => (
     is      => 'ro',
-    isa     => 'Maybe[Str]',
+    isa     => 'Path::Class::File',
     lazy    => 1,
     builder => '_build_file_options',
 );
@@ -99,20 +100,23 @@ sub _build_file_options {
 
         # 1.1 We have an FILE
         if ( $file = $opts->{$opt_file} ) {
-            return $file;
+            return file $file;
         }
     }
 
     # 2. Recipe config section
     if ( $file = $self->recipe->$section->file ) {
-        return $file->stringify;
+        return file $file;
     }
 
     # 3. Configuration files
     # NOT
 
-    hurl options =>
-            __x( "Failed to set an FILE option" ) unless $file;
+    hurl options => __x(
+        "The file {rw_type} must have a valid file option or configuration.",
+        rw_type => $rw_type,
+    );
+
     return;
 }
 

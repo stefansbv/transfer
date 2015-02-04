@@ -25,7 +25,7 @@ subtest 'Header section' => sub {
 subtest 'Config section' => sub {
     isa_ok $recipe->source, 'App::Transfer::Recipe::Src';
     is $recipe->source->reader, 'excel', 'has reader excel';
-    is $recipe->source->file->stringify, 't/siruta.xls', 'has a file';
+    is $recipe->source->file, 't/siruta.xls', 'has a file';
     isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
     is $recipe->destination->writer, 'db', 'has writer db';
     is $recipe->destination->target, 'siruta', 'has target';

@@ -5,7 +5,6 @@ use Test::More;
 use_ok( 'App::Transfer' );
 use_ok( 'App::Transfer::X' );
 use_ok( 'App::Transfer::Config' );
-use_ok( 'App::Transfer::Config::Load' );
 use_ok( 'App::Transfer::Recipe' );
 use_ok( 'App::Transfer::Recipe::Dst' );
 use_ok( 'App::Transfer::Recipe::Types' );
