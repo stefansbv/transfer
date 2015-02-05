@@ -18,6 +18,18 @@ has transfer => (
     )],
 );
 
+has 'recipe' => (
+    is       => 'ro',
+    isa      => 'App::Transfer::Recipe',
+    required => 1,
+);
+
+has 'options' => (
+    is       => 'ro',
+    isa      => 'App::Transfer::Options',
+    required => 1,
+);
+
 sub reader {
     my $class = ref $_[0] || shift;
     return '' if $class eq __PACKAGE__;
@@ -34,7 +46,7 @@ sub load {
 
     # We should have a reader.
     $class->usage unless $p->{reader};
-    ( my $reader = $p->{reader} ) =~ s/-/_/g;
+    ( my $reader = delete $p->{reader} ) =~ s/-/_/g;
 
     # Load the reader class.
     my $pkg = __PACKAGE__ . "::$reader";
