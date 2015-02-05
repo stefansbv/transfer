@@ -1,6 +1,6 @@
 package App::Transfer::Reader::excel;
 
-# ABSTRACT: Reader for Excel files
+# ABSTRACT: Reader for MSExcel files
 
 use 5.010;
 use Moose;
@@ -15,7 +15,7 @@ use namespace::autoclean;
 
 extends 'App::Transfer::Reader';
 
-has 'input' => (
+has 'input_file' => (
     is       => 'ro',
     isa      => File,
     required => 1,
@@ -25,18 +25,6 @@ has 'input' => (
         my $self = shift;
         return $self->options->file;
     },
-);
-
-has 'recipe' => (
-    is       => 'ro',
-    isa      => 'App::Transfer::Recipe',
-    required => 1,
-);
-
-has 'options' => (
-    is       => 'ro',
-    isa      => 'App::Transfer::Options',
-    required => 1,
 );
 
 has 'table' => (
@@ -68,7 +56,7 @@ has 'maxrow' => (
 
 has 'lastrow' => (
     is      => 'rw',
-    isa     => 'Maybe[Str]',
+    isa     => 'Maybe[Int]',
     lazy    => 1,
     default => sub {
         my $self = shift;
@@ -77,13 +65,12 @@ has 'lastrow' => (
 );
 
 has '_headers' => (
-    isa      => 'ArrayRef',
+    isa      => 'ArrayRef[HashRef]',
     traits   => ['Array'],
     init_arg => undef,
     lazy     => 1,
     builder  => '_build_headers',
     handles  => {
-        get_header  => 'get',
         all_headers => 'elements',
     },
 );
@@ -122,7 +109,7 @@ has 'workbook' => (
     default  => sub {
         my $self     = shift;
         my $parser   = Spreadsheet::ParseExcel->new;
-        my $workbook = $parser->parse( $self->input->stringify );
+        my $workbook = $parser->parse( $self->input_file->stringify );
         die "Error:", $parser->error(), ".\n" if !defined $workbook;
         return $workbook;
     },
@@ -130,8 +117,6 @@ has 'workbook' => (
 
 sub _build_headers {
     my $self = shift;
-
-    # Search for the headers columns and return them in order
 
     my @headers;
     my $row_count = 0;
@@ -295,9 +280,85 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
-=head1 NAME
+__END__
 
-App::Transfer::Reader::excel - Read an Excel file and return the
-contents as AoH.
+=head1 Name
+
+App::Transfer::Reader::excel - Reader for MSExcel files
+
+=head1 Synopsis
+
+  my $reader = App::Transfer::Reader->load( { reader => 'excel' } );
+
+=head1 Description
+
+App::Transfer::Reader::excel reads an MSExcel file worksheet and
+builds a AoA data structure form the entire contents.
+
+=head1 Interface
+
+=head2 Attributes
+
+=head3 C<input_file>
+
+A L<Path::Tiny::File> object representing the Excel input file.
+
+=head3 C<table>
+
+The name of the destination table.  XXX Should be a name for the source...
+
+=head3 C<worksheet>
+
+The name of the Excel worksheet to read from.  It is a C<tables>
+section attribute in the recipe.
+
+=head3 C<maxrow>
+
+An integer value with the maximum row number.
+
+=head3 C<lastrow>
+
+The last row number (counting from 0) with data on the Excel
+worksheet.  It is a C<tables> section attribute in the recipe.
+
+=head3 C<_headers>
+
+An array reference holding info about each table in the worksheet.
+
+The data-structure is built by iterating over the contents of the
+spreadsheet and searching for the header columns defined in the
+L<headermap> section of the recipe.  When a header is found, the row
+is and some other info is recorded.
+
+=head3 C<_record_set>
+
+=head3 C<_contents>
+
+An array reference holding the contents of the spreadsheet.
+
+=head3 C<contents_iter>
+
+A L<MooseX::Iterator> object for the contents of the Excel file.
+
+=head3 C<workbook>
+
+A L<Spreadsheet::ParseExcel::Workbook> object.
+
+=head2 Instance Methods
+
+=head3 C<_debug_config_map>
+
+Print a list of the headers without a valid mapping.
+
+=head3 C<has_table>
+
+Return true if the table $name is defined in the recipe (actually
+returns the name of the table or undef).
+
+=head3 C<get_data>
+
+Return an array reference of hashes, where the hash keys are the names
+of the columns and the values are the values read from the table
+columns. (XXX reformulate).
 
 =cut
