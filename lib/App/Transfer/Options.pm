@@ -10,8 +10,6 @@ use App::Transfer::X qw(hurl);
 use Try::Tiny;
 use namespace::autoclean;
 
-# Parameters
-
 has transfer => (
     is       => 'ro',
     isa      => 'App::Transfer',
@@ -33,8 +31,6 @@ has 'rw_type' => (
     isa      => 'Str',
     required => 1,
 );
-
-# End parameters
 
 has 'config' => (
     is      => 'ro',
@@ -185,7 +181,7 @@ sub _build_db_options {
     # 3. Configuration files
     if ($name) {
 
-        # We already have a name from CLI or recipe
+        # We already have a target name from CLI or recipe
         $self->target($name);
         if ( $uri = $self->config->get( key => "target.$name.uri" ) ) {
             return $uri;
@@ -216,11 +212,13 @@ sub _get_uri_from_config {
 
 __PACKAGE__->meta->make_immutable;
 
+1;
+
 __END__
 
 =head1 Name
 
-App::Transfer::Options - Reader or writer options builder
+App::Transfer::Options - Options builder for reader or writer
 
 =head1 Synopsis
 
@@ -240,10 +238,7 @@ and the application configuration files, in this order.
 
 =head3 C<new>
 
-  my $target = App::Transfer::Options->new( transfer => $transfer );
-
-Instantiates and returns an App::Transfer::Options object. The
-parameters are C<transfer>, C<options> and C<rw_type>.
+Instantiates and returns an App::Transfer::Options object.
 
   my $options = App::Transfer::Options->new(
       transfer => $transfer,
@@ -251,52 +246,128 @@ parameters are C<transfer>, C<options> and C<rw_type>.
       rw_type  => 'reader',
   );
 
+The parameters:
+
+=over
+
+=item C<transfer>
+
+The App::Transfer object.
+
+=item C<options>
+
+A hash reference with the CLI options passed to the application.
+
+=item C<rw_type>
+
+The option type to build.  Can be L<reader> or L<writer>.
+
+=back
+
+All parameters are required.
+
 =head2 Accessors
 
 =head3 C<transfer>
 
-  my $transfer = $target->transfer;
+  my $transfer = $->transfer;
 
-Returns the L<App::Transfer> object that instantiated the target.
+Returns the L<App::Transfer> object that instantiated the options.
 
 =head3 C<options>
 
-Input options:
-
-=over
-
-=item input_file
-
-=item input_target
-
-=item input_uri
-
-=back
-
-Output options:
-
-=over
-
-=item output_file
-
-=item output_target
-
-=item output_uri
-
-=back
+Returns the options hash reference.
 
 =head3 C<rw_type>
 
-What kind a option to build.  Can be set to C<reader> or C<writer>.
+Returns 'reader' or 'writer'.
 
 =head3 C<config>
 
+The App::Transfer::Config object.
+
 =head3 C<recipe>
+
+The App::Transfer::Recipe object.
 
 =head3 C<target>
 
+A string representing the target name passed to the options, if any.
+Defaults to 'anonim'.
+
 =head3 C<uri_str>
+
+Builds and returns the URI string for the DB reader or writer.  The
+CLI options take precedence over the other configuration sources.
+
+=over
+
+=item *
+
+If we have a C<--input-uri> for a reader option or a C<--output-uri>
+for a writer option, than return it.
+
+Warn if we also have target options.
+
+=item *
+
+If we have a C<--input-target> or a C<--output-target> option, than
+return the corresponding URI string from the application
+configuration, or from the recipe configuration section, if any.
+
+=item *
+
+If we have a target name defined in the recipe configuration section,
+return the coresponding URI string from the recipe.
+
+=item *
+
+If we have a target name from above, return the URI string from the
+application configuration, if any.
+
+=item *
+
+If no target name so far, search in the application configuration, for
+the target name and return the coresponding URI string.
+
+=item *
+
+Finaly, throw an error if we got this far without finding a valid URI
+string.
+
+=back
 
 =head3 C<file>
 
-1;
+Builds and returns a C<Path::Class> object from a file path for the
+file reader or writer.  The CLI options take precedence over the other
+configuration sources.
+
+=over
+
+=item *
+
+If we have a C<--input-file> for a reader option or a C<--output-file>
+for a writer option, than return a C<Path::Class> object from it.
+
+=item *
+
+If we have a file name defined in the recipe C<config> C<source>
+subsection for a reader option or in the C<destination> subsection for
+a writer option, return a C<Path::Class> object for it.
+
+=item *
+
+Finaly, throw an error if we got this far without finding a valid file
+path.
+
+=back
+
+=head2 Instance Methods
+
+=head3 C<_get_uri_from_config>
+
+Returns the URI with a L<$name> target name from the application
+configs.
+
+=cut
