@@ -293,7 +293,7 @@ App::Transfer::Reader::excel - Reader for MSExcel files
 =head1 Description
 
 App::Transfer::Reader::excel reads an MSExcel file worksheet and
-builds a AoA data structure form the entire contents.
+builds a AoH data structure for the entire contents.
 
 =head1 Interface
 
