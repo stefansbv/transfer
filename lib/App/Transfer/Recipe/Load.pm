@@ -27,11 +27,12 @@ has 'load' => (
             -ConfigFile => $self->recipe_file,
             -FlagBits   => {
                 attributes => {
-                    MOVE        => 1,
-                    REPLACENULL => 1,
-                    REPLACE     => 1,
                     APPEND      => 1,
                     APPENDSRC   => 1,
+                    COPY        => 1,
+                    MOVE        => 1,
+                    REPLACE     => 1,
+                    REPLACENULL => 1,
                 },
             },
         );

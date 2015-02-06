@@ -52,12 +52,16 @@ sub BUILD {
         unless $self->datasource;
     }
 
-    # XXX Check the 'attributes' attribute
-    # my $p = $self->attributes;
-    # hurl recipe =>
-    #     "Attributes: REPLACE, REPLACENULL, APPEND and APPENDSRC are mutually exclusive!"
-    #     unless ( $p->{REPLACE} xor $p->{REPLACENULL} xor $p->{APPEND}
-    #     xor $p->{APPENDSRC} );
+    # Check the 'attributes' attribute.
+    # If the default is not used REPLACENULL is not set, and the
+    # exception is thrown.
+    # Solution: always set one of the below attribs togheter with COPY
+    # or MOVE.
+    my $a = $self->attributes;
+    hurl recipe =>
+        "Attributes: REPLACE, REPLACENULL, APPEND and APPENDSRC are mutually exclusive!"
+        unless ( $a->{REPLACE} xor $a->{REPLACENULL} xor $a->{APPEND}
+        xor $a->{APPENDSRC} );
 };
 
 __PACKAGE__->meta->make_immutable;

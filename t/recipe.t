@@ -45,6 +45,8 @@ subtest 'Header column map' => sub {
     }
 };
 
+### XXX Setting a COPY withow a REPLACENULL attribute for a row trafo
+### makes this subtest fail instead of the following... ?!
 subtest 'Column transformation type' => sub {
     ok my $trafos_col = $recipe->transform->column, 'column trafos';
     my $fields  = [qw(codp)];
