@@ -15,22 +15,6 @@ extends 'App::Transfer::Writer';
 
 use App::Transfer::Target;
 
-#- Parameters
-
-has 'recipe' => (
-    is       => 'ro',
-    isa      => 'App::Transfer::Recipe',
-    required => 1,
-);
-
-has 'options' => (
-    is       => 'ro',
-    isa      => 'App::Transfer::Options',
-    required => 1,
-);
-
-#- End of parameters
-
 has table => (
     is       => 'ro',
     isa      => 'Str',
@@ -73,8 +57,52 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
-=head1 DESCRIPTION
+__END__
 
-App::Transfer::Writer::db - Write to a DB.
+=encoding utf8
+
+=head1 Name
+
+App::Transfer::Writer::db - Writer for database tables
+
+=head1 Synopsis
+
+  my $writer = App::Transfer::Writer->load( { writer => 'db' } );
+
+=head1 Description
+
+App::Transfer::Writer::db writes to a database table.
+
+=head1 Interface
+
+=head2 Attributes
+
+=head3 C<table>
+
+The name of the source table.
+
+=head3 C<target>
+
+The L<App::Transfer::Targe> object.
+
+=head2 Instance Methods
+
+=head3 C<insert>
+
+Insert a record in the database table.
+
+The parameters are:
+
+=over
+
+=item C<$table>
+
+The name of the table.
+
+=item C<$columns>
+
+A hash reference of column names and values.
+
+=back
 
 =cut
