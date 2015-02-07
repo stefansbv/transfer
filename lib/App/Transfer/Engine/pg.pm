@@ -150,3 +150,68 @@ sub table_exists {
 __PACKAGE__->meta->make_immutable;
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 Name
+
+App::Transfer::Engine::pg - Transfer PostgreSQL engine
+
+=head1 Synopsis
+
+  my $engine = App::Transfer::Engine->load( engine => 'pg' );
+
+=head1 Description
+
+App::Transfer::Engine::pg provides the Pg database engine
+for Transfer.  It supports Pg X.X and higher XXX ???.
+
+=head1 Interface
+
+=head2 Instance Methods
+
+=head3 C<parse_error>
+
+Parse and categorize the database error strings.
+
+=head3 C<get_info>
+
+Return a table info hash reference data structure.
+
+=head3 C<table_exists>
+
+Return true if the table provided as parameter exists in the database.
+
+=head1 Author
+
+David E. Wheeler <david@justatheory.com>
+
+Ștefan Suciu <stefan@s2i2.ro>
+
+=head1 License
+
+Copyright (c) 2012-2014 iovation Inc.
+
+Copyright (c) 2014-2015 Ștefan Suciu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+=cut
