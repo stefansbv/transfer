@@ -282,6 +282,8 @@ __PACKAGE__->meta->make_immutable;
 
 __END__
 
+=encoding utf8
+
 =head1 Name
 
 App::Transfer::Reader::excel - Reader for MSExcel files
