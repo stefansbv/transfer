@@ -38,7 +38,7 @@ subtest 'CSV OK' => sub {
         }
         ),
         'new reader csv object';
-    is $reader->input, 't/siruta.csv', 'csv file name';
+    is $reader->input_file, 't/siruta.csv', 'csv file name';
     ok my $records = $reader->get_data, 'get data for table';
     is scalar @{$records}, 18, 'got 18 records';
 };
@@ -63,7 +63,7 @@ subtest 'CSV with lc header' => sub {
         }
         ),
         'new reader csv object';
-    is $reader->input, 't/siruta-lower.csv', 'csv file name';
+    is $reader->input_file, 't/siruta-lower.csv', 'csv file name';
     throws_ok { $reader->get_data }
         qr/\QHeader map <--> CSV file header inconsistency/,
         'Should get an exception for header map - file heder inconsistency';

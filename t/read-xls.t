@@ -34,9 +34,10 @@ ok my $reader = App::Transfer::Reader->load({
     reader   => 'excel',
     options  => $options,
 }), 'new reader excel object';
-is $reader->input, 't/siruta.xls', 'excel file name';
+is $reader->input_file, 't/siruta.xls', 'excel file name';
 is $reader->table, 'siruta', 'table name';
 is $reader->worksheet, 'Foaie1', 'worksheet name';
+is $reader->lastrow, 70, 'last row';
 isa_ok $reader->workbook, 'Spreadsheet::ParseExcel::Workbook', 'workbook';
 
 is $reader->maxrow, 0, 'initial maxrow value';
@@ -47,24 +48,29 @@ ok my @names = $reader->recipe->tables->all_table_names, 'get table name(s)';
 my @tables = sort @names;
 is_deeply \@tables, [qw{judete siruta}], 'sorted table name(s)';
 
-ok my @headers = $reader->all_headers , 'get all headers';
-foreach my $header ( $reader->all_headers ) {
-    my $table = $header->{table};
-    my $hrow  = $header->{row};
-    my $skip  = $header->{skip} // 0;
-}
+my $hcols_s = [ qw{siruta denloc codp jud sirsup tip niv med fsj fsl rang} ];
+my $hcols_j = [ qw{cod_jud denj fsj mnemonic zona} ];
+my @expected_headers = (
+  {
+    header => $hcols_s,
+    row    => 5,
+    skip   => 0,
+    table  => 'siruta',
+  },
+  {
+    header => $hcols_j,
+    row    => 28,
+    skip   => 0,
+    table  => "judete",
+  },
+);
 
-my $header = [ qw{siruta denloc codp jud sirsup tip niv med fsj fsl rang} ];
-# my $head = {
-#     header => $header,
-#     row    => 0, skip  => 0, table => "siruta",
-# };
-# is_deeply \@headers, [$head], 'header records';
-# is_deeply $reader->get_header(0), $head, 'header record 0';
+ok my @headers = $reader->all_headers , 'get all headers';
+is_deeply \@headers, \@expected_headers, 'header records';
 
 is $reader->has_no_recordsets, 0 , 'has no recordsets is false (0)';
 is $reader->num_recordsets, 2, 'number of record sets is 2';
-my $recordset = { header => $header, min => 6, max => 27 };
+my $recordset = { header => $hcols_s, min => 6, max => 27 };
 is_deeply $reader->get_recordset('siruta'), $recordset, 'record set by name';
 
 ok my $records = $reader->get_data, 'get data for table';
