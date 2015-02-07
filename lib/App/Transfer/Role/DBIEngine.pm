@@ -114,13 +114,15 @@ no Moose::Role;
 
 __END__
 
+=encoding utf8
+
 =head1 Name
 
-App::Transfer::Command::checkout - An engine based on the DBI
+App::Transfer::Role::DBIEngine - An engine based on the DBI
 
 =head1 Synopsis
 
-  package App::Transfer::Engine::sqlite;
+  package App::Transfer::Engine::firebird;
   extends 'App::Transfer::Engine';
   with 'App::Transfer::Role::DBIEngine';
 
@@ -130,6 +132,33 @@ This role encapsulates the common attributes and methods required by
 DBI-powered engines.
 
 =head1 Interface
+
+=head2 Instance Methods
+
+=head3 C<begin_work>
+
+=head3 C<finish_work>
+
+=head3 C<rollback_work>
+
+=head3 C<insert>
+
+Build and execute a INSERT SQL statement.
+
+=head3 C<lookup>
+
+Build and execute a SELECT SQL statement and return a limited set of
+the results as an array of arays references.
+
+=head3 C<records_aoa>
+
+Build and execute a SELECT SQL statement and return the results as an
+array of arays references.
+
+=head3 C<records_aoh>
+
+Build and execute a SELECT SQL statement and return the results as an
+array of hash references.
 
 =head1 See Also
 
@@ -145,24 +174,26 @@ The Firebird engine.
 
 =back
 
-=head1 Authors
+=head1 Author
 
 David E. Wheeler <david@justatheory.com>
 
-Ştefan Suciu <stefan@s2i2.ro>
+Ștefan Suciu <stefan@s2i2.ro>
 
 =head1 License
 
 Copyright (c) 2012-2014 iovation Inc.
 
+Copyright (c) 2014-2015 Ștefan Suciu
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
-of that software and associated documentation files (the "Software"), to deal
+of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and that permission notice shall be included in all
+The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
