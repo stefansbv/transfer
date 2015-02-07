@@ -1,6 +1,6 @@
 package App::Transfer::Reader::csv;
 
-# ABSTRACT: Reader for Excel files
+# ABSTRACT: Reader for CSV files
 
 use 5.010;
 use Moose;
@@ -14,7 +14,7 @@ use namespace::autoclean;
 
 extends 'App::Transfer::Reader';
 
-has 'input' => (
+has 'input_file' => (
     is       => 'ro',
     isa      => File,
     required => 1,
@@ -24,18 +24,6 @@ has 'input' => (
         my $self = shift;
         return $self->options->file;
     },
-);
-
-has 'recipe' => (
-    is       => 'ro',
-    isa      => 'App::Transfer::Recipe',
-    required => 1,
-);
-
-has 'options' => (
-    is       => 'ro',
-    isa      => 'App::Transfer::Options',
-    required => 1,
 );
 
 has 'csv' => (
@@ -93,7 +81,7 @@ has _contents => (
 sub _build_contents {
     my $self = shift;
     my $csv  = $self->csv;
-    open my $fh, "<:encoding(utf8)", $self->input
+    open my $fh, "<:encoding(utf8)", $self->input_file
         or die "Error opening CSV: $!";
     my $header = $self->get_header(0)->{header};
     my @cols   = @{ $csv->getline($fh) };
@@ -143,15 +131,60 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
-=head1 DESCRIPTION
+__END__
 
-App::Transfer::Reader::CSV - Read a CSV file and return the contents
-as AoH.
+=encoding utf8
+
+=head1 Name
+
+App::Transfer::Reader::csv - Reader for CSV files
+
+=head1 Synopsis
+
+  my $reader = App::Transfer::Reader->load( { reader => 'csv' } );
+
+=head1 Description
+
+App::Transfer::Reader::csv reads a CSV file and builds a AoH data
+structure for the entire contents.
 
 The input file must be in UTF8 format and the output is also UTF8 to
 be inserted in the database.
 
 TODO: Consider Text::CSV::Encoded.  Tests failed for v0.22 with
 "Wide character in subroutine entry...".
+
+=head1 Interface
+
+=head2 Attributes
+
+=head3 C<input_file>
+
+A L<Path::Tiny::File> object representing the Excel input file.
+
+=head3 C<csv>
+
+A L<Text::CSV> object representing the CSV input file.
+
+=head3 C<_headers>
+
+An array reference holding info about the table in the file.  The
+data-structure contains the table, row, header and skip attributes.
+
+=head3 C<_contents>
+
+An array reference holding the contents of the file.
+
+=head3 C<contents_iter>
+
+A L<MooseX::Iterator> object for the contents of the CSV file.
+
+=head2 Instance Methods
+
+=head3 C<get_data>
+
+Return an array reference of hashes, where the hash keys are the names
+of the columns and the values are the values read from the table
+columns. (XXX reformulate).
 
 =cut
