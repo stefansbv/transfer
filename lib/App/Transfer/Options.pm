@@ -216,6 +216,8 @@ __PACKAGE__->meta->make_immutable;
 
 __END__
 
+=encoding utf8
+
 =head1 Name
 
 App::Transfer::Options - Options builder for reader or writer
@@ -270,7 +272,7 @@ All parameters are required.
 
 =head3 C<transfer>
 
-  my $transfer = $->transfer;
+  my $transfer = $self->transfer;
 
 Returns the L<App::Transfer> object that instantiated the options.
 
@@ -288,7 +290,9 @@ The App::Transfer::Config object.
 
 =head3 C<recipe>
 
-The App::Transfer::Recipe object.
+  my $recipe = $self->recipe;
+
+Returns the L<App::Transfer::Recipe> object that instantiated the options.
 
 =head3 C<target>
 
