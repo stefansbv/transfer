@@ -14,22 +14,6 @@ use namespace::autoclean;
 
 extends 'App::Transfer::Reader';
 
-#- Parameters
-
-has 'recipe' => (
-    is       => 'ro',
-    isa      => 'App::Transfer::Recipe',
-    required => 1,
-);
-
-has 'options' => (
-    is       => 'ro',
-    isa      => 'App::Transfer::Options',
-    required => 1,
-);
-
-#- End of parameters
-
 has table => (
     is       => 'ro',
     isa      => 'Str',
@@ -174,9 +158,67 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
-=head1 DESCRIPTION
+__END__
 
-App::Transfer::Reader::db - Read from a DB and return the contents as
-AoH.
+=encoding utf8
+
+=head1 Name
+
+App::Transfer::Reader::db - Reader for database tables
+
+=head1 Synopsis
+
+  my $reader = App::Transfer::Reader->load( { reader => 'db' } );
+
+=head1 Description
+
+App::Transfer::Reader::db reads from a database table and
+builds a AoH data structure for the entire contents.
+
+=head1 Interface
+
+=head2 Attributes
+
+=head3 C<table>
+
+The name of the source table.
+
+=head3 C<target>
+
+The L<App::Transfer::Targe> object.
+
+=head3 C<_headers>
+
+An array reference holding info about the table.  The data-structure
+contains the table name, row, header and skip attributes. XXX
+
+=head3 C<_contents>
+
+An array reference holding the contents of the table.
+
+=head3 C<contents_iter>
+
+A L<MooseX::Iterator> object for the contents of the table.
+
+=head2 Instance Methods
+
+=head3 C<has_table>
+
+Return true if the table C<$name> is defined in the recipe (actually
+returns the name of the table or undef).
+
+=head3 C<get_data>
+
+Return an array reference of hashes, where the hash keys are the names
+of the columns and the values are the values read from the table
+columns. (XXX reformulate).
+
+=head3 C<get_fields>
+
+=head3 C<get_data>
+
+Return an array reference of hashes, where the hash keys are the names
+of the columns and the values are the values read from the table
+columns. (XXX reformulate).
 
 =cut
