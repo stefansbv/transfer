@@ -53,3 +53,30 @@ sub do_transform {
 __PACKAGE__->meta->make_immutable;
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 Name
+
+App::Transfer::Transform - The transformation plugin manager
+
+=head1 Description
+
+App::Transfer::Transform manages the plugins and instantiates the
+loging module.
+
+=head1 Interface
+
+=head2 Instance Methods
+
+=head3 _build_plugins
+
+Loads the plugins.
+
+=head3 do_transform
+
+Execute the plugin method and pass ths returned value.
+
+=cut
