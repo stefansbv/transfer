@@ -102,9 +102,8 @@ sub has_table {
 sub get_fields {
     my ($self, $table) = @_;
 
-    my $target = $self->recipe->destination->target;
+    # my $target = $self->recipe->destination->target;
     my $engine = $self->target->engine;
-
     hurl {
         ident   => 'reader',
         exitval => 1,
@@ -116,7 +115,14 @@ sub get_fields {
     my @table_fields = keys %{$fields_href};
 
     # The fields from the header map
-    my $header = $self->recipe->tables->get_table($table)->headermap;
+    my $recipe_table = $self->recipe->tables->get_table($table);
+    hurl {
+        ident   => 'reader',
+        exitval => 1,
+        message => __x(
+            'Table "{table}" has no header-map in the recipe', table => $table ),
+    } unless $recipe_table;
+    my $header = $recipe_table->headermap;
     my @hmap_fields = keys %{$header};
 
     my $lc = List::Compare->new( \@table_fields, \@hmap_fields );
@@ -142,9 +148,14 @@ has 'contents_iter' => (
 );
 
 sub get_data {
-    my $self  = shift;
-    my $table = $self->table;
-    die "Error: no table named '$table'!" unless $self->has_table($table);
+    my $self   = shift;
+    my $table  = $self->table;
+    my $engine = $self->target->engine;
+    hurl {
+        ident   => 'reader',
+        exitval => 1,
+        message => __x( 'Table "{table}" does not exists', table => $table ),
+    } unless $engine->table_exists($table);
     my $iter = $self->contents_iter;
     my @records;
     while ( $iter->has_next ) {
