@@ -1,6 +1,6 @@
 package App::Transfer::Plugin::lookup_in_dbtable;
 
-# ABSTRACT: lookup in database table
+# ABSTRACT: Transfer plugin: lookup in a database table
 
 use 5.010001;
 use Moose;
@@ -10,7 +10,7 @@ with 'MooseX::Log::Log4perl';
 
 sub lookup_in_dbtable {
     my ( $self, $p ) = @_;
-    my ($logfld, $logidx, $fields, $table, $engine, $where, $lookup)
+    my ( $logfld, $logidx, $fields, $table, $engine, $where, $lookup )
         = @$p{qw(logfld logidx fields table engine where lookup)};
     return unless $lookup;
 
@@ -21,19 +21,22 @@ sub lookup_in_dbtable {
     }
     elsif ( $ret_no > 1 ) {
         my $results = '';
-        foreach my $ary (@{$result_aref}) {
+        foreach my $ary ( @{$result_aref} ) {
             $results .= ' ';
             $results .= "'" . join( ',', @{$ary} ) . "'";
         }
         $self->log->info(
             "[$logfld=$logidx] lookup: multiple values for '",
-            join( ',', @{$fields} ), "'='$lookup': $results"
+            join( ',', @{$fields} ),
+            "'='$lookup': $results"
         );
     }
     else {
         $self->log->info(
             "[$logfld=$logidx] lookup: failed for '",
-            join( ',', @{$fields} ), "'='$lookup'" );
+            join( ',', @{$fields} ),
+            "'='$lookup'"
+        );
     }
     return;
 }
@@ -41,3 +44,55 @@ sub lookup_in_dbtable {
 __PACKAGE__->meta->make_immutable;
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 Name
+
+App::Transfer::Plugin::lookup_in_dbtable - Transfer plugin to lookup in tables
+
+=head1 Interface
+
+=head2 Instance Methods
+
+=head3 C<lookup_in_dbtable>
+
+Parameters:
+
+=over
+
+=item C<$logfld> log field name
+
+=item C<$logidx> log field value
+
+=item C<$field>  destination field name
+
+=item C<$table>  table name
+
+=item C<$engine> the destination engine object
+
+=item C<$where>  where
+
+=item C<$lookup> lookup the value to lookup
+
+=back
+
+XXX
+
+Recipe configuration example step:
+
+  <step>
+    type              = lookup_db
+    datasource        = v_siruta
+    field_src         = localitate
+    method            = lookup_in_dbtable
+    field_dst         = siruta
+    field_dst         = codp
+  </step>
+
+Lookup for the C<$lookup> value in the C<$field> field where C<$where>
+and return the result if ...
+
+=cut

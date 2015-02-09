@@ -12,15 +12,15 @@ with 'MooseX::Log::Log4perl';
 
 sub copy_nonzero {
     my ( $self, $p ) = @_;
-    my ($logfld, $logidx, $field, $value, $fields_src, $attributes)
+    my ($logfld, $logidx, $field, $text, $fields_src, $attributes)
         = @$p{qw(logfld logidx name value fields_src attributes)};
-    if ( none { $_ != 0 } @{$value} ) {
+    if ( none { $_ != 0 } @{$text} ) {
         my $msg = $attributes->{MOVE} ? 'move' : 'copy';
         $self->log->info("[$logfld=$logidx] $msg to '$field' skipped: all values == 0");
         return;
     }
     else {
-        my $ea = each_array( @{$fields_src}, @{$value} );
+        my $ea = each_array( @{$fields_src}, @{$text} );
         my $r  = {};
         while ( my ( $field_src, $val ) = $ea->() ) {
             $val //= 0;

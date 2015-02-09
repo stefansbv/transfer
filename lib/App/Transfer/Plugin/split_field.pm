@@ -10,10 +10,10 @@ with 'MooseX::Log::Log4perl';
 
 sub split_field {
     my ($self, $p) = @_;
-    my ($logfld, $logidx, $field, $value, $limit, $separator )
+    my ($logfld, $logidx, $field, $text, $limit, $separator )
         = @$p{qw(logfld logidx name value limit separator)};
-    return unless $value;
-    return split /$separator/, $value, $limit;
+    return unless $text;
+    return split /$separator/, $text, $limit;
 }
 
 __PACKAGE__->meta->make_immutable;

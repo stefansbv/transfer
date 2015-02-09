@@ -26,7 +26,7 @@ sub eu_to_iso {
     return unless $text;
     my ( $year, $month, $day ) = Decode_Date_EU($text);
     unless ( $year and $month and $day ) {
-        $self->log->info("[$logfld=$logidx] date: $field='$text' is not a valid date");
+        $self->log->info("[$logfld=$logidx] date: $field='$text' is not a valid EU date");
         return;
     }
     return sprintf( "%04d\-%02d\-%02d", $year, $month, $day );
@@ -66,6 +66,11 @@ Parameters:
 
 The C<date> method checks the length of the input text and returns
 C<undef> if it's different than C<10>, and also creates a log message.
-Otherwise tries to transform it to an ISO date and return it.
+Otherwise tries to transform it to an ISO date and return it.  The
+input date format is assumed to be in European format.
+
+=head3 C<eu_to_iso>
+
+Takes an European formated date string and return an ISO date.
 
 =cut

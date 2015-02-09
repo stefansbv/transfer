@@ -10,9 +10,9 @@ with 'MooseX::Log::Log4perl';
 
 sub text {
     my ($self, $p) = @_;
-    my ($logfld, $logidx, $field, $value ) = @$p{qw(logfld logidx name value)};
-    return unless $value;
-    return $value;
+    my ($logfld, $logidx, $field, $text ) = @$p{qw(logfld logidx name value)};
+    return unless $text;
+    return $text;
 }
 
 __PACKAGE__->meta->make_immutable;
