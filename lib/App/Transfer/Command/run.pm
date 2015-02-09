@@ -711,7 +711,7 @@ sub type_lookup_db {
     my $field_dst  = $step->field_dst;
     my $lookup_val = $columns->{$field_src};
 
-    # XXX Make the 'dst' field an array ref if it's not
+    # Make the 'dst' field an array ref if it's not
     $field_dst = ref $field_dst eq 'ARRAY' ? $field_dst : [$field_dst];
 
     return $columns unless defined $lookup_val; # skip if undef
@@ -724,7 +724,7 @@ sub type_lookup_db {
         }
     }
 
-    # Check if fields exists in DB
+    # Check if the fields exists in the DB
     foreach my $field ( @{$field_dst} ) {
         my $p = $info->{$field};
         hurl field_info => __x(
@@ -740,14 +740,7 @@ sub type_lookup_db {
     $p->{where}             = {};
     $p->{where}{$field_src} = $lookup_val;
     $p->{fields}            = $field_dst;
-    $p->{engine} = $self->writer->target->engine;   # XXX Add a target
-                                                    # config atribute
-                                                    # for the
-                                                    # lookup_db
-                                                    # config, or is OK
-                                                    # to use the
-                                                    # destination
-                                                    # target?
+    $p->{engine} = $self->writer->target->engine; # use the dst database
     $p->{logfld} = $info->{logfld};
     $p->{logidx} = $info->{logidx};
     my $result_aref = $self->transform->do_transform( $step->method, $p );
