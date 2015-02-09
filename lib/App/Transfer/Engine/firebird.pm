@@ -44,11 +44,13 @@ has dbh => (
 sub parse_error {
     my ( $self, $err ) = @_;
 
+    #say "FB: >$err<";
     my $message_type
         = $err eq q{} ? "nomessage"
         : $err =~ m/operation for file ($RE{quoted})/smi ? "dbnotfound:$1"
         : $err =~ m/\-Table unknown\s*\-(.*)\-/smi       ? "relnotfound:$1"
         : $err =~ m/\-Token unknown -\s*(.*)/smi         ? "badtoken:$1"
+        : $err =~ m/\-Column unknown\s*\-(.*)/smi        ? "colnotfound:$1"
         : $err =~ m/Your user name and password/smi      ? "userpass"
         : $err =~ m/no route to host/smi                 ? "network"
         : $err =~ m/network request to host ($RE{quoted})/smi ? "nethost:$1"
