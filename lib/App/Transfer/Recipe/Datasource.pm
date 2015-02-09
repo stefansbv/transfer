@@ -1,6 +1,6 @@
 package App::Transfer::Recipe::Datasource;
 
-# ABSTRACT: Recipe transform datasources
+# ABSTRACT: Recipe datasources section
 
 use 5.010001;
 use Moose;
@@ -123,3 +123,51 @@ sub ds_to_hoaoh {
 __PACKAGE__->meta->make_immutable;
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 Name
+
+App::Transfer::Recipe::Datasource - Recipe datasources section
+
+=head1 Synopsis
+
+=head1 Description
+
+=head1 Interface
+
+=head2 Constructors
+
+=head2 Attributes
+
+=head3 C<_valid_elts>
+
+A hash reference attribute for the C<_valid_elts> section.
+
+=head3 C<_non_valid_elts>
+
+A hash reference attribute for the C<_non_valid_elts> section.
+
+=head3 C<_hints>
+
+A hash reference of hash references attribute for the C<hints>
+section.
+
+=head3 C<_datasource>
+
+A hash reference of array references attribute for the C<datasource>
+section.
+
+=head2 Instance Methods
+
+XXX Make coercions for this!?
+
+=head3 C<ds_to_hoh>
+
+=head3 C<ds_to_hoa>
+
+=head3 C<ds_to_hoaoh>
+
+=cut

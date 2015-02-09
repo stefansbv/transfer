@@ -60,13 +60,15 @@ has engine => (
 
 __END__
 
+=encoding utf8
+
 =head1 Name
 
 App::Transfer::Target - Transfer reader or writer database target
 
 =head1 Synopsis
 
-  my $plan = App::Transfer::Target->new(
+  my $target = App::Transfer::Target->new(
       transfer => $transfer,
       uri      => 'db:...',
   );
@@ -88,38 +90,6 @@ Instantiates and returns an App::Transfer::Target object. The most important
 parameters are C<transfer>, C<name> and C<uri>.
 
 TODO: Adapt for Transfer:
-
-The constructor tries really hard to figure out the proper name and
-URI during construction. If the C<uri> parameter is passed, this is
-straight-forward: if no C<name> is passed, C<name> will be set to the
-stringified format of the URI (minus the password, if present).
-
-Otherwise, when no URI is passed, the name and URI are determined by taking
-the following steps:
-
-=over
-
-=item *
-
-If there is no name, get the engine key from from C<--engine> or the
-C<core.engine> configuration option. If no key can be determined, an exception
-will be thrown.
-
-=item *
-
-Use the key to look up the target name in the C<engine.$engine.target>
-configuration option. If none is found, use C<db:$key:>.
-
-=item *
-
-If the name contains a colon (C<:>), assume it is also the value for the URI.
-
-=item *
-
-Otherwise, it should be the name of a configured target, so look for a URI in
-the C<target.$name.uri> configuration option.
-
-=back
 
 As a general rule, then, pass either a target name or URI string in the
 C<name> parameter, and Transfer will do its best to find all the relevant target

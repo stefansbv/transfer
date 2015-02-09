@@ -1,6 +1,6 @@
 package App::Transfer::Recipe::Header;
 
-# ABSTRACT: Data transformation recipe parser
+# ABSTRACT: Data transformation recipe header
 
 use 5.010001;
 use Moose;
