@@ -9,12 +9,15 @@ use Test::Most;
 use Test::MockModule;
 use Path::Class 0.33 qw(file dir);
 use Locale::TextDomain qw(App-Transfer);
-#use File::Temp 'tempdir';
+use Log::Log4perl;
 
-use Data::Printer;
+use App::Transfer::Transform;
+BEGIN { Log::Log4perl->init('t/log.conf') }
 
 # Just die on warnings.
 use Carp; BEGIN { $SIG{__WARN__} = \&Carp::confess }
+
+use Data::Dump;
 
 sub run {
     my ( $self, %p ) = @_;
@@ -121,12 +124,13 @@ sub run {
         );
 
         my $fields_list = join " \n , ", map { join ' ', @{$_} } @fields_info;
+        my $table_info  = 'test_info';
 
-        my $ddl = qq{CREATE TABLE test_info ( \n   $fields_list \n);};
+        my $ddl = qq{CREATE TABLE $table_info ( \n   $fields_list \n);};
 
-        ok $engine->dbh->do($ddl), 'create test_info table';
+        ok $engine->dbh->do($ddl), "create '$table_info' table";
 
-        ok my $info = $engine->get_info('test_info'), 'get info for table';
+        ok my $info = $engine->get_info($table_info), 'get info for table';
         foreach my $rec (@fields_info) {
             my ($name, $type) = @{$rec};
             $type =~ s{\(.*\)}{}gmx;       # just the type
@@ -137,48 +141,228 @@ sub run {
 
 
         ######################################################################
-        # Test the DB reader
+        # Test the DB writer and prepare test tables
 
-        # Change target_params hash ref key from 'uri' to 'input_uri',
+        # Change target_params hash ref key from 'uri' to 'output_uri',
         # as required by App::Transfer::Options
-        my $target_params = [ 'input_uri', $p{target_params}[1] ];
+        my $target_params = [ 'output_uri', $p{target_params}[1] ];
         my $options_href = {
             @{ $target_params || [] },
         };
-        ok $recipe = $transfer->recipe, 'get the recipe object again';
-        ok my $options = App::Transfer::Options->new(
+        ok my $recipe_w = $transfer->recipe, 'get the recipe object again';
+        ok my $options_w = App::Transfer::Options->new(
+            transfer => $transfer,
+            options  => $options_href,
+            rw_type  => 'writer',
+        ), 'options object';
+        ok my $writer = App::Transfer::Writer->load({
+            transfer => $transfer,
+            recipe   => $recipe_w,
+            writer   => 'db',
+            options  => $options_w,
+        }), 'new db writer object';
+
+        my @fields_look = (
+            [ 'siruta', 'integer' ],
+            [ 'localitate', 'varchar(100)' ],
+        );
+        my $fields_look = join " \n , ", map { join ' ', @{$_} } @fields_look;
+        my $table_dict = 'test_dict';
+
+        # Create the dictionary test table
+
+        $ddl = qq{CREATE TABLE $table_dict ( \n   $fields_look \n);};
+
+        ok $engine->dbh->do($ddl), "create '$table_dict' table";
+
+        my $records_dict = [
+            {   siruta     => 86357,
+                localitate => 'Izvoru Mureșului',
+            },
+            {   siruta     => 63394,
+                localitate => 'Sfîntu Gheorghe',
+            },
+            {   siruta     => 41104,
+                localitate => 'Podu Oltului',
+            },
+            {   siruta     => 83428,
+                localitate => 'Băile Tușnad',
+            },
+            {   siruta     => 40198,
+                localitate => 'Brașov',
+            },
+        ];
+
+        # Insert the records
+        foreach my $row ( @{$records_dict} ) {
+            $writer->insert($table_dict, $row);
+        }
+        is $writer->records_inserted, 5, 'records inserted: 5';
+        is $writer->records_skipped, 0, 'records skipped: 0';
+
+        ### The source table
+
+        ok $writer = App::Transfer::Writer->load({
+            transfer => $transfer,
+            recipe   => $recipe_w,
+            writer   => 'db',
+            options  => $options_w,
+        }), 'a new db writer object';
+
+        my @fields_db = (
+            [ 'id', 'integer' ],
+            [ 'denumire', 'varchar(100)' ],
+        );
+        my $fields_db = join " \n , ", map { join ' ', @{$_} } @fields_db;
+        my $table_db  = 'test_db';
+
+        # Create the test table
+        $ddl = qq{CREATE TABLE $table_db ( \n   $fields_db \n);};
+
+        ok $engine->dbh->do($ddl), "create '$table_db' table";
+
+        my $records_db = [
+            {   id         => 1,
+                denumire => 'Izvorul Mures',
+            },
+            {   id         => 2,
+                denumire => 'Sfantu Gheorghe',
+            },
+            {   id         => 3,
+                denumire => 'Podu Olt',
+            },
+            {   id         => 4,
+                denumire => 'Baile Tusnad',
+            },
+            {   id         => 5,
+                denumire => 'Brașov',
+            },
+        ];
+
+        # Insert some the records
+        foreach my $row ( @{$records_db} ) {
+            $writer->insert($table_db, $row);
+        }
+        is $writer->records_inserted, 5, 'records inserted: 5';
+        is $writer->records_skipped, 0, 'records skipped: 0';
+
+        ### The destination table
+
+        my @fields_import = (
+            [ 'id', 'integer' ],
+            [ 'siruta', 'integer' ],
+            [ 'denumire', 'varchar(100)' ],
+        );
+        my $fields_import = join " \n , ",
+            map { join ' ', @{$_} } @fields_import;
+        my $table_import = 'test_import';
+
+        # Create the test table
+        $ddl = qq{CREATE TABLE $table_import ( \n   $fields_import \n);};
+
+        ok $engine->dbh->do($ddl), "create '$table_import' table";
+
+
+        ######################################################################
+        # Test the DB reader and the plugin
+
+        # Change target_params hash ref key from 'uri' to 'input_uri',
+        # as required by App::Transfer::Options
+        $target_params = [ 'input_uri', $p{target_params}[1] ];
+        $options_href = {
+            @{ $target_params || [] },
+        };
+        ok my $recipe_r = $transfer->recipe, 'get the recipe object again';
+        ok my $options_r = App::Transfer::Options->new(
             transfer => $transfer,
             options  => $options_href,
             rw_type  => 'reader',
         ), 'options object';
         ok my $reader = App::Transfer::Reader->load({
             transfer => $transfer,
-            recipe   => $recipe,
+            recipe   => $recipe_r,
             reader   => 'db',
-            options  => $options,
+            options  => $options_r,
         }), 'new db reader object';
 
         # Test for failure
-        throws_ok { $reader->get_fields('nonexistenttable') } 'App::Transfer::X',
+        throws_ok { $reader->get_fields('nonexistenttable') }
+        'App::Transfer::X',
             'Should have error for nonexistent table';
-        is $@->ident, 'reader', 'Nonexistent table error ident should be "reader"';
-        is $@->message, __(
-            'Table "nonexistenttable" does not exists'
-        ), 'Nonexistent table error should be correct';
+        is $@->ident, 'reader',
+            'Nonexistent table error ident should be "reader"';
+        is $@->message, __( 'Table "nonexistenttable" does not exists' ),
+            'Nonexistent table error should be correct';
 
-        # Test reader
-        ok my $table = $reader->table, 'get the table name';
-        is $table, 'test_info', 'check the table name';
+        ok my $table_r = $reader->table, 'get the table name';
+        is $table_r, $table_db, 'check the table name';
 
-        throws_ok { $reader->get_fields($table) }
-            qr/\QColumns from the map file not found in the/,
-            'Should get an exception for nonexistent columns';
+        ### XXX Needs another recipe
+        # throws_ok { $reader->get_fields($table) }
+        #     qr/\QColumns from the map file not found in the/,
+        #     'Should get an exception for nonexistent columns';
 
-        # ok my $fields = $reader->get_fields($table), 'table fields';
-        # is scalar @{$fields}, 6, 'got 6 fields';
+        ok my $fields = $reader->get_fields($table_db), 'table fields';
+        is scalar @{$fields}, 2, 'got 2 fields';
 
-        # ok my $records = $reader->get_data, 'get data for table';
-        # ok scalar @{$records} > 0, 'got some records';
+        ok my $records = $reader->get_data, 'get data for table';
+        ok scalar @{$records} > 0, 'got some records';
+
+
+        ######################################################################
+        # Test the lookup_db plugin
+
+        # Find the lookup_db row trafo step
+        my $field_src;
+        my $field_where;
+        my $field_dst = [];
+        my $hint_name;
+        foreach my $step ( @{ $recipe->transform->row } ) {
+            if ( $step->type eq 'lookup_db' ) {
+                $hint_name = $step->hints;
+                next unless $step->datasource eq 'test_dict';
+                $field_src         = $step->field_src;
+                my $field_dst_aref = $step->field_dst;
+                foreach my $field ( @{$field_dst_aref} ) {
+                    if (ref $field eq 'HASH') {
+                        push @{$field_dst}, $field->{$field_src};
+                        $field_where = $field->{$field_src};
+                    }
+                    else {
+                        push @{$field_dst}, $field;
+                    }
+                }
+                last;
+            }
+        }
+
+        ok my $ttr = App::Transfer::Transform->new, 'New Transform object';
+
+        foreach my $columns ( @{$records} ) {
+            my $lookup_val = $columns->{$field_src};
+            if ($hint_name) {
+                my $hints = $recipe->datasource->get_hints($hint_name);
+                if (exists $hints->{$lookup_val}) {
+                    $lookup_val = $hints->{$lookup_val};
+                }
+            }
+
+            my $p = {};
+            $p->{table}             = 'test_dict';
+            $p->{lookup}            = $lookup_val;
+            $p->{where}             = {};
+            $p->{where}{$field_where} = $lookup_val;
+            $p->{fields}            = $field_dst;
+            $p->{engine}            = $engine;
+            $p->{logfld}            = 'id';
+            $p->{logidx}            = $columns->{ $p->{logfld} } // '?';
+
+            my $result_aref = $ttr->do_transform( 'lookup_in_dbtable', $p );
+            foreach my $field ( @{$field_dst} ) {
+                $columns->{$field} = shift @{$result_aref};
+            }
+            dd $columns;
+        }
 
 
         ######################################################################

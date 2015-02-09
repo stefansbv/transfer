@@ -87,13 +87,13 @@ subtest 'Row transformation type' => sub {
         }
         if ($type eq 'lookup') {
             is ref $field_src, '', 'lookup src field string';
-            is ref $field_dst, '', 'lookup dst field string';
-            is $step->datasource, 'one_element', 'lookup datasource';
+            is ref $field_dst, 'ARRAY', 'lookup dst field array';
+            is $step->datasource, 'two_elements', 'lookup datasource';
         }
         if ($type eq 'lookup_db') {
             is ref $field_src, '',      'lookup_db src field string';
             is ref $field_dst, 'ARRAY', 'lookup_db dst fields array';
-            is $step->datasource, 'two_elements', 'lookup_db datasource';
+            is $step->datasource, 'v_siruta', 'lookup_db datasource';
             ok $step->can('hints'), 'lookup_db hints';
         }
     }
@@ -109,6 +109,26 @@ subtest 'Datasources' => sub {
     is ref $recipe->datasource->get_non_valid_list('one_element'), 'ARRAY',
         'One invalid elements list';
 
+    # XXX Test thoroughly; fix module
+    # Passes on wrong input, example:
+    #     <hints localitati>
+    #   <record>
+    #     item              = Izvorul Mures
+    #     hint              = Izvoru Mureșului
+    #   <record>
+    #   </record>
+    #     item              = Sfantu Gheorghe
+    #     hint              = Sfîntu Gheorghe
+    #   <record>
+    #   </record>
+    #     item              = Podu Olt
+    #     hint              = Podu Oltului
+    #   <record>
+    #   </record>
+    #     item              = Baile Tusnad
+    #     hint              = Băile Tușnad
+    #   </record>
+    # </hints>
     is ref $recipe->datasource->get_hints('one_element'), 'HASH',
         'One element hint dictionary';
     is ref $recipe->datasource->get_hints('two_elements'), 'HASH',
