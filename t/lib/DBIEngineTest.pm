@@ -11,7 +11,10 @@ use Path::Class 0.33 qw(file dir);
 use Locale::TextDomain qw(App-Transfer);
 use Log::Log4perl;
 
-use App::Transfer::Transform;
+use App::Transfer::RowTrafos;
+use App::Transfer::Config;
+use App::Transfer::Recipe::Transform;
+
 BEGIN { Log::Log4perl->init('t/log.conf') }
 
 # Just die on warnings.
@@ -250,8 +253,8 @@ sub run {
 
         my @fields_import = (
             [ 'id', 'integer' ],
-            [ 'siruta', 'integer' ],
-            [ 'denumire', 'varchar(100)' ],
+            [ 'cod', 'integer' ],
+            [ 'denloc', 'varchar(100)' ],
         );
         my $fields_import = join " \n , ",
             map { join ' ', @{$_} } @fields_import;
@@ -310,60 +313,83 @@ sub run {
 
 
         ######################################################################
-        # Test the lookup_db plugin
+        # Test the lookup_db plugin and type_lookup_db type trafo method
 
-        # Find the lookup_db row trafo step
-        my $field_src;
-        my $field_where;
-        my $field_dst = [];
-        my $hint_name;
-        foreach my $step ( @{ $recipe->transform->row } ) {
-            if ( $step->type eq 'lookup_db' ) {
-                $hint_name = $step->hints;
-                next unless $step->datasource eq 'test_dict';
-                $field_src         = $step->field_src;
-                my $field_dst_aref = $step->field_dst;
-                foreach my $field ( @{$field_dst_aref} ) {
-                    if (ref $field eq 'HASH') {
-                        push @{$field_dst}, $field->{$field_src};
-                        $field_where = $field->{$field_src};
-                    }
-                    else {
-                        push @{$field_dst}, $field;
-                    }
-                }
-                last;
-            }
+        # The step config section
+        my $conf_lookup_db = {
+            transform => {
+                row => {
+                    step => {
+                        field_src => { denumire => 'localitate' },
+                        field_dst => [
+                            { denloc => 'localitate' },
+                            { cod    => 'siruta' },
+                        ],
+                        hints      => 'localitati',
+                        method     => 'lookup_in_dbtable',
+                        type       => 'lookup_db',
+                        datasource => 'test_dict'
+                    },
+                },
+            },
+        };
+
+        ok my $transform = App::Transfer::Transform->new,
+            'new transform object';
+
+        ok my $tr = App::Transfer::Recipe::Transform->new(
+            $conf_lookup_db->{transform} ), 'lookup_db test step';
+        isa_ok $tr, 'App::Transfer::Recipe::Transform';
+
+        ok my $step = $tr->row->[0], 'the step';
+
+        ok $info = $engine->get_info($table_import),
+            'get info for table';
+
+        ok my $command = App::Transfer::RowTrafos->new(
+            recipe    => $transfer->recipe,
+            transform => $transform,
+            engine    => $engine,
+            info      => $info,
+        ), 'new command';
+
+        my @records;
+        foreach my $rec ( @{$records} ) {
+            push @records, $command->type_lookup_db( $step, $rec );
         }
 
-        ok my $ttr = App::Transfer::Transform->new, 'New Transform object';
+        my $expected = [
+            {   id       => 1,
+                denumire => 'Izvorul Mures',
+                cod      => 86357,
+                denloc   => 'Izvoru Mureșului',
+            },
+            {   id       => 2,
+                denumire => 'Sfantu Gheorghe',
+                cod      => 63394,
+                denloc   => 'Sfîntu Gheorghe',
+            },
+            {   id       => 3,
+                denumire => 'Podu Olt',
+                cod      => 41104,
+                denloc   => 'Podu Oltului',
+            },
+            {   id       => 4,
+                denumire => 'Baile Tusnad',
+                cod      => 83428,
+                denloc   => 'Băile Tușnad',
+            },
+            {   id       => 5,
+                denumire => 'Brașov',
+                cod      => 40198,
+                denloc   => 'Brașov',
+            },
+        ];
 
-        foreach my $columns ( @{$records} ) {
-            my $lookup_val = $columns->{$field_src};
-            if ($hint_name) {
-                my $hints = $recipe->datasource->get_hints($hint_name);
-                if (exists $hints->{$lookup_val}) {
-                    $lookup_val = $hints->{$lookup_val};
-                }
-            }
+        # say "*** rezult:";
+        # dd @records;
 
-            my $p = {};
-            $p->{table}             = 'test_dict';
-            $p->{lookup}            = $lookup_val;
-            $p->{where}             = {};
-            $p->{where}{$field_where} = $lookup_val;
-            $p->{fields}            = $field_dst;
-            $p->{engine}            = $engine;
-            $p->{logfld}            = 'id';
-            $p->{logidx}            = $columns->{ $p->{logfld} } // '?';
-
-            my $result_aref = $ttr->do_transform( 'lookup_in_dbtable', $p );
-            foreach my $field ( @{$field_dst} ) {
-                $columns->{$field} = shift @{$result_aref};
-            }
-            dd $columns;
-        }
-
+        is_deeply \@records, $expected, 'resulting records';
 
         ######################################################################
         # All done.
