@@ -10,7 +10,11 @@ use namespace::autoclean;
 
 has 'type'       => ( is => 'ro', isa => 'Str',            required => 1 );
 has 'method'     => ( is => 'ro', isa => 'Str',            required => 1 );
-has 'field_src'  => ( is => 'ro', isa => 'Str | ArrayRef', required => 1 );
+has 'field_src' => (
+    is       => 'ro',
+    isa      => 'Str | ArrayRef | HashRef',
+    required => 1,
+);
 has 'field_dst'  => ( is => 'ro', isa => 'Str | ArrayRef', required => 1 );
 
 has 'attributes' => (
