@@ -16,12 +16,14 @@ use namespace::autoclean;
 
 extends qw(App::Transfer);
 
-with qw(App::Transfer::Role::Utils MooseX::Log::Log4perl);
+with qw(App::Transfer::Role::Utils
+        MooseX::Log::Log4perl);
 
 use App::Transfer::Options;
 use App::Transfer::Reader;
 use App::Transfer::Writer;
 use App::Transfer::Transform;
+use App::Transfer::RowTrafos;
 
 option 'recipe_file' => (
     is            => 'ro',
@@ -200,26 +202,6 @@ has '_contents' => (
 has '_contents_iter' => (
     metaclass    => 'Iterable',
     iterate_over => '_contents',
-);
-
-has '_trafo_types' => (
-    traits  => ['Hash'],
-    is      => 'rw',
-    isa     => 'HashRef',
-    default => sub {
-        return {
-            split     => \&type_split,
-            join      => \&type_join,
-            copy      => \&type_copy,
-            batch     => \&type_batch,
-            lookup    => \&type_lookup,
-            lookup_db => \&type_lookup_db,
-        };
-        },
-    handles => {
-        exists_in_type => 'exists',
-        get_type       => 'get',
-    },
 );
 
 sub execute {
@@ -470,10 +452,17 @@ sub do_transformations {
 
     #--  Transformations per record (row)
 
+    my $cmd = App::Transfer::RowTrafos->new(
+        recipe    => $self->recipe,
+        transform => $self->transform,
+        engine    => $self->writer->target->engine,
+        info      => $info,
+    );
+
     foreach my $step ( @{ $self->recipe->transform->row } ) {
         my $type = $step->type;
-        if ( $type and $self->exists_in_type($type) ) {
-            $columns = $self->get_type($type)->($self, $step, $columns, $info);
+        if ( $type and $cmd->exists_in_type($type) ) {
+            $columns = $cmd->get_type($type)->($self, $step, $columns);
         }
         else {
             hurl trafo_type =>
@@ -494,258 +483,6 @@ sub do_transformations {
         $p->{value}  = $value;    # add the value to p
         $p->{value}  = $self->transform->do_transform( $p->{type}, $p );
         $columns->{$field} = $p->{value};
-    }
-
-    return $columns;
-}
-
-sub type_split {
-    my ( $self, $step, $columns, $info ) = @_;
-
-    my $field_src = $step->field_src;
-
-    unless ( exists $columns->{$field_src} ) {
-        hurl type_split => __x( "Error in recipe (split): no such field '{field}'",
-            field => $field_src );
-    }
-
-    my $p = $info->{$field_src};
-    $p->{logfld} = $info->{logfld};
-    $p->{logidx} = $info->{logidx};
-
-    hurl field_info =>
-        __x( "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency",
-        field => $field_src ) unless defined $p;
-
-    $p->{value} = $columns->{$field_src};      # add the value to p
-    $p->{limit} = @{ $step->field_dst };    # num fields to return
-    $p->{separator} = $step->separator;
-    my @values = $self->transform->do_transform( $step->method, $p );
-    my $i = 0;
-    foreach my $value (@values) {
-        my $field_dst = ${ $step->field_dst }[$i];
-        unless ( exists $columns->{$field_dst} ) {
-            my $field_dst_info = $info->{$field_dst};
-            hurl field_info => __x(
-                "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency",
-                field => $field_dst
-            ) unless defined $field_dst_info;
-        }
-        $columns->{$field_dst} = $value;
-        $i++;
-    }
-
-    return $columns;
-}
-
-sub type_join {
-    my ( $self, $step, $columns, $info ) = @_;
-
-    my $fields_src = $step->field_src;
-    my $values;
-    foreach my $field_src ( @{$fields_src} ) {
-        unless ( exists $columns->{$field_src} ) {
-            hurl type_split =>
-                __x( "Error in recipe (join): no such field '{field}'",
-                field => $field_src );
-        }
-        my $field_src_info = $info->{$field_src};
-        hurl field_info => __x(
-            "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
-            field   => $field_src,
-            context => 'join',
-        ) unless defined $field_src_info;
-
-        push @{$values}, $columns->{$field_src}
-            if defined $columns->{$field_src};
-    }
-    my $field_dst = $step->field_dst;
-    my $p         = $info->{$field_dst};
-    $p->{logfld}     = $info->{logfld};
-    $p->{logidx}     = $info->{logidx};
-    $p->{separator}  = $step->separator;
-    $p->{value}      = $values;
-    $p->{fields_src} = $fields_src;
-    $columns->{$field_dst}
-        = $self->transform->do_transform( $step->method, $p );
-
-    return $columns;
-}
-
-sub type_copy {
-    my ( $self, $step, $columns, $info ) = @_;
-
-    my $field_src  = $step->field_src;
-    my $field_dst  = $step->field_dst;
-    my $attributes = $step->attributes;
-
-    my $p = $info->{$field_src};
-    $p->{logfld} = $info->{logfld};
-    $p->{logidx} = $info->{logidx};
-
-    hurl field_info => __x(
-        "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
-        field   => $field_src,
-        context => 'copy',
-    ) unless defined $p;
-
-    $p->{value}       = $columns->{$field_src};
-    $p->{lookup_list}
-        = $self->recipe->datasource->get_valid_list( $step->datasource );
-    $p->{field_src}   = $field_src;
-    $p->{field_dst}   = $field_dst;
-    $p->{attributes}  = $attributes;
-
-    my $r = $self->transform->do_transform( $step->method, $p );
-    if ( defined $r ) {
-
-        # Write to destination field
-        if ( $attributes->{APPEND} ) {
-            if ( exists $r->{$field_dst} ) {
-                my $old = $columns->{$field_dst};
-                my $dst = $old ? "$old, " : "$field_src: ";
-                $columns->{$field_dst} = $dst . $r->{$field_dst};
-            }
-        }
-        elsif ( $attributes->{APPENDSRC} ) {
-            if ( exists $r->{$field_dst} ) {
-                my $old = $columns->{$field_dst};
-                my $dst = $old ? "$old, $field_src: " : "$field_src: ";
-                $columns->{$field_dst} = $dst . $r->{$field_dst};
-            }
-        }
-        elsif ( $attributes->{REPLACE} ) {
-            if ( exists $r->{$field_dst} ) {
-                $columns->{$field_dst} = $r->{$field_dst};
-            }
-        }
-        elsif ( $attributes->{REPLACENULL} ) {
-            if ( exists $r->{$field_dst} ) {
-                $columns->{$field_dst} = $r->{$field_dst}
-                    if not defined $r->{$field_dst};
-            }
-        }
-
-        # Delete source field value?
-        if ( $attributes->{MOVE} ) {
-            $columns->{$field_src} = undef;
-        }
-    }
-
-    return $columns;
-}
-
-sub type_batch {
-    my ( $self, $step, $columns, $info ) = @_;
-
-    my $fields_src = $step->field_src;
-    my $values;
-    foreach my $field_src ( @{$fields_src} ) {
-        unless ( exists $columns->{$field_src} ) {
-            hurl type_split =>
-                __x( "Error in recipe (join): no such field '{field}'",
-                field => $field_src );
-        }
-        my $field_src_info = $info->{$field_src};
-        hurl field_info => __x(
-            "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
-            field   => $field_src,
-            context => 'join',
-        ) unless defined $field_src_info;
-
-        push @{$values}, $columns->{$field_src}
-            if defined $columns->{$field_src};
-    }
-    my $field_dst = $step->field_dst;
-    my $p         = $info->{$field_dst};
-    $p->{logfld}     = $info->{logfld};
-    $p->{logidx}     = $info->{logidx};
-    $p->{value}      = $values;
-    $p->{fields_src} = $fields_src;
-    $p->{attributes} = $step->attributes;
-    my $r = $self->transform->do_transform( $step->method, $p );
-    foreach my $field_dst ( keys %{$r} ) {
-        unless ( exists $columns->{$field_dst} ) {
-            my $field_dst_info = $info->{$field_dst};
-            hurl field_info => __x(
-                "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency",
-                field => $field_dst
-            ) unless defined $field_dst_info;
-        }
-        $columns->{$field_dst} = $r->{$field_dst};
-    }
-
-    return $columns;
-}
-
-sub type_lookup {
-    my ( $self, $step, $columns, $info ) = @_;
-
-    my $field_src = $step->field_src; # XXX
-    my $field_dst = $step->field_dst;
-
-    my $p = $info->{$field_dst};
-    $p->{logfld} = $info->{logfld};
-    $p->{logidx} = $info->{logidx};
-
-    hurl field_info => __x(
-        "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
-        field   => $field_dst,
-        context => 'lookup',
-    ) unless defined $p;
-
-    $p->{value} = $columns->{$field_src};
-    $p->{lookup_table}
-        = $self->recipe->datasource->get_ds( $step->datasource );
-
-    $columns->{$field_dst}
-        = $self->transform->do_transform( $step->method, $p );
-
-    return $columns;
-}
-
-sub type_lookup_db {
-    my ( $self, $step, $columns, $info ) = @_;
-
-    my $field_src  = $step->field_src;
-    my $field_dst  = $step->field_dst;
-    my $lookup_val = $columns->{$field_src};
-
-    # Make the 'dst' field an array ref if it's not
-    $field_dst = ref $field_dst eq 'ARRAY' ? $field_dst : [$field_dst];
-
-    return $columns unless defined $lookup_val; # skip if undef
-
-    my $hint_name = $step->hints ;
-    if ($hint_name) {
-        my $hints = $self->recipe->datasource->get_hints($hint_name);
-        if (exists $hints->{$lookup_val}) {
-            $lookup_val = $hints->{$lookup_val};
-        }
-    }
-
-    # Check if the fields exists in the DB
-    foreach my $field ( @{$field_dst} ) {
-        my $p = $info->{$field};
-        hurl field_info => __x(
-            "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
-            field   => $field,
-            context => 'lookup_db',
-        ) unless defined $p;
-    }
-
-    my $p = {};
-    $p->{lookup}            = $lookup_val;
-    $p->{table}             = $step->datasource ;
-    $p->{where}             = {};
-    $p->{where}{$field_src} = $lookup_val;
-    $p->{fields}            = $field_dst;
-    $p->{engine} = $self->writer->target->engine; # use the dst database
-    $p->{logfld} = $info->{logfld};
-    $p->{logidx} = $info->{logidx};
-    my $result_aref = $self->transform->do_transform( $step->method, $p );
-    foreach my $field ( @{$field_dst} ) {
-        $columns->{$field} = shift @{$result_aref};
     }
 
     return $columns;

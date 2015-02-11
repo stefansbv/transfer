@@ -11,9 +11,10 @@ use Path::Class 0.33 qw(file dir);
 use Locale::TextDomain qw(App-Transfer);
 use Log::Log4perl;
 
-use App::Transfer::RowTrafos;
 use App::Transfer::Config;
 use App::Transfer::Recipe::Transform;
+use App::Transfer::Transform;
+use App::Transfer::RowTrafos;
 
 BEGIN { Log::Log4perl->init('t/log.conf') }
 
@@ -267,7 +268,7 @@ sub run {
 
 
         ######################################################################
-        # Test the DB reader and the plugin
+        # Test the DB reader
 
         # Change target_params hash ref key from 'uri' to 'input_uri',
         # as required by App::Transfer::Options
@@ -313,23 +314,35 @@ sub run {
 
 
         ######################################################################
-        # Test the lookup_db plugin and type_lookup_db type trafo method
+        # Test the lookup_in_dbtable plugin and type_lookup_db trafo method
+        # With field_dst as array ref
 
         # The step config section
+        # <step>
+        #   type                = lookup_db
+        #   datasource          = test_dict
+        #   hints               = localitati
+        #   field_src           = denumire
+        #   method              = lookup_in_dbtable
+        #   <field_dst>
+        #     denumire          = localitate
+        #   </field_dst>
+        #   <field_dst>
+        #     cod               = siruta
+        #   </field_dst>
+        # </step>
+        subtest 'a. type_lookup_db with dst: 2 mappings (AoH)' => sub {
+
         my $conf_lookup_db = {
-            transform => {
-                row => {
-                    step => {
-                        field_src => { denumire => 'localitate' },
-                        field_dst => [
-                            { denloc => 'localitate' },
-                            { cod    => 'siruta' },
-                        ],
-                        hints      => 'localitati',
-                        method     => 'lookup_in_dbtable',
-                        type       => 'lookup_db',
-                        datasource => 'test_dict'
-                    },
+            row => {
+                step => {
+                    field_src => { denumire => 'localitate' },
+                    field_dst =>
+                        [ { denloc => 'localitate' }, { cod => 'siruta' }, ],
+                    hints      => 'localitati',
+                    method     => 'lookup_in_dbtable',
+                    type       => 'lookup_db',
+                    datasource => 'test_dict'
                 },
             },
         };
@@ -337,9 +350,9 @@ sub run {
         ok my $transform = App::Transfer::Transform->new,
             'new transform object';
 
-        ok my $tr = App::Transfer::Recipe::Transform->new(
-            $conf_lookup_db->{transform} ), 'lookup_db test step';
-        isa_ok $tr, 'App::Transfer::Recipe::Transform';
+        ok my $tr = App::Transfer::Recipe::Transform->new($conf_lookup_db),
+            'lookup_db test step';
+        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'recipe transform a.';
 
         ok my $step = $tr->row->[0], 'the step';
 
@@ -353,8 +366,17 @@ sub run {
             info      => $info,
         ), 'new command';
 
+        # Input records
+        my $records_4a = [
+            { denumire => "Izvorul Mures",   id => 1 },
+            { denumire => "Sfantu Gheorghe", id => 2 },
+            { denumire => "Podu Olt",        id => 3 },
+            { denumire => "Baile Tusnad",    id => 4 },
+            { denumire => "Brașov",          id => 5 },
+        ];
+
         my @records;
-        foreach my $rec ( @{$records} ) {
+        foreach my $rec ( @{$records_4a} ) {
             push @records, $command->type_lookup_db( $step, $rec );
         }
 
@@ -386,10 +408,299 @@ sub run {
             },
         ];
 
-        # say "*** rezult:";
-        # dd @records;
-
         is_deeply \@records, $expected, 'resulting records';
+
+        };                      # subtest a.
+
+
+        ######################################################################
+        # Test the lookup_in_dbtable plugin and type_lookup_db trafo method
+        # With field_dst as hash ref
+
+        # The step config section
+        # <step>
+        #   type                = lookup_db
+        #   datasource          = test_dict
+        #   hints               = localitati
+        #   field_src           = denumire
+        #   method              = lookup_in_dbtable
+        #   <field_dst>
+        #     denumire          = localitate
+        #     cod               = siruta
+        #   </field_dst>
+        # </step>
+        subtest 'b. type_lookup_db with dst: 2 mappings' => sub {
+
+        my $conf_lookup_db = {
+            row => {
+                step => {
+                    field_src => { denumire => 'localitate' },
+                    field_dst => { denloc => 'localitate', cod => 'siruta' },
+                    hints      => 'localitati',
+                    method     => 'lookup_in_dbtable',
+                    type       => 'lookup_db',
+                    datasource => 'test_dict'
+                },
+            },
+        };
+
+        ok my $transform = App::Transfer::Transform->new,
+            'new transform object';
+
+        ok my $tr = App::Transfer::Recipe::Transform->new($conf_lookup_db),
+            'lookup_db test step';
+        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'recipe transform b.';
+
+        ok my $step = $tr->row->[0], 'the step again';
+
+        ok $info = $engine->get_info($table_import),
+            'get info for table';
+
+        ok my $command = App::Transfer::RowTrafos->new(
+            recipe    => $transfer->recipe,
+            transform => $transform,
+            engine    => $engine,
+            info      => $info,
+        ), 'new command';
+
+        # Input records
+        my $records_4b = [
+            { denumire => "Izvorul Mures",   id => 1 },
+            { denumire => "Sfantu Gheorghe", id => 2 },
+            { denumire => "Podu Olt",        id => 3 },
+            { denumire => "Baile Tusnad",    id => 4 },
+            { denumire => "Brașov",          id => 5 },
+        ];
+
+        my @records;
+        foreach my $rec ( @{$records_4b} ) {
+            push @records, $command->type_lookup_db( $step, $rec );
+        }
+
+        my $expected = [
+            {   id       => 1,
+                denumire => 'Izvorul Mures',
+                cod      => 86357,
+                denloc   => 'Izvoru Mureșului',
+            },
+            {   id       => 2,
+                denumire => 'Sfantu Gheorghe',
+                cod      => 63394,
+                denloc   => 'Sfîntu Gheorghe',
+            },
+            {   id       => 3,
+                denumire => 'Podu Olt',
+                cod      => 41104,
+                denloc   => 'Podu Oltului',
+            },
+            {   id       => 4,
+                denumire => 'Baile Tusnad',
+                cod      => 83428,
+                denloc   => 'Băile Tușnad',
+            },
+            {   id       => 5,
+                denumire => 'Brașov',
+                cod      => 40198,
+                denloc   => 'Brașov',
+            },
+        ];
+
+        is_deeply \@records, $expected, 'resulting records again';
+
+        };                      # subtest b.
+
+
+        ######################################################################
+        # Test the lookup_in_dbtable plugin and type_lookup_db trafo method
+        # With field_dst as hash ref
+
+        # The step config section
+        # <step>
+        #   type                = lookup_db
+        #   datasource          = test_dict
+        #   hints               = localitati
+        #   field_src           = denumire
+        #   method              = lookup_in_dbtable
+        #   <field_dst>
+        #     denumire          = localitate
+        #   </field_dst>
+        #   field_dst           = siruta
+        # </step>
+        subtest 'c. type_lookup_db with dst: a mapping and a field' => sub {
+
+        my $conf_lookup_db = {
+            row => {
+                step => {
+                    field_src => { denumire => 'localitate' },
+                    field_dst => [ { denloc => 'localitate' }, 'siruta' ],
+                    hints      => 'localitati',
+                    method     => 'lookup_in_dbtable',
+                    type       => 'lookup_db',
+                    datasource => 'test_dict'
+                },
+            },
+        };
+
+        ok my $transform = App::Transfer::Transform->new,
+            'new transform object';
+
+        ok my $tr = App::Transfer::Recipe::Transform->new($conf_lookup_db),
+            'lookup_db test step';
+        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'recipe transform c.';
+
+        ok my $step = $tr->row->[0], 'the step again';
+
+        ok my $info = $engine->get_info($table_import),
+            'get info for table';
+
+        # Manipulate info
+        $info->{siruta} = {
+            defa        => undef,
+            is_nullable => undef,
+            length      => 4,
+            name        => "cod",
+            pos         => 1,
+            prec        => 0,
+            scale       => 0,
+            type        => "integer",
+        },
+
+        ok my $command = App::Transfer::RowTrafos->new(
+            recipe    => $transfer->recipe,
+            transform => $transform,
+            engine    => $engine,
+            info      => $info,
+        ), 'new command';
+
+        # Input records
+        my $records_4c = [
+            { denumire => "Izvorul Mures",   id => 1 },
+            { denumire => "Sfantu Gheorghe", id => 2 },
+            { denumire => "Podu Olt",        id => 3 },
+            { denumire => "Baile Tusnad",    id => 4 },
+            { denumire => "Brașov",          id => 5 },
+        ];
+
+        my @records;
+        foreach my $rec ( @{$records_4c} ) {
+            push @records, $command->type_lookup_db( $step, $rec );
+        }
+
+        my $expected = [
+            {   id       => 1,
+                denumire => 'Izvorul Mures',
+                siruta   => 86357,
+                denloc   => 'Izvoru Mureșului',
+            },
+            {   id       => 2,
+                denumire => 'Sfantu Gheorghe',
+                siruta   => 63394,
+                denloc   => 'Sfîntu Gheorghe',
+            },
+            {   id       => 3,
+                denumire => 'Podu Olt',
+                siruta   => 41104,
+                denloc   => 'Podu Oltului',
+            },
+            {   id       => 4,
+                denumire => 'Baile Tusnad',
+                siruta   => 83428,
+                denloc   => 'Băile Tușnad',
+            },
+            {   id       => 5,
+                denumire => 'Brașov',
+                siruta   => 40198,
+                denloc   => 'Brașov',
+            },
+        ];
+
+        is_deeply \@records, $expected, 'resulting records again';
+
+        };                      # subtest c.
+
+
+        # ######################################################################
+        # # Test the lookup_in_ds plugin and type_lookup trafo method
+
+        # ### The destination table
+
+        # my @fields_import = (
+        #     [ 'id', 'integer' ],
+        #     [ 'cod', 'integer' ],
+        #     [ 'denloc', 'varchar(100)' ],
+        # );
+        # my $fields_import = join " \n , ",
+        #     map { join ' ', @{$_} } @fields_import;
+        # my $table_import = 'test_import';
+
+        # # Create the test table
+        # $ddl = qq{CREATE TABLE $table_import ( \n   $fields_import \n);};
+
+        # ok $engine->dbh->do($ddl), "create '$table_import' table";
+
+        # # The step config section
+        # my $conf_lookup = {
+        #     transform => {
+        #         row => {
+        #             step => {
+        #                 field_dst  => 'categ_id',
+        #                 field_src  => 'categorie',
+        #                 method     => 'lookup_in_ds',
+        #                 type       => 'lookup',
+        #                 datasource => 'categories'
+        #             }
+        #         }
+        #     },
+
+        # };
+
+        # # $VAR1 = {
+        # #     'datasource' => {
+        # #         'categories' => {
+        # #             'record' => [
+        # #                 {   'item' => 'gadgets',
+        # #                     'code' => '1000'
+        # #                 },
+        # #                 {   'item' => 'applications',
+        # #                     'code' => '1001'
+        # #                 },
+        # #                 {   'item' => 'books',
+        # #                     'code' => '1002'
+        # #                 }
+        # #             ]
+        # #         }
+        # #     }
+        # # };
+
+        # ok my $tr2 = App::Transfer::Recipe::Transform->new(
+        #     $conf_lookup->{transform} ), 'lookup test step';
+        # isa_ok $tr2, 'App::Transfer::Recipe::Transform';
+
+        # ok my $step2 = $tr2->row->[0], 'the step';
+
+        # ok $info = $engine->get_info($table_import),
+        #     'get info for table';
+
+        # ok my $command2 = App::Transfer::RowTrafos->new(
+        #     recipe    => $transfer->recipe,
+        #     transform => $transform,
+        #     engine    => $engine,
+        #     info      => $info,
+        # ), 'new command';
+
+        # my @records2;
+        # foreach my $rec ( @{$records} ) {
+        #     push @records2, $command->type_lookup_db( $step2, $rec );
+        # }
+
+        # # my $expected = [
+        # # ];
+
+        # say "*** rezult:";
+        # dd @records2;
+
+        # # is_deeply \@records2, $expected, 'resulting records';
+
 
         ######################################################################
         # All done.

@@ -15,7 +15,11 @@ has 'field_src' => (
     isa      => 'Str | ArrayRef | HashRef',
     required => 1,
 );
-has 'field_dst'  => ( is => 'ro', isa => 'Str | ArrayRef', required => 1 );
+has 'field_dst' => (
+    is       => 'ro',
+    isa      => 'Str | ArrayRef | HashRef',
+    required => 1,
+);
 
 has 'attributes' => (
     is       => 'ro',
