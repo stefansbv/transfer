@@ -350,23 +350,23 @@ sub run {
         };
 
         ok my $transform = App::Transfer::Transform->new,
-            'new transform object';
+            'a. new transform object';
 
         ok my $tr = App::Transfer::Recipe::Transform->new($conf_lookup_db),
-            'lookup_db test step';
-        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'recipe transform a.';
+            'a. lookup_db test step';
+        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'a. recipe transform';
 
-        ok my $step = $tr->row->[0], 'the step';
+        ok my $step = $tr->row->[0], 'a. the step';
 
         ok $info = $engine->get_info($table_import),
-            'get info for table';
+            'a. get info for table';
 
         ok my $command = App::Transfer::RowTrafos->new(
             recipe    => $transfer->recipe,
             transform => $transform,
             engine    => $engine,
             info      => $info,
-        ), 'new command';
+        ), 'a. new command';
 
         # Input records
         my $records_4a = [
@@ -410,7 +410,7 @@ sub run {
             },
         ];
 
-        is_deeply \@records, $expected, 'resulting records';
+        is_deeply \@records, $expected, 'a. resulting records';
 
         };                      # subtest a.
 
@@ -449,23 +449,23 @@ sub run {
         };
 
         ok my $transform = App::Transfer::Transform->new,
-            'new transform object';
+            'b. new transform object';
 
         ok my $tr = App::Transfer::Recipe::Transform->new($conf_lookup_db),
-            'lookup_db test step';
-        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'recipe transform b.';
+            'b. lookup_db test step';
+        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'b. recipe transform';
 
-        ok my $step = $tr->row->[0], 'the step again';
+        ok my $step = $tr->row->[0], 'b. the step again';
 
         ok $info = $engine->get_info($table_import),
-            'get info for table';
+            'b. get info for table';
 
         ok my $command = App::Transfer::RowTrafos->new(
             recipe    => $transfer->recipe,
             transform => $transform,
             engine    => $engine,
             info      => $info,
-        ), 'new command';
+        ), 'b. new command';
 
         # Input records
         my $records_4b = [
@@ -509,7 +509,7 @@ sub run {
             },
         ];
 
-        is_deeply \@records, $expected, 'resulting records again';
+        is_deeply \@records, $expected, 'b. resulting records again';
 
         };                      # subtest b.
 
@@ -548,16 +548,16 @@ sub run {
         };
 
         ok my $transform = App::Transfer::Transform->new,
-            'new transform object';
+            'c. new transform object';
 
         ok my $tr = App::Transfer::Recipe::Transform->new($conf_lookup_db),
-            'lookup_db test step';
-        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'recipe transform c.';
+            'c. lookup_db test step';
+        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'c. recipe transform';
 
-        ok my $step = $tr->row->[0], 'the step again';
+        ok my $step = $tr->row->[0], 'c. the step again';
 
         ok my $info = $engine->get_info($table_import),
-            'get info for table';
+            'c. get info for table';
 
         # Manipulate info
         $info->{siruta} = {
@@ -576,7 +576,7 @@ sub run {
             transform => $transform,
             engine    => $engine,
             info      => $info,
-        ), 'new command';
+        ), 'c. new command';
 
         # Input records
         my $records_4c = [
@@ -620,92 +620,83 @@ sub run {
             },
         ];
 
-        is_deeply \@records, $expected, 'resulting records again';
+        is_deeply \@records, $expected, 'c. resulting records again';
 
         };                      # subtest c.
 
 
-        # ######################################################################
-        # # Test the lookup_in_ds plugin and type_lookup trafo method
+        ######################################################################
+        # Test the lookup_in_ds plugin and type_lookup trafo method
 
-        # ### The destination table
+        ### The destination table
 
-        # my @fields_import = (
-        #     [ 'id', 'integer' ],
-        #     [ 'cod', 'integer' ],
-        #     [ 'denloc', 'varchar(100)' ],
-        # );
-        # my $fields_import = join " \n , ",
-        #     map { join ' ', @{$_} } @fields_import;
-        # my $table_import = 'test_import';
+        # The step config section
 
-        # # Create the test table
-        # $ddl = qq{CREATE TABLE $table_import ( \n   $fields_import \n);};
+        subtest 'd. type_lookup' => sub {
 
-        # ok $engine->dbh->do($ddl), "create '$table_import' table";
+        my $conf_lookup = {
+            transform => {
+                row => {
+                    step => {
+                        field_dst  => 'categ_id',
+                        field_src  => 'categorie',
+                        method     => 'lookup_in_ds',
+                        type       => 'lookup',
+                        datasource => 'categories'
+                    }
+                }
+            },
+        };
 
-        # # The step config section
-        # my $conf_lookup = {
-        #     transform => {
-        #         row => {
-        #             step => {
-        #                 field_dst  => 'categ_id',
-        #                 field_src  => 'categorie',
-        #                 method     => 'lookup_in_ds',
-        #                 type       => 'lookup',
-        #                 datasource => 'categories'
-        #             }
-        #         }
-        #     },
+        my $ds = {
+            categories => {
+                record => [
+                    {   item => 'gadgets',
+                        code => 1000,
+                    },
+                    {   item => 'applications',
+                        code => 1001,
+                    },
+                    {   item => 'books',
+                        code => 1002,
+                    },
+                ],
+            },
+        };
 
-        # };
+        ok my $transform = App::Transfer::Transform->new,
+            'd. new transform object';
 
-        # # $VAR1 = {
-        # #     'datasource' => {
-        # #         'categories' => {
-        # #             'record' => [
-        # #                 {   'item' => 'gadgets',
-        # #                     'code' => '1000'
-        # #                 },
-        # #                 {   'item' => 'applications',
-        # #                     'code' => '1001'
-        # #                 },
-        # #                 {   'item' => 'books',
-        # #                     'code' => '1002'
-        # #                 }
-        # #             ]
-        # #         }
-        # #     }
-        # # };
+        ok my $tr = App::Transfer::Recipe::Transform->new(
+            $conf_lookup->{transform} ), 'd. lookup test step';
+        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'd. recipe transform';
 
-        # ok my $tr2 = App::Transfer::Recipe::Transform->new(
-        #     $conf_lookup->{transform} ), 'lookup test step';
-        # isa_ok $tr2, 'App::Transfer::Recipe::Transform';
+        ok my $step = $tr->row->[0], 'd. the step';
 
-        # ok my $step2 = $tr2->row->[0], 'the step';
+        ok $info = $engine->get_info($table_import),
+            'd. get info for table';
 
-        # ok $info = $engine->get_info($table_import),
-        #     'get info for table';
+        ok my $command = App::Transfer::RowTrafos->new(
+            recipe    => $transfer->recipe,
+            transform => $transform,
+            engine    => $engine,
+            info      => $info,
+        ), 'd. new row trafo command';
 
-        # ok my $command2 = App::Transfer::RowTrafos->new(
-        #     recipe    => $transfer->recipe,
-        #     transform => $transform,
-        #     engine    => $engine,
-        #     info      => $info,
-        # ), 'new command';
+        my @records;
+        foreach my $rec ( @{$records} ) {
+            push @records, $command->type_lookup_db( $step, $rec );
+        }
 
-        # my @records2;
-        # foreach my $rec ( @{$records} ) {
-        #     push @records2, $command->type_lookup_db( $step2, $rec );
-        # }
+        # my $expected = [
+        # ];
 
-        # # my $expected = [
-        # # ];
+        say "*** rezult:";
+        dd @records;
 
-        # say "*** rezult:";
-        # dd @records2;
+        # # is_deeply \@records, $expected, 'resulting records';
 
-        # # is_deeply \@records2, $expected, 'resulting records';
+        };                      # subtest
 
 
         ######################################################################
