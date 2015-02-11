@@ -322,7 +322,9 @@ sub run {
         #   type                = lookup_db
         #   datasource          = test_dict
         #   hints               = localitati
-        #   field_src           = denumire
+        #   <field_src>
+        #     denumire          = localitate
+        #   </field_src>
         #   method              = lookup_in_dbtable
         #   <field_dst>
         #     denumire          = localitate
@@ -422,10 +424,12 @@ sub run {
         #   type                = lookup_db
         #   datasource          = test_dict
         #   hints               = localitati
-        #   field_src           = denumire
+        #   <field_src>
+        #     denumire          = localitate
+        #   </field_src>
         #   method              = lookup_in_dbtable
         #   <field_dst>
-        #     denumire          = localitate
+        #     denloc            = localitate
         #     cod               = siruta
         #   </field_dst>
         # </step>
@@ -519,10 +523,12 @@ sub run {
         #   type                = lookup_db
         #   datasource          = test_dict
         #   hints               = localitati
-        #   field_src           = denumire
+        #   <field_src>
+        #     denumire          = localitate
+        #   </field_src>
         #   method              = lookup_in_dbtable
         #   <field_dst>
-        #     denumire          = localitate
+        #     denloc            = localitate
         #   </field_dst>
         #   field_dst           = siruta
         # </step>
