@@ -91,9 +91,9 @@ subtest 'Row transformation type' => sub {
             is $step->datasource, 'two_elements', 'lookup datasource';
         }
         if ($type eq 'lookup_db') {
-            is ref $field_src, '',      'lookup_db src field string';
+            is ref $field_src, 'HASH',      'lookup_db src field string';
             is ref $field_dst, 'ARRAY', 'lookup_db dst fields array';
-            is $step->datasource, 'v_siruta', 'lookup_db datasource';
+            is $step->datasource, 'siruta', 'lookup_db datasource';
             ok $step->can('hints'), 'lookup_db hints';
         }
     }
