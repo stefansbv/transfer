@@ -72,7 +72,7 @@ sub driver { 'DBD::Firebird 1.11' }
 sub get_info {
     my ($self, $table, $key_field) = @_;
 
-    die "The 'table' parameter is required" unless $table;
+    hurl "The 'table' parameter is required for 'get_info'" unless $table;
 
     $key_field //= 'name';
 
@@ -146,7 +146,7 @@ sub get_info {
 sub table_exists {
     my ( $self, $table ) = @_;
 
-    die "The 'table' parameter is required" unless $table;
+    hurl "The 'table' parameter is required for 'table_exists'" unless $table;
 
     my $sql = qq(SELECT COUNT(RDB\$RELATION_NAME)
                      FROM RDB\$RELATIONS
@@ -160,11 +160,14 @@ sub table_exists {
         ($val_ret) = $self->dbh->selectrow_array($sql);
     }
     catch {
-        hurl firebird => __x(
-            'Transaction aborted because: {error}',
-            error    => $_,
-        );
+        say __x( "Transaction aborted because: {error}", error => $_ );
+        # XXX Wide character in die at .../Throwable.pm line 75. ???
+        # hurl firebird =>
+        #     __x( "Transaction aborted because: {error}", error => $_ );
+        hurl firebird =>
+            __x( "XXX Transaction aborted because: {error}", error => $_ );
     };
+
 
     return $val_ret;
 }

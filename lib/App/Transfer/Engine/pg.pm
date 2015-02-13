@@ -76,6 +76,8 @@ sub driver { 'DBD::Pg 2.0' }
 sub get_info {
     my ($self, $table) = @_;
 
+    hurl "The 'table' parameter is required for 'get_info'" unless $table;
+
     my $sql = qq( SELECT ordinal_position  AS pos
                     , column_name       AS name
                     , data_type         AS type
@@ -124,6 +126,8 @@ sub get_info {
 
 sub table_exists {
     my ( $self, $table ) = @_;
+
+    hurl "The 'table' parameter is required for 'table_exists'" unless $table;
 
     my $sql = qq( SELECT COUNT(table_name)
                 FROM information_schema.tables
