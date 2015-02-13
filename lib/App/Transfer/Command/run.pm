@@ -227,8 +227,34 @@ sub execute {
     return;
 }
 
+sub job_intro {
+    my $self = shift;
+
+    #-- Recipe
+
+    my $recipe_l = __ 'Recipe:';
+    my $recipe_v = $self->recipe->header->name;
+    my @recipe_ldet
+        = ( __ 'version:', __ 'syntax version:', __ 'description:' );
+    my @recipe_vdet = (
+        $self->recipe->header->version,
+        $self->recipe->header->syntaxversion,
+        $self->recipe->header->description,
+    );
+    print form
+    " -----------------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    $recipe_l,                                                     $recipe_v;
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    \@recipe_ldet,                                             \@recipe_vdet;
+
+    return;
+}
+
 sub transfer_file2db {
-    my ( $self, $target ) = @_;
+    my $self = shift;
 
     my $table  = $self->recipe->destination->table;
     my $engine = $self->writer->target->engine;
@@ -258,82 +284,6 @@ sub transfer_file2db {
 
         #last;                                # DEBUG
     }
-
-    return;
-}
-
-sub transfer_db2db {
-    my $self = shift;
-
-    my $src_table  = $self->recipe->source->table;
-    my $dst_table  = $self->recipe->destination->table;
-    my $src_engine = $self->reader->target->engine;
-    my $dst_engine = $self->writer->target->engine;
-    my $src_db     = $src_engine->database;
-    my $dst_db     = $dst_engine->database;
-
-    $self->job_info_db2db($src_db, $dst_db);
-
-    hurl run => __x( "The source table '{table}' does not exists!",
-        table => $src_table )
-        unless $src_engine->table_exists($src_table);
-    hurl run => __x( "The destination table '{table}' does not exists!",
-        table => $dst_table )
-        unless $dst_engine->table_exists($dst_table);
-
-    hurl run =>
-        __x( "The source and the destination tables must be different!" )
-        if ( $src_table eq $dst_table ) and ( $src_db eq $dst_db );
-
-    my $table_info = $dst_engine->get_info($dst_table);
-    hurl run => __ 'No columns type info retrieved from database!'
-        if keys %{$table_info} == 0;
-
-    my @cols   = $self->sort_hash_by_pos($table_info);
-    my $logfld = shift @cols;               # that the first column is
-
-    my $iter = $self->_contents_iter;
-    while ( $iter->has_next ) {
-        my $row = $iter->next;
-        $row    = $self->do_transformations($row, $table_info, $logfld);
-        $self->writer->insert($dst_table, $row);
-
-        last;                                # DEBUG
-    }
-
-    return;
-}
-
-sub job_info_db2db {
-    my ($self, $src_db, $dst_db) = @_;
-
-    #-- Input
-
-    my $input_l  = __ 'Input:';
-    print form
-    " -----------------------------";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-                                  $input_l;
-    my @i_l = (__ 'table:', __ 'database:');
-    my @i_v = ($self->recipe->source->table, $src_db);
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-    \@i_l,                                                              \@i_v;
-
-    #-- Output
-
-    my $output_l = __ 'Output:';
-    print form
-    " -----------------------------";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-                                 $output_l;
-    my @o_l = (__ 'table:', __ 'database:');
-    my @o_v = ($self->recipe->destination->table, $dst_db);
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-    \@o_l,                                                              \@o_v;
 
     return;
 }
@@ -376,28 +326,80 @@ sub job_info_file2db {
     return;
 }
 
-sub job_intro {
+sub transfer_db2db {
     my $self = shift;
 
-    #-- Recipe
+    my $src_table  = $self->recipe->source->table;
+    my $dst_table  = $self->recipe->destination->table;
+    my $src_engine = $self->reader->target->engine;
+    my $dst_engine = $self->writer->target->engine;
+    my $src_db     = $src_engine->database;
+    my $dst_db     = $dst_engine->database;
 
-    my $recipe_l = __ 'Recipe:';
-    my $recipe_v = $self->recipe->header->name;
-    my @recipe_ldet
-        = ( __ 'version:', __ 'syntax version:', __ 'description:' );
-    my @recipe_vdet = (
-        $self->recipe->header->version,
-        $self->recipe->header->syntaxversion,
-        $self->recipe->header->description,
-    );
+    $self->job_info_db2db($src_db, $dst_db);
+
+    hurl run => __x( "The source table '{table}' does not exists!",
+        table => $src_table )
+        unless $src_engine->table_exists($src_table);
+
+    hurl run => __x( "The destination table '{table}' does not exists!",
+        table => $dst_table )
+        unless $dst_engine->table_exists($dst_table);
+
+    # XXX Have to also check the host
+    hurl run =>
+        __( 'The source and the destination tables must be different!' )
+        if ( $src_table eq $dst_table ) and ( $src_db eq $dst_db );
+
+    my $table_info = $dst_engine->get_info($dst_table);
+    hurl run => __( 'No columns type info retrieved from database!' )
+        if keys %{$table_info} == 0;
+
+    my @cols   = $self->sort_hash_by_pos($table_info);
+    my $logfld = shift @cols;   # that the first column is
+
+    my $iter = $self->_contents_iter;
+    while ( $iter->has_next ) {
+        my $row = $iter->next;
+        $row    = $self->do_transformations($row, $table_info, $logfld);
+        $self->writer->insert($dst_table, $row);
+
+        #last;                   # DEBUG
+    }
+
+    return;
+}
+
+sub job_info_db2db {
+    my ($self, $src_db, $dst_db) = @_;
+
+    #-- Input
+
+    my $input_l  = __ 'Input:';
     print form
     " -----------------------------";
     print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-    $recipe_l,                                                     $recipe_v;
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+                                  $input_l;
+    my @i_l = (__ 'table:', __ 'database:');
+    my @i_v = ($self->recipe->source->table, $src_db);
     print form
     "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-    \@recipe_ldet,                                             \@recipe_vdet;
+    \@i_l,                                                              \@i_v;
+
+    #-- Output
+
+    my $output_l = __ 'Output:';
+    print form
+    " -----------------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+                                 $output_l;
+    my @o_l = (__ 'table:', __ 'database:');
+    my @o_v = ($self->recipe->destination->table, $dst_db);
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    \@o_l,                                                              \@o_v;
 
     return;
 }
