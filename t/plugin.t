@@ -4,13 +4,13 @@ use Test::Log::Log4perl;
 use Log::Log4perl;
 use Test::Moose;
 
-use App::Transfer::Transform;
+use App::Transfer::Plugin;
 
 BEGIN { Log::Log4perl->init('t/log.conf') }
 
 chdir 't';                          # also load plugins from t/plugins
-ok my $ttr = App::Transfer::Transform->new, 'New Transform object';
-meta_ok $ttr, "App::Transfer::Transform has a 'meta'";
+ok my $ttr = App::Transfer::Plugin->new, 'New Transform object';
+meta_ok $ttr, "App::Transfer::Plugin has a 'meta'";
 has_attribute_ok $ttr, 'plugins', '"plugins"';
 
 my $p = {

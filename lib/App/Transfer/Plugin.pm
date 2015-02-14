@@ -1,4 +1,4 @@
-package App::Transfer::Transform;
+package App::Transfer::Plugin;
 
 # ABSTRACT: The transformation plugin manager
 
@@ -60,11 +60,11 @@ __END__
 
 =head1 Name
 
-App::Transfer::Transform - The transformation plugin manager
+App::Transfer::Plugin - The transformation plugin manager
 
 =head1 Description
 
-App::Transfer::Transform manages the plugins and instantiates the
+App::Transfer::Plugin manages the plugins and instantiates the
 loging module.
 
 =head1 Interface

@@ -22,7 +22,7 @@ with qw(App::Transfer::Role::Utils
 use App::Transfer::Options;
 use App::Transfer::Reader;
 use App::Transfer::Writer;
-use App::Transfer::Transform;
+use App::Transfer::Plugin;
 use App::Transfer::RowTrafos;
 
 option 'recipe_file' => (
@@ -181,11 +181,11 @@ has 'writer' => (
 
 has '_transform' => (
     is      => 'ro',
-    isa     => 'App::Transfer::Transform',
+    isa     => 'App::Transfer::Plugin',
     lazy    => 1,
     reader  => 'transform',
     default => sub {
-        return App::Transfer::Transform->new;
+        return App::Transfer::Plugin->new;
     },
 );
 

@@ -16,9 +16,9 @@ has 'recipe' => (
     isa => 'App::Transfer::Recipe',
 );
 
-has 'transform' => (
+has 'plugin' => (
     is  => 'ro',
-    isa => 'App::Transfer::Transform',
+    isa => 'App::Transfer::Plugin',
 );
 
 has 'engine' => (
@@ -79,7 +79,7 @@ sub type_split {
     $p->{value}     = $record->{$field_src};       # add the value to p
     $p->{limit}     = @{ $destination };       # num fields to return
     $p->{separator} = $step->separator;
-    my @values = $self->transform->do_transform( $step->method, $p );
+    my @values = $self->plugin->do_transform( $step->method, $p );
     my $i = 0;
     foreach my $value (@values) {
         my $field_dst = ${$destination}[$i];
@@ -125,7 +125,7 @@ sub type_join {
     $p->{value}      = $values;
     $p->{fields_src} = $fields_src;
     $record->{$field_dst}
-        = $self->transform->do_transform( $step->method, $p );
+        = $self->plugin->do_transform( $step->method, $p );
 
     return $record;
 }
@@ -154,7 +154,7 @@ sub type_copy {
     $p->{field_dst}   = $field_dst;
     $p->{attributes}  = $attributes;
 
-    my $r = $self->transform->do_transform( $step->method, $p );
+    my $r = $self->plugin->do_transform( $step->method, $p );
     if ( defined $r ) {
 
         # Write to destination field
@@ -221,7 +221,7 @@ sub type_batch {
     $p->{value}      = $values;
     $p->{fields_src} = $fields_src;
     $p->{attributes} = $step->attributes;
-    my $r = $self->transform->do_transform( $step->method, $p );
+    my $r = $self->plugin->do_transform( $step->method, $p );
     foreach my $field_dst ( keys %{$r} ) {
         unless ( exists $record->{$field_dst} ) {
             my $field_dst_info = $self->get_info($field_dst);
@@ -257,7 +257,7 @@ sub type_lookup {
         = $self->recipe->datasource->get_ds( $step->datasource );
 
     $record->{$field_dst}
-        = $self->transform->do_transform( $step->method, $p );
+        = $self->plugin->do_transform( $step->method, $p );
 
     return $record;
 }
@@ -359,7 +359,7 @@ sub type_lookup_db {
     my $where_fld = ref $src_map ? $src_map->{$field_src} : $field_src;
     $p->{where}{$where_fld} = $lookup_val;
 
-    my $result_aref = $self->transform->do_transform( $step->method, $p );
+    my $result_aref = $self->plugin->do_transform( $step->method, $p );
     foreach my $field ( @{$fields_dst} ) {
         $record->{$field} = shift @{$result_aref};
     }

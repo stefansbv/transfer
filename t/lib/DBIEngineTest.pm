@@ -13,7 +13,7 @@ use Log::Log4perl;
 
 use App::Transfer::Config;
 use App::Transfer::Recipe::Transform;
-use App::Transfer::Transform;
+use App::Transfer::Plugin;
 use App::Transfer::RowTrafos;
 
 BEGIN { Log::Log4perl->init('t/log.conf') }
@@ -349,8 +349,8 @@ sub run {
             },
         };
 
-        ok my $transform = App::Transfer::Transform->new,
-            'a. new transform object';
+        ok my $plugin = App::Transfer::Plugin->new,
+            'a. new plugin object';
 
         ok my $tr = App::Transfer::Recipe::Transform->new($conf_lookup_db),
             'a. lookup_db test step';
@@ -362,11 +362,11 @@ sub run {
             'a. get info for table';
 
         ok my $command = App::Transfer::RowTrafos->new(
-            recipe    => $transfer->recipe,
-            transform => $transform,
-            engine    => $engine,
-            info      => $info,
-        ), 'a. new command';
+            recipe => $transfer->recipe,
+            plugin => $plugin,
+            engine => $engine,
+            info   => $info,
+            ), 'a. new command';
 
         # Input records
         my $records_4a = [
@@ -448,8 +448,8 @@ sub run {
             },
         };
 
-        ok my $transform = App::Transfer::Transform->new,
-            'b. new transform object';
+        ok my $plugin = App::Transfer::Plugin->new,
+            'b. new plugin object';
 
         ok my $tr = App::Transfer::Recipe::Transform->new($conf_lookup_db),
             'b. lookup_db test step';
@@ -461,11 +461,11 @@ sub run {
             'b. get info for table';
 
         ok my $command = App::Transfer::RowTrafos->new(
-            recipe    => $transfer->recipe,
-            transform => $transform,
-            engine    => $engine,
-            info      => $info,
-        ), 'b. new command';
+            recipe => $transfer->recipe,
+            plugin => $plugin,
+            engine => $engine,
+            info   => $info,
+            ), 'b. new command';
 
         # Input records
         my $records_4b = [
@@ -547,8 +547,8 @@ sub run {
             },
         };
 
-        ok my $transform = App::Transfer::Transform->new,
-            'c. new transform object';
+        ok my $plugin = App::Transfer::Plugin->new,
+            'c. new plugin object';
 
         ok my $tr = App::Transfer::Recipe::Transform->new($conf_lookup_db),
             'c. lookup_db test step';
@@ -572,11 +572,11 @@ sub run {
         },
 
         ok my $command = App::Transfer::RowTrafos->new(
-            recipe    => $transfer->recipe,
-            transform => $transform,
-            engine    => $engine,
-            info      => $info,
-        ), 'c. new command';
+            recipe => $transfer->recipe,
+            plugin => $plugin,
+            engine => $engine,
+            info   => $info,
+            ), 'c. new command';
 
         # Input records
         my $records_4c = [
@@ -646,8 +646,8 @@ sub run {
             },
         };
 
-        ok my $transform = App::Transfer::Transform->new,
-            'd. new transform object';
+        ok my $plugin = App::Transfer::Plugin->new,
+            'd. new plugin object';
 
         ok my $tr = App::Transfer::Recipe::Transform->new(
             $conf_lookup->{transform} ), 'd. lookup test step';
@@ -659,11 +659,11 @@ sub run {
             'd. get info for table';
 
         ok my $command = App::Transfer::RowTrafos->new(
-            recipe    => $transfer->recipe,
-            transform => $transform,
-            engine    => $engine,
-            info      => $info,
-        ), 'd. new row trafo command';
+            recipe => $transfer->recipe,
+            plugin => $plugin,
+            engine => $engine,
+            info   => $info,
+            ), 'd. new row trafo command';
 
         my @records;
         foreach my $rec ( @{$records} ) {

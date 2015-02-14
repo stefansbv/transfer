@@ -35,6 +35,6 @@ use_ok( 'App::Transfer::Writer' );
 use_ok( 'App::Transfer::Writer::db' );
 use_ok( 'App::Transfer::Engine::pg' );
 use_ok( 'App::Transfer::Engine::firebird' );
-use_ok( 'App::Transfer::Transform' );
+use_ok( 'App::Transfer::Plugin' );
 
 done_testing;
