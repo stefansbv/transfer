@@ -60,31 +60,33 @@ sub type_split {
 
     my $field_src = $step->field_src;
 
-    unless ( exists $record->{$field_src} ) {
-        hurl type_split => __x( "Error in recipe (split): no such field '{field}'",
-            field => $field_src );
-    }
+    hurl type_split => __( "Error in recipe (split): no 'field_src' set" );
+    hurl type_split => __( "Error in recipe (split): the 'field_src' attribute must be a string, not a reference") if ref $field_src;
+    hurl type_split => __x( "Error in recipe (split): no such field '{field}' for 'field_src'", field => $field_src ) unless exists $record->{$field_src};
 
-    my $p = $self->get_info('$field_src');
-    $p->{logfld} = $self->get_info('logfld');
-    $p->{logidx} = $self->get_info('logidx');
-
+    my $p = $self->get_info($field_src);
     hurl field_info =>
-        __x( "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency",
-        field => $field_src ) unless defined $p;
+        __x( "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency", field => $field_src ) unless defined $p;
 
-    $p->{value} = $record->{$field_src};      # add the value to p
-    $p->{limit} = @{ $step->field_dst };    # num fields to return
+    # Make the 'dst' field an array ref if it's not
+    my $destination
+        = ref $step->field_dst eq 'ARRAY'
+        ? $step->field_dst
+        : [ $step->field_dst ];
+
+    $p->{logfld}    = $self->get_info('logfld');
+    $p->{logidx}    = $self->get_info('logidx');
+    $p->{value}     = $record->{$field_src};       # add the value to p
+    $p->{limit}     = @{ $destination };       # num fields to return
     $p->{separator} = $step->separator;
     my @values = $self->transform->do_transform( $step->method, $p );
     my $i = 0;
     foreach my $value (@values) {
-        my $field_dst = ${ $step->field_dst }[$i];
+        my $field_dst = ${$destination}[$i];
         unless ( exists $record->{$field_dst} ) {
-            my $field_dst_info = $self->get_info('$field_dst');
+            my $field_dst_info = $self->get_info($field_dst);
             hurl field_info => __x(
-                "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency",
-                field => $field_dst
+                "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency", field => $field_dst
             ) unless defined $field_dst_info;
         }
         $record->{$field_dst} = $value;
@@ -105,7 +107,7 @@ sub type_join {
                 __x( "Error in recipe (join): no such field '{field}'",
                 field => $field_src );
         }
-        my $field_src_info = $self->get_info('$field_src');
+        my $field_src_info = $self->get_info($field_src);
         hurl field_info => __x(
             "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
             field   => $field_src,
@@ -116,7 +118,7 @@ sub type_join {
             if defined $record->{$field_src};
     }
     my $field_dst = $step->field_dst;
-    my $p         = $self->get_info('$field_dst');
+    my $p         = $self->get_info($field_dst);
     $p->{logfld}     = $self->get_info('logfld');
     $p->{logidx}     = $self->get_info('logidx');
     $p->{separator}  = $step->separator;
@@ -135,7 +137,7 @@ sub type_copy {
     my $field_dst  = $step->field_dst;
     my $attributes = $step->attributes;
 
-    my $p = $self->get_info('$field_src');
+    my $p = $self->get_info($field_src);
     $p->{logfld} = $self->get_info('logfld');
     $p->{logidx} = $self->get_info('logidx');
 
@@ -199,21 +201,21 @@ sub type_batch {
     foreach my $field_src ( @{$fields_src} ) {
         unless ( exists $record->{$field_src} ) {
             hurl type_split =>
-                __x( "Error in recipe (join): no such field '{field}'",
+                __x( "Error in recipe (batch): no such field '{field}'",
                 field => $field_src );
         }
-        my $field_src_info = $self->get_info('$field_src');
+        my $field_src_info = $self->get_info($field_src);
         hurl field_info => __x(
             "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
             field   => $field_src,
-            context => 'join',
+            context => 'batch',
         ) unless defined $field_src_info;
 
         push @{$values}, $record->{$field_src}
             if defined $record->{$field_src};
     }
     my $field_dst = $step->field_dst;
-    my $p         = $self->get_info('$field_dst');
+    my $p         = $self->get_info($field_dst);
     $p->{logfld}     = $self->get_info('logfld');
     $p->{logidx}     = $self->get_info('logidx');
     $p->{value}      = $values;
@@ -222,7 +224,7 @@ sub type_batch {
     my $r = $self->transform->do_transform( $step->method, $p );
     foreach my $field_dst ( keys %{$r} ) {
         unless ( exists $record->{$field_dst} ) {
-            my $field_dst_info = $self->get_info('$field_dst');
+            my $field_dst_info = $self->get_info($field_dst);
             hurl field_info => __x(
                 "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency",
                 field => $field_dst
@@ -327,7 +329,7 @@ sub type_lookup_db {
     my $hint_name = $step->hints ;
     if ($hint_name) {
         my $hints = $self->recipe->datasource->get_hints($hint_name);
-        if (exists $hints->{$lookup_val}) {
+        if ( exists $hints->{$lookup_val} ) {
             $lookup_val = $hints->{$lookup_val};
         }
     }
@@ -380,6 +382,16 @@ __END__
 =head1 Interface
 
 =head2 Instance Methods
+
+=head3 C<type_split>
+
+=head3 C<type_join>
+
+=head3 C<type_copy>
+
+=head3 C<type_batch>
+
+=head3 C<type_lookup>
 
 =head3 C<type_lookup_db>
 
