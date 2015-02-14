@@ -338,13 +338,13 @@ sub run {
         my $conf_lookup_db = {
             row => {
                 step => {
-                    field_src => { denumire => 'localitate' },
-                    field_dst =>
+                    type       => 'lookup_db',
+                    field_src  => { denumire => 'localitate' },
+                    field_dst  =>
                         [ { denloc => 'localitate' }, { cod => 'siruta' }, ],
                     hints      => 'localitati',
                     method     => 'lookup_in_dbtable',
-                    type       => 'lookup_db',
-                    datasource => 'test_dict'
+                    datasource => 'test_dict',
                 },
             },
         };
@@ -438,12 +438,12 @@ sub run {
         my $conf_lookup_db = {
             row => {
                 step => {
-                    field_src => { denumire => 'localitate' },
-                    field_dst => { denloc => 'localitate', cod => 'siruta' },
+                    type       => 'lookup_db',
+                    field_src  => { denumire => 'localitate' },
+                    field_dst  => { denloc => 'localitate', cod => 'siruta' },
                     hints      => 'localitati',
                     method     => 'lookup_in_dbtable',
-                    type       => 'lookup_db',
-                    datasource => 'test_dict'
+                    datasource => 'test_dict',
                 },
             },
         };
@@ -537,12 +537,12 @@ sub run {
         my $conf_lookup_db = {
             row => {
                 step => {
+                    type       => 'lookup_db',
                     field_src => { denumire => 'localitate' },
                     field_dst => [ { denloc => 'localitate' }, 'siruta' ],
                     hints      => 'localitati',
                     method     => 'lookup_in_dbtable',
-                    type       => 'lookup_db',
-                    datasource => 'test_dict'
+                    datasource => 'test_dict',
                 },
             },
         };
@@ -628,8 +628,6 @@ sub run {
         ######################################################################
         # Test the lookup_in_ds plugin and type_lookup trafo method
 
-        ### The destination table
-
         # The step config section
 
         subtest 'd. type_lookup' => sub {
@@ -638,29 +636,13 @@ sub run {
             transform => {
                 row => {
                     step => {
-                        field_dst  => 'categ_id',
-                        field_src  => 'categorie',
-                        method     => 'lookup_in_ds',
                         type       => 'lookup',
-                        datasource => 'categories'
+                        field_src  => 'categorie',
+                        field_dst  => 'categ_id',
+                        method     => 'lookup_in_ds',
+                        datasource => 'categories',
                     }
                 }
-            },
-        };
-
-        my $ds = {
-            categories => {
-                record => [
-                    {   item => 'gadgets',
-                        code => 1000,
-                    },
-                    {   item => 'applications',
-                        code => 1001,
-                    },
-                    {   item => 'books',
-                        code => 1002,
-                    },
-                ],
             },
         };
 
