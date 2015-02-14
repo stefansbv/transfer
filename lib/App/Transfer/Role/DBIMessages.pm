@@ -1,4 +1,4 @@
-package App::Transfer::Role::Messages;
+package App::Transfer::Role::DBIMessages;
 
 # ABSTRACT: Database engines error messages
 

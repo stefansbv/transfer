@@ -13,7 +13,7 @@ use namespace::autoclean;
 extends 'App::Transfer::Engine';
 sub dbh;                                     # required by DBIEngine;
 with qw(App::Transfer::Role::DBIEngine
-        App::Transfer::Role::Messages);
+        App::Transfer::Role::DBIMessages);
 
 has dbh => (
     is      => 'rw',
