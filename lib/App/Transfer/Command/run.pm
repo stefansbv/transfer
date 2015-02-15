@@ -18,13 +18,11 @@ extends qw(App::Transfer);
 
 use App::Transfer::Transform;
 
-option 'recipe_file' => (
+parameter 'recipe' => (
     is            => 'ro',
     isa           => File,
     required      => 1,
     coerce        => 1,
-    cmd_flag      => 'recipe',
-    cmd_aliases   => [qw(r)],
     documentation => q[The recipe file.],
 );
 
@@ -122,7 +120,7 @@ has 'trafo' => (
             transfer       => $self,
             input_options  => $self->input_options,
             output_options => $self->output_options,
-            recipe_file    => $self->recipe_file,
+            recipe_file    => $self->recipe,
         );
     },
 );
