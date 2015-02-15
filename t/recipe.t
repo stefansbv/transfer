@@ -38,8 +38,8 @@ subtest 'Header column map' => sub {
         ok $recipe->tables->get_table($table)->description, 'table desc.';
         ok defined $recipe->tables->get_table($table)->skiprows,
             'table skip rows';
-        ok $recipe->tables->get_table($table)->primarykey,
-            'table primary key';
+        ok $recipe->tables->get_table($table)->logfield,
+            'log field name';
         is ref $recipe->tables->get_table($table)->headermap, 'HASH',
             'headermap';
     }

@@ -16,18 +16,19 @@ BEGIN {
 }
 
 ok my $recipe_file = file( 't', 'recipes', 'recipe-xls.conf' ), "Recipe file";
-my $transfer = App::Transfer->new(
-    recipe_file => $recipe_file->stringify,
-);
+my $transfer = App::Transfer->new;
 my $options_href = {
     input_file => 't/siruta.xls',
 };
+ok my $recipe = App::Transfer::Recipe->new(
+    recipe_file => $recipe_file->stringify,
+), 'new recipe instance';
 my $options = App::Transfer::Options->new(
     transfer => $transfer,
+    recipe   => $recipe,
     options  => $options_href,
     rw_type  => 'reader',
 );
-ok my $recipe = $transfer->recipe, 'has recipe';
 ok my $reader = App::Transfer::Reader->load({
     transfer => $transfer,
     recipe   => $recipe,
