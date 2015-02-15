@@ -7,8 +7,8 @@ use Moose;
 use namespace::autoclean;
 
 has 'description' => ( is => 'ro', isa => 'Str' );
-has 'skiprows'    => ( is => 'ro', isa => 'Str' );
-has 'primarykey'  => ( is => 'ro', isa => 'Str' );
+has 'skiprows'    => ( is => 'ro', isa => 'Int' );
+has 'logfield'    => ( is => 'ro', isa => 'Str' );
 
 has 'headermap' => (
     is       => 'ro',
