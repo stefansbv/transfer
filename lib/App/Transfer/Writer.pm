@@ -35,7 +35,10 @@ has 'records_inserted' => (
     is            => 'ro',
     isa           => 'Int',
     default       => 0,
-    handles       => { 'inc_inserted' => 'inc' },
+    handles       => {
+        inc_inserted   => 'inc',
+        reset_inserted => 'reset',
+    },
 );
 
 has 'records_skipped' => (
@@ -43,7 +46,10 @@ has 'records_skipped' => (
     is            => 'ro',
     isa           => 'Int',
     default       => 0,
-    handles       => { 'inc_skipped' => 'inc' },
+    handles       => {
+        inc_skipped   => 'inc',
+        reset_skipped => 'reset',
+    },
 );
 
 sub load {
