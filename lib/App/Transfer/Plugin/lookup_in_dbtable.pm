@@ -10,8 +10,8 @@ with 'MooseX::Log::Log4perl';
 
 sub lookup_in_dbtable {
     my ( $self, $p ) = @_;
-    my ( $logfld, $logidx, $fields, $table, $engine, $where, $lookup )
-        = @$p{qw(logfld logidx fields table engine where lookup)};
+    my ( $logstr, $fields, $table, $engine, $where, $lookup )
+        = @$p{qw(logstr fields table engine where lookup)};
     return unless $lookup;
 
     my $result_aref = $engine->lookup( $table, $fields, $where );
@@ -26,17 +26,13 @@ sub lookup_in_dbtable {
             $results .= "'" . join( ',', @{$ary} ) . "'";
         }
         $self->log->info(
-            "[$logfld=$logidx] lookup: multiple values for '",
-            join( ',', @{$fields} ),
-            "'='$lookup': $results"
-        );
+            "$logstr lookup: multiple values for '",
+            join( ',', @{$fields} ), "'='$lookup': $results" );
     }
     else {
         $self->log->info(
-            "[$logfld=$logidx] lookup: failed for '",
-            join( ',', @{$fields} ),
-            "'='$lookup'"
-        );
+            "$logstr lookup: failed for '", join( ',', @{$fields} ),
+            "'='$lookup'");
     }
     return;
 }
