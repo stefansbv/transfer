@@ -24,7 +24,7 @@ use_ok( 'App::Transfer::Recipe::Transform' );
 use_ok( 'App::Transfer::Recipe::Table::HeaderMap' );
 use_ok( 'App::Transfer::Role::DBIEngine' );
 use_ok( 'App::Transfer::Role::Utils' );
-use_ok( 'App::Transfer::RowTrafos' );
+use_ok( 'App::Transfer::Transform' );
 use_ok( 'App::Transfer::Command::run' );
 use_ok( 'App::Transfer::Engine' );
 use_ok( 'App::Transfer::Reader' );

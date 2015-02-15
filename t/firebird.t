@@ -46,7 +46,8 @@ BEGIN {
     delete $ENV{ISC_PASSWORD};
 }
 
-ok my $recipe_file = file( 't', 'recipes', 'recipe-db.conf' ), "Recipe file";
+ok my $recipe_file = file( 't', 'recipes', 'recipe-db.conf' ),
+    "Recipe file for db tests";
 ok my $transfer = App::Transfer->new(
     recipe_file => $recipe_file->stringify,
 ), 'Load a transfer object';
@@ -123,8 +124,8 @@ catch {
 my $uri = "db:firebird://$user:$pass\@localhost/$dbpath";
 DBIEngineTest->run(
     class           => $CLASS,
-    transfer_params => [ recipe_file => $recipe_file, ],
-    target_params   => [ uri => $uri ],
+    trafo_params  => [ recipe_file => $recipe_file, ],
+    target_params => [ uri => $uri ],
     skip_unless => sub {
         my $self = shift;
         die $err if $err;

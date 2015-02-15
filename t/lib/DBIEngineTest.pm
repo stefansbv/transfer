@@ -12,22 +12,20 @@ use Locale::TextDomain qw(App-Transfer);
 use Log::Log4perl;
 
 use App::Transfer::Config;
-use App::Transfer::Recipe::Transform;
-use App::Transfer::Plugin;
-use App::Transfer::RowTrafos;
+use App::Transfer::Transform;
+
+use Data::Dump;
 
 BEGIN { Log::Log4perl->init('t/log.conf') }
 
 # Just die on warnings.
 use Carp; BEGIN { $SIG{__WARN__} = \&Carp::confess }
 
-use Data::Dump;
-
 sub run {
     my ( $self, %p ) = @_;
 
     my $class           = $p{class};
-    my @transfer_params = @{ $p{transfer_params} || [] };
+    my @trafo_params = @{ $p{trafo_params} || [] };
     my $mock_transfer   = Test::MockModule->new('App::Transfer');
 
     can_ok $class, qw(
@@ -36,24 +34,20 @@ sub run {
     );
 
     subtest 'live database' => sub {
-        my $transfer = App::Transfer->new(
-            @transfer_params,
-        );
 
-        ok my $recipe = $transfer->recipe, 'get the recipe object';
-        isa_ok $recipe, 'App::Transfer::Recipe', 'recipe';
+        my $transfer = App::Transfer->new;
 
-        my $target = App::Transfer::Target->new(
+        ok my $target = App::Transfer::Target->new(
             transfer => $transfer,
             @{ $p{target_params} || [] },
-        );
+        ), 'new target';
         isa_ok $target, 'App::Transfer::Target', 'target';
 
-        my $engine = $class->new(
+        ok my $engine = $class->new(
             transfer => $transfer,
             target   => $target,
             @{ $p{engine_params} || [] },
-        );
+        ), 'new engine';
         if (my $code = $p{skip_unless}) {
             try {
                 $code->( $engine ) || die 'NO';
@@ -68,10 +62,24 @@ sub run {
 
         ok $engine, 'Engine instantiated';
 
-        throws_ok { $engine->dbh->do('INSERT blah INTO __bar_____') } 'App::Transfer::X',
+        throws_ok { $engine->dbh->do('INSERT blah INTO __bar_____') }
+            'App::Transfer::X',
             'Database error should be converted to Transfer exception';
         is $@->ident, $class->key, 'Ident should be the engine';
         ok $@->message, 'The message should be from the translation';
+
+        my $input_options  = { input_uri  => $p{target_params}[1] };
+        my $output_options = { output_uri => $p{target_params}[1] };
+
+        ok my $trafo = App::Transfer::Transform->new(
+            transfer       => $transfer,
+            engine         => $engine,
+            input_options  => $input_options,
+            output_options => $output_options,
+            @trafo_params,
+        ), 'new trafo instance';
+
+        ok my $trafos_row = $trafo->recipe->transform->row, 'row trafos';
 
 
         #######################################################################
@@ -147,25 +155,6 @@ sub run {
         ######################################################################
         # Test the DB writer and prepare test tables
 
-        # Change target_params hash ref key from 'uri' to 'output_uri',
-        # as required by App::Transfer::Options
-        my $target_params = [ 'output_uri', $p{target_params}[1] ];
-        my $options_href = {
-            @{ $target_params || [] },
-        };
-        ok my $recipe_w = $transfer->recipe, 'get the recipe object again';
-        ok my $options_w = App::Transfer::Options->new(
-            transfer => $transfer,
-            options  => $options_href,
-            rw_type  => 'writer',
-        ), 'options object';
-        ok my $writer = App::Transfer::Writer->load({
-            transfer => $transfer,
-            recipe   => $recipe_w,
-            writer   => 'db',
-            options  => $options_w,
-        }), 'new db writer object';
-
         my @fields_look = (
             [ 'siruta', 'integer' ],
             [ 'localitate', 'varchar(100)' ],
@@ -195,23 +184,23 @@ sub run {
             {   siruta     => 40198,
                 localitate => 'Brașov',
             },
+            {   siruta     => 92792,
+                localitate => 'Albesti',
+            },
+            {   siruta     => 60954,
+                localitate => 'Albesti',
+            },
         ];
 
         # Insert the records
+
         foreach my $row ( @{$records_dict} ) {
-            $writer->insert($table_dict, $row);
+            $trafo->writer->insert($table_dict, $row);
         }
-        is $writer->records_inserted, 5, 'records inserted: 5';
-        is $writer->records_skipped, 0, 'records skipped: 0';
+        is $trafo->writer->records_inserted, 7, 'records inserted: 7';
+        is $trafo->writer->records_skipped, 0, 'records skipped: 0';
 
-        ### The source table
-
-        ok $writer = App::Transfer::Writer->load({
-            transfer => $transfer,
-            recipe   => $recipe_w,
-            writer   => 'db',
-            options  => $options_w,
-        }), 'a new db writer object';
+        # The source table
 
         my @fields_db = (
             [ 'id', 'integer' ],
@@ -243,14 +232,17 @@ sub run {
             },
         ];
 
-        # Insert some the records
-        foreach my $row ( @{$records_db} ) {
-            $writer->insert($table_db, $row);
-        }
-        is $writer->records_inserted, 5, 'records inserted: 5';
-        is $writer->records_skipped, 0, 'records skipped: 0';
+        $trafo->writer->reset_inserted;
 
-        ### The destination table
+        # Insert the records
+
+        foreach my $row ( @{$records_db} ) {
+            $trafo->writer->insert($table_db, $row);
+        }
+        is $trafo->writer->records_inserted, 5, 'records inserted: 5';
+        is $trafo->writer->records_skipped, 0, 'records skipped: 0';
+
+        # The destination table
 
         my @fields_import = (
             [ 'id', 'integer' ],
@@ -270,27 +262,8 @@ sub run {
         ######################################################################
         # Test the DB reader
 
-        # Change target_params hash ref key from 'uri' to 'input_uri',
-        # as required by App::Transfer::Options
-        $target_params = [ 'input_uri', $p{target_params}[1] ];
-        $options_href = {
-            @{ $target_params || [] },
-        };
-        ok my $recipe_r = $transfer->recipe, 'get the recipe object again';
-        ok my $options_r = App::Transfer::Options->new(
-            transfer => $transfer,
-            options  => $options_href,
-            rw_type  => 'reader',
-        ), 'options object';
-        ok my $reader = App::Transfer::Reader->load({
-            transfer => $transfer,
-            recipe   => $recipe_r,
-            reader   => 'db',
-            options  => $options_r,
-        }), 'new db reader object';
-
         # Test for failure
-        throws_ok { $reader->get_fields('nonexistenttable') }
+        throws_ok { $trafo->reader->get_fields('nonexistenttable') }
         'App::Transfer::X',
             'Should have error for nonexistent table';
         is $@->ident, 'reader',
@@ -298,89 +271,19 @@ sub run {
         is $@->message, __( 'Table "nonexistenttable" does not exists' ),
             'Nonexistent table error should be correct';
 
-        ok my $table_r = $reader->table, 'get the table name';
+        ok my $table_r = $trafo->reader->table, 'get the table name';
         is $table_r, $table_db, 'check the table name';
 
         ### XXX Needs another recipe
-        # throws_ok { $reader->get_fields($table) }
+        # throws_ok { $trafo->reader->get_fields($table) }
         #     qr/\QColumns from the map file not found in the/,
         #     'Should get an exception for nonexistent columns';
 
-        ok my $fields = $reader->get_fields($table_db), 'table fields';
+        ok my $fields = $trafo->reader->get_fields($table_db), 'table fields';
         is scalar @{$fields}, 2, 'got 2 fields';
 
-        ok my $records = $reader->get_data, 'get data for table';
+        ok my $records = $trafo->reader->get_data, 'get data for table';
         ok scalar @{$records} > 0, 'got some records';
-
-
-        ######################################################################
-        # Test the lookup_in_dbtable plugin and type_lookup_db trafo method
-        # With field_dst as array ref
-
-        # The step config section
-        # <step>
-        #   type                = lookup_db
-        #   datasource          = test_dict
-        #   hints               = localitati
-        #   <field_src>
-        #     denumire          = localitate
-        #   </field_src>
-        #   method              = lookup_in_dbtable
-        #   <field_dst>
-        #     denumire          = localitate
-        #   </field_dst>
-        #   <field_dst>
-        #     cod               = siruta
-        #   </field_dst>
-        # </step>
-        subtest 'a. type_lookup_db with dst: 2 mappings (AoH)' => sub {
-
-        my $conf_lookup_db = {
-            row => {
-                step => {
-                    type       => 'lookup_db',
-                    field_src  => { denumire => 'localitate' },
-                    field_dst  =>
-                        [ { denloc => 'localitate' }, { cod => 'siruta' }, ],
-                    hints      => 'localitati',
-                    method     => 'lookup_in_dbtable',
-                    datasource => 'test_dict',
-                },
-            },
-        };
-
-        ok my $plugin = App::Transfer::Plugin->new,
-            'a. new plugin object';
-
-        ok my $tr = App::Transfer::Recipe::Transform->new($conf_lookup_db),
-            'a. lookup_db test step';
-        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'a. recipe transform';
-
-        ok my $step = $tr->row->[0], 'a. the step';
-
-        ok $info = $engine->get_info($table_import),
-            'a. get info for table';
-
-        ok my $command = App::Transfer::RowTrafos->new(
-            recipe => $transfer->recipe,
-            plugin => $plugin,
-            engine => $engine,
-            info   => $info,
-            ), 'a. new command';
-
-        # Input records
-        my $records_4a = [
-            { denumire => "Izvorul Mures",   id => 1 },
-            { denumire => "Sfantu Gheorghe", id => 2 },
-            { denumire => "Podu Olt",        id => 3 },
-            { denumire => "Baile Tusnad",    id => 4 },
-            { denumire => "Brașov",          id => 5 },
-        ];
-
-        my @records;
-        foreach my $rec ( @{$records_4a} ) {
-            push @records, $command->type_lookup_db( $step, $rec );
-        }
 
         my $expected = [
             {   id       => 1,
@@ -409,6 +312,49 @@ sub run {
                 denloc   => 'Brașov',
             },
         ];
+
+        ###
+
+        # ######################################################################
+        # # Test the lookup_in_dbtable plugin and type_lookup_db trafo method
+        # # With field_dst as array ref
+
+        # The step config section
+        # <step>
+        #   type                = lookup_db
+        #   datasource          = test_dict
+        #   hints               = localitati
+        #   <field_src>
+        #     denumire          = localitate
+        #   </field_src>
+        #   method              = lookup_in_dbtable
+        #   <field_dst>
+        #     denloc            = localitate
+        #   </field_dst>
+        #   <field_dst>
+        #     cod               = siruta
+        #   </field_dst>
+        # </step>
+        subtest 'a. type_lookup_db with dst: 2 mappings (AoH)' => sub {
+
+        my $records_4a = [
+            { denumire => "Izvorul Mures",   id => 1 },
+            { denumire => "Sfantu Gheorghe", id => 2 },
+            { denumire => "Podu Olt",        id => 3 },
+            { denumire => "Baile Tusnad",    id => 4 },
+            { denumire => "Brașov",          id => 5 },
+        ];
+
+        ok my $step = shift @{$trafos_row}, 'the first step';
+
+        ok my $p = $trafo->build_lookup_db_para($step), 'build para';
+
+        my @records;
+        foreach my $rec ( @{$records_4a} ) {
+            my $id = $rec->{id} // '?';
+            $p->{logstr} = "[id:$id]";
+            push @records, $trafo->type_lookup_db( $p, $rec );
+        }
 
         is_deeply \@records, $expected, 'a. resulting records';
 
@@ -435,39 +381,6 @@ sub run {
         # </step>
         subtest 'b. type_lookup_db with dst: 2 mappings' => sub {
 
-        my $conf_lookup_db = {
-            row => {
-                step => {
-                    type       => 'lookup_db',
-                    field_src  => { denumire => 'localitate' },
-                    field_dst  => { denloc => 'localitate', cod => 'siruta' },
-                    hints      => 'localitati',
-                    method     => 'lookup_in_dbtable',
-                    datasource => 'test_dict',
-                },
-            },
-        };
-
-        ok my $plugin = App::Transfer::Plugin->new,
-            'b. new plugin object';
-
-        ok my $tr = App::Transfer::Recipe::Transform->new($conf_lookup_db),
-            'b. lookup_db test step';
-        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'b. recipe transform';
-
-        ok my $step = $tr->row->[0], 'b. the step again';
-
-        ok $info = $engine->get_info($table_import),
-            'b. get info for table';
-
-        ok my $command = App::Transfer::RowTrafos->new(
-            recipe => $transfer->recipe,
-            plugin => $plugin,
-            engine => $engine,
-            info   => $info,
-            ), 'b. new command';
-
-        # Input records
         my $records_4b = [
             { denumire => "Izvorul Mures",   id => 1 },
             { denumire => "Sfantu Gheorghe", id => 2 },
@@ -476,38 +389,16 @@ sub run {
             { denumire => "Brașov",          id => 5 },
         ];
 
+        ok my $step = shift @{$trafos_row}, 'the first step';
+
+        ok my $p = $trafo->build_lookup_db_para($step), 'build para';
+
         my @records;
         foreach my $rec ( @{$records_4b} ) {
-            push @records, $command->type_lookup_db( $step, $rec );
+            my $id = $rec->{id} // '?';
+            $p->{logstr} = "[id:$id]";
+            push @records, $trafo->type_lookup_db( $p, $rec );
         }
-
-        my $expected = [
-            {   id       => 1,
-                denumire => 'Izvorul Mures',
-                cod      => 86357,
-                denloc   => 'Izvoru Mureșului',
-            },
-            {   id       => 2,
-                denumire => 'Sfantu Gheorghe',
-                cod      => 63394,
-                denloc   => 'Sfîntu Gheorghe',
-            },
-            {   id       => 3,
-                denumire => 'Podu Olt',
-                cod      => 41104,
-                denloc   => 'Podu Oltului',
-            },
-            {   id       => 4,
-                denumire => 'Baile Tusnad',
-                cod      => 83428,
-                denloc   => 'Băile Tușnad',
-            },
-            {   id       => 5,
-                denumire => 'Brașov',
-                cod      => 40198,
-                denloc   => 'Brașov',
-            },
-        ];
 
         is_deeply \@records, $expected, 'b. resulting records again';
 
@@ -534,62 +425,24 @@ sub run {
         # </step>
         subtest 'c. type_lookup_db with dst: a mapping and a field' => sub {
 
-        my $conf_lookup_db = {
-            row => {
-                step => {
-                    type       => 'lookup_db',
-                    field_src => { denumire => 'localitate' },
-                    field_dst => [ { denloc => 'localitate' }, 'siruta' ],
-                    hints      => 'localitati',
-                    method     => 'lookup_in_dbtable',
-                    datasource => 'test_dict',
-                },
-            },
-        };
-
-        ok my $plugin = App::Transfer::Plugin->new,
-            'c. new plugin object';
-
-        ok my $tr = App::Transfer::Recipe::Transform->new($conf_lookup_db),
-            'c. lookup_db test step';
-        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'c. recipe transform';
-
-        ok my $step = $tr->row->[0], 'c. the step again';
-
-        ok my $info = $engine->get_info($table_import),
-            'c. get info for table';
-
-        # Manipulate info
-        $info->{siruta} = {
-            defa        => undef,
-            is_nullable => undef,
-            length      => 4,
-            name        => "cod",
-            pos         => 1,
-            prec        => 0,
-            scale       => 0,
-            type        => "integer",
-        },
-
-        ok my $command = App::Transfer::RowTrafos->new(
-            recipe => $transfer->recipe,
-            plugin => $plugin,
-            engine => $engine,
-            info   => $info,
-            ), 'c. new command';
-
-        # Input records
         my $records_4c = [
             { denumire => "Izvorul Mures",   id => 1 },
             { denumire => "Sfantu Gheorghe", id => 2 },
             { denumire => "Podu Olt",        id => 3 },
             { denumire => "Baile Tusnad",    id => 4 },
             { denumire => "Brașov",          id => 5 },
-        ];
+            { denumire => "Albesti",         id => 6 },
+        ];   # XXX Fails for "Albești" with Wide character in print...
+
+        ok my $step = shift @{$trafos_row}, 'the first step';
+
+        ok my $p = $trafo->build_lookup_db_para($step), 'build para';
 
         my @records;
         foreach my $rec ( @{$records_4c} ) {
-            push @records, $command->type_lookup_db( $step, $rec );
+            my $id = $rec->{id} // '?';
+            $p->{logstr} = "[id:$id]";
+            push @records, $trafo->type_lookup_db( $p, $rec );
         }
 
         my $expected = [
@@ -618,6 +471,11 @@ sub run {
                 siruta   => 40198,
                 denloc   => 'Brașov',
             },
+            {   id       => 6,
+                denumire => 'Albesti',
+                siruta   => undef,
+                denloc   => undef,
+            },
         ];
 
         is_deeply \@records, $expected, 'c. resulting records again';
@@ -630,55 +488,36 @@ sub run {
 
         # The step config section
 
-        subtest 'd. type_lookup' => sub {
+        # subtest 'd. type_lookup' => sub {
 
-        my $conf_lookup = {
-            transform => {
-                row => {
-                    step => {
-                        type       => 'lookup',
-                        field_src  => 'categorie',
-                        field_dst  => 'categ_id',
-                        method     => 'lookup_in_ds',
-                        datasource => 'categories',
-                    }
-                }
-            },
-        };
+        # my $conf_lookup = {
+        #     transform => {
+        #         row => {
+        #             step => {
+        #                 type       => 'lookup',
+        #                 field_src  => 'categorie',
+        #                 field_dst  => 'categ_id',
+        #                 method     => 'lookup_in_ds',
+        #                 datasource => 'categories',
+        #             }
+        #         }
+        #     },
+        # };
 
-        ok my $plugin = App::Transfer::Plugin->new,
-            'd. new plugin object';
+        # my @records;
+        # foreach my $rec ( @{$records} ) {
+        #     push @records, $trafo->type_lookup_db( $step, $rec );
+        # }
 
-        ok my $tr = App::Transfer::Recipe::Transform->new(
-            $conf_lookup->{transform} ), 'd. lookup test step';
-        isa_ok $tr, 'App::Transfer::Recipe::Transform', 'd. recipe transform';
+        # # my $expected = [
+        # # ];
 
-        ok my $step = $tr->row->[0], 'd. the step';
+        # say "*** rezult:";
+        # dd @records;
 
-        ok $info = $engine->get_info($table_import),
-            'd. get info for table';
+        # # # is_deeply \@records, $expected, 'resulting records';
 
-        ok my $command = App::Transfer::RowTrafos->new(
-            recipe => $transfer->recipe,
-            plugin => $plugin,
-            engine => $engine,
-            info   => $info,
-            ), 'd. new row trafo command';
-
-        my @records;
-        foreach my $rec ( @{$records} ) {
-            push @records, $command->type_lookup_db( $step, $rec );
-        }
-
-        # my $expected = [
-        # ];
-
-        say "*** rezult:";
-        dd @records;
-
-        # # is_deeply \@records, $expected, 'resulting records';
-
-        };                      # subtest
+        # };                      # subtest
 
 
         ######################################################################

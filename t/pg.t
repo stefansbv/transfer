@@ -86,7 +86,7 @@ catch {
 my $uri = 'db:pg://@localhost/__transfertest__';
 DBIEngineTest->run(
     class           => $CLASS,
-    transfer_params => [ recipe_file => $recipe_file, ],
+    trafo_params  => [ recipe_file => $recipe_file, ],
     target_params   => [ uri => $uri ],
     skip_unless     => sub {
         my $self = shift;
