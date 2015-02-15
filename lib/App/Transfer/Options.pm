@@ -43,13 +43,8 @@ has 'config' => (
 );
 
 has 'recipe' => (
-    is      => 'ro',
-    isa     => 'App::Transfer::Recipe',
-    lazy    => 1,
-    default => sub {
-        my $self = shift;
-        return $self->transfer->recipe;
-    },
+    is  => 'ro',
+    isa => 'App::Transfer::Recipe',
 );
 
 has 'target' => (

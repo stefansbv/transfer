@@ -26,7 +26,6 @@ BEGIN {
 }
 
 use App::Transfer::Config;
-use App::Transfer::Recipe;
 
 option 'dryrun' => (
     is            => 'rw',
@@ -38,13 +37,6 @@ option 'verbose' => (
     is            => 'rw',
     isa           => 'Bool',
     documentation => q[Verbose output.],
-);
-
-has 'recipe_file' => (
-    is       => 'ro',
-    isa      => File,
-    required => 0,
-    coerce   => 1,
 );
 
 has plugins_dir => (
@@ -65,18 +57,6 @@ has 'config' => (
     default => sub {
         return App::Transfer::Config->new;
     }
-);
-
-has 'recipe' => (
-    is      => 'ro',
-    isa     => 'App::Transfer::Recipe',
-    lazy    => 1,
-    default => sub {
-        my $self = shift;
-        return App::Transfer::Recipe->new(
-            recipe_file => $self->recipe_file->stringify,
-        );
-    },
 );
 
 
