@@ -586,7 +586,7 @@ sub job_info_file2db {
 
     my $worksheet = $self->reader->worksheet
         if $self->reader->can('worksheet');
-    $worksheet //= 'not';
+    $worksheet //= 'n/a';
     my @i_l = (__ 'file:', __ 'worksheet:');
     my @i_v = ($self->reader_options->file, $worksheet);
     print form
