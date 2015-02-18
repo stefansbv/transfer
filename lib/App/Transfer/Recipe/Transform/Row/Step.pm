@@ -1,6 +1,6 @@
 package App::Transfer::Recipe::Transform::Row::Step;
 
-# ABSTRACT: Data transformation recipe
+# ABSTRACT: Row transformation step
 
 use 5.010001;
 use Moose;
@@ -8,8 +8,8 @@ use Moose::Util::TypeConstraints;
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
-has 'type'       => ( is => 'ro', isa => 'Str',            required => 1 );
-has 'method'     => ( is => 'ro', isa => 'Str',            required => 1 );
+has 'type'       => ( is => 'ro', isa => 'Str', required => 1 );
+has 'method'     => ( is => 'ro', isa => 'Str', required => 1 );
 has 'field_src' => (
     is       => 'ro',
     isa      => 'Str | ArrayRef | HashRef',
@@ -75,3 +75,154 @@ sub BUILD {
 __PACKAGE__->meta->make_immutable;
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 Name
+
+App::Transfer::Recipe::Transform::Row::Step - Row transformation step
+
+=head1 Synopsis
+
+   my $steps = App::Transfer::Recipe::Transform::Row::Step->new(
+      $self->recipe_data->{step},
+   );
+
+=head1 Description
+
+An object representing a C<step> section of the type C<row> recipe
+transformations.
+
+=head1 Interface
+
+=head3 C<new>
+
+Instantiates and returns an
+L<App::Transfer::Recipe::Transform::Row::Step> object.
+
+   my $steps = App::Transfer::Recipe::Transform::Row::Step->new(
+      $self->recipe_data->{step},
+   );
+
+=head2 Attributes
+
+=head3 C<type>
+
+The transformation type identifier.  Each type has his required and
+optional attributes.
+
+Valid row transformation types:
+
+=over
+
+=item copy
+
+=item split
+
+=item join
+
+=item batch
+
+=item lookup
+
+=item lookup_db
+
+=back
+
+=head3 C<method>
+
+The name of the plugin method to be called for the transformation.
+
+=head3 C<field_src>
+
+The source field or fields.  For example the C<split> transformation
+type has one source field (Str) and multiple destination fields
+(Array).
+
+=head3 C<field_dst>
+
+The destination field or fields.  For example the C<join>
+transformation type has multiple source fields (Array) and one
+destination field (Str).
+
+=head3 C<attributes>
+
+Attributes to alter the behavior of the transformation.
+
+Valid attributes:
+
+=over
+
+=item C<APPEND>
+
+=item C<APPENDSRC>
+
+=item C<COPY>
+
+=item C<MOVE>
+
+=item C<REPLACE>
+
+=item C<REPLACENULL>
+
+=back
+
+=head3 C<separator>
+
+Used only by the C<split> and C<join> row transformation types.  The
+separator to be used by the C<split> or C<join> Perl functions.
+
+For example:
+
+  <step>
+    type                = split
+    separator           = ' '
+    ...
+  </step>
+
+  <step>
+    type                = join
+    separator           = ', '
+    ...
+  </step>
+
+=head3 C<datasource>
+
+A dictionary type data structure.  Can be used for simple lookups when
+a value must be replaced by another.
+
+=head3 C<hints>
+
+A dictionary type data structure.  Can be used to fix frequently made
+user spelling mistakes in a database column.  For example when looking
+for C<THIS> actually look for C<THAT>.
+
+=head1 Author
+
+Ștefan Suciu <stefan@s2i2.ro>
+
+=head1 License
+
+Copyright (c) 2014-2015 Ștefan Suciu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+=cut
