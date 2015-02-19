@@ -1,6 +1,6 @@
 package App::Transfer::Target;
 
-use 5.010;
+use 5.010001;
 use Moose;
 use Moose::Util::TypeConstraints;
 use App::Transfer::X qw(hurl);
@@ -73,11 +73,10 @@ App::Transfer::Target - Transfer reader or writer database target
       uri      => 'db:...',
   );
 
-
 =head1 Description
 
 App::Transfer::Target provides the L<engine|App::Transfer::Engine>
-required to carry out Transfer commands. All commands should
+required to carry out Transfer commands.  All commands should
 instantiate a target to work with a database.
 
 =head1 Interface
@@ -86,15 +85,8 @@ instantiate a target to work with a database.
 
   my $target = App::Transfer::Target->new( transfer => $transfer );
 
-Instantiates and returns an App::Transfer::Target object. The most important
+Instantiates and returns an App::Transfer::Target object. The
 parameters are C<transfer>, C<name> and C<uri>.
-
-TODO: Adapt for Transfer:
-
-As a general rule, then, pass either a target name or URI string in the
-C<name> parameter, and Transfer will do its best to find all the relevant target
-information. And if there is no name or URI, it will try to construct a
-reasonable default from the command-line options or engine configuration.
 
 =head2 Accessors
 
@@ -111,8 +103,8 @@ Returns the L<App::Transfer> object that instantiated the target.
   my $name = $target->name;
   $name = $target->target;
 
-The name of the target. If there was no name specified, the URI will be used
-(minus the password, if there is one).
+The name of the database target configuration.  If there was no name
+specified, the URI will be used (minus the password, if there is one).
 
 =head3 C<uri>
 
@@ -152,8 +144,8 @@ method for C<< $target->uri->user >>.
 
   my $password = $target->password;
 
-The password to use when connecting to the target via the DBI. Convenience
-method for C<< $target->uri->password >>.
+The password to use when connecting to the target via the DBI.
+Convenience method for C<< $target->uri->password >>.
 
 =head1 See Also
 
