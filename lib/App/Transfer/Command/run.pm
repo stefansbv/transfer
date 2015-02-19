@@ -4,7 +4,6 @@ package App::Transfer::Command::run;
 
 use 5.010001;
 use utf8;
-
 use MooseX::App::Command;
 use MooseX::Types::Path::Tiny qw(Path File);
 use Locale::TextDomain qw(App-Transfer);
@@ -157,7 +156,7 @@ __END__
 
 =head1 Name
 
-App::Transfer::Command::run - Command to process a recipe file
+Command to process a recipe file
 
 =head1 Description
 

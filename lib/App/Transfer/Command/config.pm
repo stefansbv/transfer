@@ -229,15 +229,18 @@ required parameter for the C<config> command.
 
 =head3 C<context_local>
 
-Option for the local context.
+The C<context_local> attribute holds the value of the CLI option
+C<--local>.  It is used to select the local context.
 
 =head3 C<context_user>
 
-Option for the user context.
+The C<context_user> attribute holds the value of the CLI option
+C<--user>.  It is used to select the user context.
 
 =head3 C<context_system>
 
-Option for the system context.
+The C<context_system> attribute holds the value of the CLI option
+C<--system>.  It is used to select the system context.
 
 =head3 C<target>
 
