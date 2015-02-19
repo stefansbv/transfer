@@ -7,7 +7,7 @@ use utf8;
 use Moose;
 use MooseX::Types::Path::Tiny qw(Path);
 use Moose::Util::TypeConstraints;
-use MooseX::App qw(Color);
+use MooseX::App qw(Color Version);
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use Locale::Messages qw(bind_textdomain_filter);
 use App::Transfer::X qw(hurl);
