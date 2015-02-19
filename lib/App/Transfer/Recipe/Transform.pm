@@ -84,8 +84,8 @@ object.
 =head3 C<row>
 
 Returns an object instance representing a C<row> type transformation.
-This kind of transformation can read from multiple source fields
-(columns) and/or write to multiple destination fields.
+This kind of transformation can read from one/many source field(s) and
+write to many/one destination field(s).
 
 =head3 C<column>
 
