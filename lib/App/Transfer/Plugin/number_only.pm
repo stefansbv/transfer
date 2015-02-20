@@ -6,7 +6,7 @@ use 5.010001;
 use Moose;
 use namespace::autoclean;
 
-with 'MooseX::Log::Log4perl';
+with 'MooX::Log::Any';
 
 sub number_only {
     my ($self, $p) = @_;

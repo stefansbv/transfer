@@ -7,7 +7,7 @@ use Moose;
 use Number::Misc ':all';
 use namespace::autoclean;
 
-with 'MooseX::Log::Log4perl';
+with 'MooX::Log::Any';
 
 sub integer {
     my ($self, $p) = @_;

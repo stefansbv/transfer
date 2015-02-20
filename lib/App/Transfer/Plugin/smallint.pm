@@ -20,7 +20,7 @@ has max => (
     default => 32_767,
 );
 
-with 'MooseX::Log::Log4perl';
+with 'MooX::Log::Any';
 
 sub smallint {
     my ( $self, $p ) = @_;

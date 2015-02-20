@@ -12,7 +12,7 @@ use Locale::TextDomain qw(App-Transfer);
 use SQL::Abstract;
 use namespace::autoclean;
 
-with 'MooseX::Log::Log4perl';
+with 'MooX::Log::Any';
 
 requires 'dbh';
 

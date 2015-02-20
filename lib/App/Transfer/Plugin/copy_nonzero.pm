@@ -8,7 +8,7 @@ use List::Util qw/any none/;
 use List::MoreUtils qw/each_array/;
 use namespace::autoclean;
 
-with 'MooseX::Log::Log4perl';
+with 'MooX::Log::Any';
 
 sub copy_nonzero {
     my ( $self, $p ) = @_;

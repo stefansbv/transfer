@@ -273,6 +273,7 @@ sub get_data {
         }
         $row_count++;
     }
+    $self->record_count($row_count);
     return \@records;
 }
 

@@ -7,17 +7,17 @@ use Moose;
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use Module::Pluggable::Object;
-use Log::Log4perl;
-use File::HomeDir;
-use File::Spec::Functions;
+# use Log::Log4perl;
+#use File::HomeDir;
+#use File::Spec::Functions;
 use App::Transfer::Config;
 use namespace::autoclean;
 
-BEGIN {
-    my $home = File::HomeDir->my_home;
-    my $log_fqn = catfile($home, '.transfer', 'log.conf' );
-    Log::Log4perl->init($log_fqn) if -f $log_fqn;
-};
+# BEGIN {
+#     my $home = File::HomeDir->my_home;
+#     my $log_fqn = catfile($home, '.transfer', 'log.conf' );
+#     Log::Log4perl->init($log_fqn) if -f $log_fqn;
+# };
 
 has 'plugins', is => 'ro', isa => 'ArrayRef', lazy_build => 1;
 

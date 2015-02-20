@@ -30,6 +30,12 @@ has 'options' => (
     required => 1,
 );
 
+has 'record_count' => (
+    is       => 'rw',
+    isa      => 'Int',
+    default => sub { return 0; },
+);
+
 sub load {
     my ( $class, $p ) = @_;
 

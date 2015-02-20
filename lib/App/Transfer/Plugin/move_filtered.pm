@@ -7,7 +7,7 @@ use Moose;
 use List::Util qw/any/;
 use namespace::autoclean;
 
-with 'MooseX::Log::Log4perl';
+with 'MooX::Log::Any';
 
 =head2 move_filtered
 

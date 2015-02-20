@@ -11,6 +11,14 @@ use MooseX::App qw(Color Version);
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use Locale::Messages qw(bind_textdomain_filter);
 use App::Transfer::X qw(hurl);
+use File::HomeDir;
+use File::Spec::Functions;
+use Log::Any::Adapter;
+use Log::Log4perl;
+
+use App::Transfer::Config;
+
+Log::Any::Adapter->set('Log4perl');
 
 app_namespace 'App::Transfer::Command';
 
@@ -19,9 +27,12 @@ BEGIN {
     # Force Locale::TextDomain to encode in UTF-8 and to decode all messages.
     $ENV{OUTPUT_CHARSET} = 'UTF-8';
     bind_textdomain_filter 'App-Transfer' => \&Encode::decode_utf8;
-}
 
-use App::Transfer::Config;
+    # Init logger
+    my $home = File::HomeDir->my_home;
+    my $log_fqn = catfile($home, '.transfer', 'log.conf' );
+    Log::Log4perl->init($log_fqn) if -f $log_fqn;
+}
 
 option 'dryrun' => (
     is            => 'rw',
@@ -54,7 +65,6 @@ has 'config' => (
         return App::Transfer::Config->new;
     }
 );
-
 
 ###
 # Borrowed from Sqitch :)

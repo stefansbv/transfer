@@ -14,7 +14,7 @@ use namespace::autoclean;
 
 extends 'App::Transfer::Reader';
 
-has table => (
+has 'table' => (
     is       => 'ro',
     isa      => 'Str',
     required => 1,
@@ -39,7 +39,7 @@ has 'target' => (
     },
 );
 
-has _contents => (
+has '_contents' => (
     is      => 'ro',
     isa     => 'ArrayRef',
     lazy    => 1,
@@ -162,6 +162,7 @@ sub get_data {
         my $row = $iter->next;
         push @records, $row;
     }
+    $self->record_count(scalar @records);
     return \@records;
 }
 

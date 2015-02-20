@@ -10,6 +10,8 @@ use MooseX::Types::Path::Tiny qw(Path File);
 use App::Transfer::X qw(hurl);
 use Locale::TextDomain qw(App-Transfer);
 use Perl6::Form;
+use Progress::Any;
+use Progress::Any::Output 'TermProgressBarColor';
 use namespace::autoclean;
 
 use App::Transfer::Options;
@@ -19,7 +21,7 @@ use App::Transfer::Writer;
 use App::Transfer::Plugin;
 
 with qw(App::Transfer::Role::Utils
-        MooseX::Log::Log4perl);
+        MooX::Log::Any);
 
 has 'transfer' => (
     is       => 'ro',
@@ -557,18 +559,37 @@ sub transfer_file2db {
     my $logfld = $self->recipe->tables->get_table($table)->logfield;
     unless ($logfld) {
         my @cols = $self->sort_hash_by_pos($table_info);
-        $logfld = shift @cols;              # that the first column is
+        $logfld = shift @cols;  # that the first column is
     }
 
-    my $iter = $self->_contents_iter;
+    my $iter = $self->_contents_iter; # call before record_count
+    my $row_count    = 0;
+    my $record_count = $self->reader->record_count;
+
+    my $start_l  = __ 'Working:';
+    my $record_l = __ 'records read:';
+    print form
+    " -----------------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+                                    $start_l;
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    $record_l,                                      $record_count;
+
+    my $progress = Progress::Any->get_indicator(
+        target => $record_count,
+    );
     while ( $iter->has_next ) {
+        $row_count++;
         my $row = $iter->next;
         $row    = $self->do_transformations($row, $table_info, $logfld);
         $self->writer->insert($table, $row);
+        $progress->update( message => "Record $row_count|" );
 
         #last;                                # DEBUG
     }
-
+    $progress->finish;
     return;
 }
 
@@ -639,21 +660,43 @@ sub transfer_db2db {
     hurl run => __( 'No columns type info retrieved from database!' )
         if keys %{$table_info} == 0;
 
-    # Log field name
-    my $logfld = $self->recipe->tables->get_table($dst_table)->logfield;
+    # Log field name  XXX logfield can be missing from config?
+    my $tables = $self->recipe->tables;
+    my $tableo = $tables->get_table($dst_table);
+    my $logfld = $tableo->logfield;
     unless ($logfld) {
         my @cols = $self->sort_hash_by_pos($table_info);
         $logfld = shift @cols;              # that the first column is
     }
 
-    my $iter = $self->_contents_iter;
+    my $iter = $self->_contents_iter; # call before record_count
+    my $row_count    = 0;
+    my $record_count = $self->reader->record_count;
+
+    my $start_l  = __ 'Working:';
+    my $record_l = __ 'records read:';
+    print form
+    " -----------------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+                                    $start_l;
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+    $record_l,                                      $record_count;
+
+    my $progress = Progress::Any->get_indicator(
+        target => $record_count,
+    );
     while ( $iter->has_next ) {
+        $row_count++;
         my $row = $iter->next;
         $row    = $self->do_transformations($row, $table_info, $logfld);
         $self->writer->insert($dst_table, $row);
+        $progress->update( message => "Record $row_count|" );
 
         #last;                   # DEBUG
     }
+    $progress->finish;
 
     return;
 }
@@ -783,6 +826,38 @@ __END__
 
 =head1 Interface
 
+=head2 Attributes
+
+=head3 C<transfer>
+
+=head3 C<recipe_file>
+
+=head3 C<input_options>
+
+=head3 C<output_options>
+
+=head3 C<recipe>
+
+=head3 C<reader_options>
+
+=head3 C<writer_options>
+
+=head3 C<reader>
+
+=head3 C<writer>
+
+=head3 C<plugin>
+
+=head3 C<engine>
+
+=head3 C<info>
+
+=head3 C<_trafo_types>
+
+=head3 C<_contents>
+
+=head3 C<_contents_iter>
+
 =head2 Instance Methods
 
 =head3 C<type_split>
@@ -795,7 +870,23 @@ __END__
 
 =head3 C<type_lookup>
 
+=head3 C<build_lookup_db_para>
+
 =head3 C<type_lookup_db>
+
+=head3 C<job_intro>
+
+=head3 C<transfer_file2db>
+
+=head3 C<job_info_file2db>
+
+=head3 C<transfer_db2db>
+
+=head3 C<job_info_db2db>
+
+=head3 C<job_summary>
+
+=head3 C<do_transformations>
 
 =head1 Author
 

@@ -7,7 +7,7 @@ use Moose;
 use Date::Calc qw ( Decode_Date_EU );
 use namespace::autoclean;
 
-with 'MooseX::Log::Log4perl';
+with 'MooX::Log::Any';
 
 sub date {
     my ($self, $p) = @_;

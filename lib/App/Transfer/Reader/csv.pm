@@ -88,6 +88,7 @@ sub _build_contents {
     my $row    = {};
     my @records;
     $csv->bind_columns( \@{$row}{@cols} );
+
     while ( $csv->getline($fh) ) {
         my $record = {};
         foreach my $col (@cols) {
@@ -124,6 +125,7 @@ sub get_data {
         # Only records with at least one defined value
         push @records, $row if any { defined($_) } values %{$row};
     }
+    $self->record_count(scalar @records);
     return \@records;
 }
 
