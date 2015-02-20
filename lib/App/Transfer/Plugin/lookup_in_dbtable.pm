@@ -71,7 +71,7 @@ Parameters:
 
 =item C<$where>  where
 
-=item C<$lookup> lookup the value to lookup
+=item C<$lookup> the value to lookup
 
 =back
 
