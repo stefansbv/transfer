@@ -182,4 +182,17 @@ TODO: {
 #-- Non existent plugin
 throws_ok { $ttr->do_transform('nosuchplugin', $p) } qr/nosuchplugin/, "No plugin for 'nosuchplugin' in 'do_transform'";
 
+my $values = ['Brașov', 'B-dul Saturn', 'nr. 20'];
+
+#-- split
+my $value = 'Brașov, B-dul Saturn, nr. 20';
+@$p{qw(value limit separator)} = ($value, 5, ',');
+ok my @res_split = $ttr->do_transform( 'split_field', $p ), 'split field';
+is @res_split, @{$values}, 'resulting values';
+
+#-- join
+@$p{qw(value separator)} = ($values, ', ');
+ok my $res_join = $ttr->do_transform( 'join_fields', $p ), 'join fields';
+is $res_join, 'Brașov, B-dul Saturn, nr. 20', 'resulting string';
+
 done_testing;

@@ -1,6 +1,6 @@
 package App::Transfer::Plugin::join_fields;
 
-# ABSTRACT: # ABSTRACT: Transfer plugin for join_fields
+# ABSTRACT: Transfer plugin for join_fields
 
 use 5.010001;
 use Moose;
@@ -10,10 +10,10 @@ with 'MooX::Log::Any';
 
 sub join_fields {
     my ( $self, $p ) = @_;
-    my ( $logstr, $field, $text, $separator )
-        = @$p{qw(logstr name value separator)};
+    my ( $logstr, $text, $separator ) = @$p{qw(logstr value separator)};
     return unless ref $text;
-    return join $separator, @{$text};
+    my $new_text = join $separator, @{$text};
+    return $new_text;
 }
 
 __PACKAGE__->meta->make_immutable;

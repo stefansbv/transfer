@@ -8,7 +8,6 @@ use utf8;
 use Test::More;
 use Path::Class;
 use Test::Exception;
-use Test::MockModule;
 use Locale::TextDomain qw(App-Transfer);
 use App::Transfer;
 use App::Transfer::Target;
@@ -48,12 +47,7 @@ ENGINE: {
     after seen => sub { @SEEN = () };
 }
 
-ok my $recipe_file = file( 't', 'recipes', 'recipe.conf' ), "Recipe file";
-my $transfer = App::Transfer->new(
-    recipe_file => $recipe_file->stringify,
-);
-
-my $mock_engine = Test::MockModule->new($CLASS);
+my $transfer    = App::Transfer->new;
 
 ##############################################################################
 # Test new().

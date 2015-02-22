@@ -1,6 +1,6 @@
 package App::Transfer::Plugin::split_field;
 
-# ABSTRACT: # ABSTRACT: Transfer plugin for split_field
+# ABSTRACT: Transfer plugin for split_field
 
 use 5.010001;
 use Moose;
@@ -13,7 +13,7 @@ sub split_field {
     my ($logstr, $field, $text, $limit, $separator )
         = @$p{qw(logstr name value limit separator)};
     return unless $text;
-    return split /$separator/, $text, $limit;
+    return split /\s*$separator\s*/, $text, $limit;
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -179,19 +179,24 @@ has '_contents_iter' => (
     iterate_over => '_contents',
 );
 
-sub type_split {
-    my ( $self, $step, $record ) = @_;
+sub build_split_para {
+    my ( $self, $step ) = @_;
 
+    # Source check
     my $field_src = $step->field_src;
+    hurl type_split => __("Error in recipe (split): no 'field_src' set")
+        unless $field_src;
+    hurl type_split => __(
+        "Error in recipe (split): the 'field_src' attribute must be a string, not a reference"
+    ) if ref $field_src;
 
-    hurl type_split => __( "Error in recipe (split): no 'field_src' set" );
-    hurl type_split => __( "Error in recipe (split): the 'field_src' attribute must be a string, not a reference") if ref $field_src;
-    hurl type_split => __x( "Error in recipe (split): no such field '{field}' for 'field_src'", field => $field_src ) unless exists $record->{$field_src};
-
-    my $p = {};
-    # my $p = $self->get_info($field_src);
-    # hurl field_info =>
-    #     __x( "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency", field => $field_src ) unless defined $p;
+    # Destination check
+    my $field_dst = $step->field_dst;
+    hurl type_split => __("Error in recipe (split): no 'field_dst' set")
+        unless $field_dst;
+    hurl type_split => __(
+        "Error in recipe (split): the 'field_dst' attribute must be a reference, not a string"
+    ) unless ref $field_dst;
 
     # Make the 'dst' field an array ref if it's not
     my $destination
@@ -199,88 +204,130 @@ sub type_split {
         ? $step->field_dst
         : [ $step->field_dst ];
 
-    $p->{logfld}    = $self->get_info('logfld');
-    $p->{logidx}    = $self->get_info('logidx');
-    $p->{value}     = $record->{$field_src};       # add the value to p
-    $p->{limit}     = @{ $destination };       # num fields to return
+    my $p = {};
+    $p->{field_src}   = $field_src;
+    $p->{destination} = $destination;
+    $p->{limit}     = scalar @{ $destination }; # num fields to return
     $p->{separator} = $step->separator;
-    my @values = $self->plugin->do_transform( $step->method, $p );
+    $p->{method}    = $step->method // 'split_field';
+
+    return $p;
+}
+
+sub type_split {
+    my ( $self, $p, $record ) = @_;
+
+    my $field_src   = $p->{field_src};
+    my $destination = $p->{destination};
+    $p->{value}     = $record->{$field_src};       # add the value to p
+
+    # Assuming that the number of values matches the number of destinations
+    my @values = $self->plugin->do_transform( $p->{method}, $p );
     my $i = 0;
     foreach my $value (@values) {
         my $field_dst = ${$destination}[$i];
-        unless ( exists $record->{$field_dst} ) {
-            my $field_dst_info = $self->get_info($field_dst);
-            hurl field_info => __x(
-                "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency", field => $field_dst
-            ) unless defined $field_dst_info;
-        }
         $record->{$field_dst} = $value;
-        $i++;
+        $i++
     }
 
     return $record;
+}
+
+sub build_join_para {
+    my ( $self, $step ) = @_;
+
+    # Source check
+    my $field_src = $step->field_src;
+    hurl type_join => __("Error in recipe (join): no 'field_src' set")
+        unless $field_src;
+    hurl type_join => __(
+        "Error in recipe (join): the 'field_src' attribute must be a reference, not a string"
+    ) unless ref $field_src;
+
+    # Destination check
+    my $field_dst = $step->field_dst;
+    hurl type_join => __("Error in recipe (join): no 'field_dst' set")
+        unless $field_dst;
+    hurl type_join => __(
+        "Error in recipe (join): the 'field_dst' attribute must be a string, not a reference"
+    ) if ref $field_dst;
+
+    # Make the 'src' field an array ref if it's not
+    my $source
+        = ref $step->field_src eq 'ARRAY'
+        ? $step->field_src
+        : [ $step->field_src ];
+
+    my $p = {};
+    $p->{source}    = $source;
+    $p->{field_dst} = $field_dst;
+    $p->{separator} = $step->separator;
+    $p->{method}    = $step->method // 'join_fields';
+
+    return $p;
 }
 
 sub type_join {
-    my ( $self, $step, $record ) = @_;
+    my ( $self, $p, $record ) = @_;
 
-    my $fields_src = $step->field_src;
+    my $source = $p->{source};
     my $values;
-    foreach my $field_src ( @{$fields_src} ) {
-        unless ( exists $record->{$field_src} ) {
-            hurl type_split =>
-                __x( "Error in recipe (join): no such field '{field}'",
-                field => $field_src );
-        }
-        # my $field_src_info = $self->get_info($field_src);
-        # hurl field_info => __x(
-        #     "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
-        #     field   => $field_src,
-        #     context => 'join',
-        # ) unless defined $field_src_info;
-
-        push @{$values}, $record->{$field_src}
-            if defined $record->{$field_src};
+    foreach my $field_src ( @{$source} ) {
+        my $value = $record->{$field_src};
+        push @{$values}, $value if defined $value;
     }
-    my $field_dst = $step->field_dst;
-    my $p         = $self->get_info($field_dst);
-    $p->{logfld}     = $self->get_info('logfld');
-    $p->{logidx}     = $self->get_info('logidx');
-    $p->{separator}  = $step->separator;
-    $p->{value}      = $values;
-    $p->{fields_src} = $fields_src;
-    $record->{$field_dst}
-        = $self->plugin->do_transform( $step->method, $p );
+    $p->{value}   = $values;
+    my $field_dst = $p->{field_dst};
+    $record->{$field_dst} = $self->plugin->do_transform( $p->{method}, $p );
 
     return $record;
 }
 
-sub type_copy {
-    my ( $self, $step, $record ) = @_;
+sub build_copy_para {
+    my ( $self, $step ) = @_;
 
-    my $field_src  = $step->field_src;
-    my $field_dst  = $step->field_dst;
-    my $attributes = $step->attributes;
+    # Source check
+    my $field_src = $step->field_src;
+    hurl type_copy => __("Error in recipe (copy): no 'field_src' set")
+        unless $field_src;
+    hurl type_copy => __(
+        "Error in recipe (copy): the 'field_src' attribute must be a string, not a reference"
+    ) if ref $field_src;
+
+    # Destination check
+    my $field_dst = $step->field_dst;
+    hurl type_copy => __("Error in recipe (copy): no 'field_dst' set")
+        unless $field_dst;
+    hurl type_copy => __(
+        "Error in recipe (copy): the 'field_dst' attribute must be a string, not a reference"
+    ) if ref $field_dst;
 
     my $p = {};
-    # my $p = $self->get_info($field_src);
-    $p->{logfld} = $self->get_info('logfld');
-    $p->{logidx} = $self->get_info('logidx');
+    return $p;
+}
 
-    hurl field_info => __x(
-        "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
-        field   => $field_src,
-        context => 'copy',
-    ) unless defined $p;
+sub type_copy {
+    my ( $self, $p, $record ) = @_;
+
+    my $field_src  = $p->{field_src};
+    my $field_dst  = $p->{field_dst};
+    my $attributes = $p->{attributes};
+
+    # my $p = $self->get_info($field_src);
+    # hurl field_info => __x(
+    #     "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
+    #     field   => $field_src,
+    #     context => 'copy',
+    # ) unless defined $p;
 
     $p->{value}       = $record->{$field_src};
     $p->{lookup_list}
-        = $self->recipe->datasource->get_valid_list( $step->datasource );
+        = $self->recipe->datasource->get_valid_list( $p->{datasource} );
     $p->{field_src}   = $field_src;
     $p->{field_dst}   = $field_dst;
     $p->{attributes}  = $attributes;
 
-    my $r = $self->plugin->do_transform( $step->method, $p );
+    my $r = $self->plugin->do_transform( $p->{method}, $p );
     if ( defined $r ) {
 
         # Write to destination field
@@ -319,71 +366,136 @@ sub type_copy {
     return $record;
 }
 
-sub type_batch {
-    my ( $self, $step, $record ) = @_;
+# sub build_batch_para {
+#     my ( $self, $step ) = @_;
+#     my $p = {};
+#     return $p;
+# }
 
-    my $fields_src = $step->field_src;
-    my $values;
-    foreach my $field_src ( @{$fields_src} ) {
-        unless ( exists $record->{$field_src} ) {
-            hurl type_split =>
-                __x( "Error in recipe (batch): no such field '{field}'",
-                field => $field_src );
-        }
-        # my $field_src_info = $self->get_info($field_src);
-        # hurl field_info => __x(
-        #     "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
-        #     field   => $field_src,
-        #     context => 'batch',
-        # ) unless defined $field_src_info;
+# sub type_batch {
+#     my ( $self, $p, $record ) = @_;
 
-        push @{$values}, $record->{$field_src}
-            if defined $record->{$field_src};
+#     my $fields_src = $step->field_src;
+#     my $values;
+#     foreach my $field_src ( @{$fields_src} ) {
+#         unless ( exists $record->{$field_src} ) {
+#             hurl type_batch =>
+#                 __x( "Error in recipe (batch): no such field '{field}'",
+#                 field => $field_src );
+#         }
+#         # my $field_src_info = $self->get_info($field_src);
+#         # hurl field_info => __x(
+#         #     "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
+#         #     field   => $field_src,
+#         #     context => 'batch',
+#         # ) unless defined $field_src_info;
+
+#         push @{$values}, $record->{$field_src}
+#             if defined $record->{$field_src};
+#     }
+#     my $field_dst = $step->field_dst;
+#     $p->{value}      = $values;
+#     $p->{fields_src} = $fields_src;
+#     $p->{attributes} = $step->attributes;
+#     my $r = $self->plugin->do_transform( $step->method, $p );
+#     foreach my $field_dst ( keys %{$r} ) {
+#         unless ( exists $record->{$field_dst} ) {
+#             my $field_dst_info = $self->get_info($field_dst);
+#             hurl field_info => __x(
+#                 "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency",
+#                 field => $field_dst
+#             ) unless defined $field_dst_info;
+#         }
+#         $record->{$field_dst} = $r->{$field_dst};
+#     }
+
+#     return $record;
+# }
+
+sub build_lookup_para {
+    my ( $self, $step ) = @_;
+
+    # Source
+    my ($field_src, $src_map);
+    if ( ref $step->field_src eq 'HASH' ) {
+
+        # It's a field mapping: source => lookup
+        $src_map   = $step->field_src;
+        $field_src = ( keys %{ $step->field_src } )[0];
     }
-    my $field_dst = $step->field_dst;
-    my $p         = $self->get_info($field_dst);
-    $p->{logfld}     = $self->get_info('logfld');
-    $p->{logidx}     = $self->get_info('logidx');
-    $p->{value}      = $values;
-    $p->{fields_src} = $fields_src;
-    $p->{attributes} = $step->attributes;
-    my $r = $self->plugin->do_transform( $step->method, $p );
-    foreach my $field_dst ( keys %{$r} ) {
-        unless ( exists $record->{$field_dst} ) {
-            my $field_dst_info = $self->get_info($field_dst);
-            hurl field_info => __x(
-                "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency",
-                field => $field_dst
-            ) unless defined $field_dst_info;
-        }
-        $record->{$field_dst} = $r->{$field_dst};
+    else {
+        $field_src = $step->field_src;
     }
 
-    return $record;
+    # Destination fields and lookup fields
+    # Make the 'dst' field an array ref if it's not
+    my $destination
+        = ref $step->field_dst eq 'ARRAY'
+        ? $step->field_dst
+        : [ $step->field_dst ];
+    my $fields_dst = [];
+    my $fields_lkp = [];
+    foreach my $rec ( @{$destination} ) {
+        if (ref $rec eq 'HASH') {
+
+            # It's a field mapping: lookup => destination
+            while ( my ( $key, $val ) = each %{$rec} ) {
+                push @{$fields_dst}, $key;
+                push @{$fields_lkp}, $val;
+            }
+        }
+        else {
+            push @{$fields_dst}, $rec;
+            push @{$fields_lkp}, $rec;
+        }
+    }
+
+    # # Check if the destination fields exists in the DB XXX
+    # foreach my $field ( @{$fields_dst} ) {
+    #     my $p = $self->get_info($field);
+    #     hurl field_info => __x(
+    #         "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
+    #         field   => $field,
+    #         context => 'lookup_db',
+    #     ) unless defined $p;
+    # }
+
+    my $p = {};
+    $p->{method}    = $step->method;
+    $p->{table}     = $step->datasource;
+    $p->{field_src} = $field_src;
+    $p->{field_dst} = $fields_dst;
+    $p->{src_map}   = $src_map;
+    $p->{hint}      = $step->hints;
+    $p->{fields}    = $fields_lkp;           # lookup fields list
+
+    return $p;
 }
 
 sub type_lookup {
-    my ( $self, $step, $record ) = @_;
+    my ( $self, $p, $record ) = @_;
 
-    my $field_src = $step->field_src; # XXX
-    my $field_dst = $step->field_dst;
+    my $field_src = $p->{field_src};
+    my $field_dst = $p->{field_dst};
 
-    my $p = $self->get_info($field_dst);
-    $p->{logfld} = $self->get_info('logfld');
-    $p->{logidx} = $self->get_info('logidx');
+    # Lookup value
+    # my $lookup_val = delete $record->{$field_src}; # XXX delete the source?
+    my $lookup_val = $record->{$field_src};
+    return $record unless defined $lookup_val; # skip if undef
 
-    hurl field_info => __x(
-        "Field info for '{field}' not found!  Recipe <--> DB schema inconsistency ({context})",
-        field   => $field_dst,
-        context => 'lookup',
-    ) unless defined $p;
-
-    $p->{value} = $record->{$field_src};
     $p->{lookup_table}
-        = $self->recipe->datasource->get_ds( $step->datasource );
+        = $self->recipe->datasource->get_ds( $p->{datasource} );
 
-    $record->{$field_dst}
-        = $self->plugin->do_transform( $step->method, $p );
+    # Build WHERE for the lookup
+    $p->{lookup}  = $lookup_val;       # required, used only for loging
+    my $src_map   = $p->{src_map};
+    my $where_fld = ref $src_map ? $src_map->{$field_src} : $field_src;
+    $p->{where}{$where_fld} = $lookup_val;
+
+    my $result_aref = $self->plugin->do_transform( $p->{method}, $p );
+    foreach my $field ( @{$field_dst} ) {
+        $record->{$field} = shift @{$result_aref};
+    }
 
     return $record;
 }
@@ -403,18 +515,12 @@ sub build_lookup_db_para {
         $field_src = $step->field_src;
     }
 
-    # say "\n** field_src:";
-    # dd $field_src;
-    # say "** src map:";
-    # dd $src_map;
-
     # Destination fields and lookup fields
     # Make the 'dst' field an array ref if it's not
     my $destination
         = ref $step->field_dst eq 'ARRAY'
         ? $step->field_dst
         : [ $step->field_dst ];
-    # my $dst_map    = {};
     my $fields_dst = [];
     my $fields_lkp = [];
     foreach my $rec ( @{$destination} ) {
@@ -422,7 +528,6 @@ sub build_lookup_db_para {
 
             # It's a field mapping: lookup => destination
             while ( my ( $key, $val ) = each %{$rec} ) {
-                # $dst_map->{$key} = $val;
                 push @{$fields_dst}, $key;
                 push @{$fields_lkp}, $val;
             }
@@ -432,13 +537,6 @@ sub build_lookup_db_para {
             push @{$fields_lkp}, $rec;
         }
     }
-
-    # say "\n** destination:";
-    # dd $fields_dst;
-    # say "** dst map:";
-    # dd $dst_map;
-    # say "** lookup fields:";
-    # dd $fields_lkp;
 
     # # Check if the destination fields exists in the DB XXX
     # foreach my $field ( @{$fields_dst} ) {
@@ -457,11 +555,8 @@ sub build_lookup_db_para {
     $p->{field_src} = $field_src;
     $p->{field_dst} = $fields_dst;
     $p->{src_map}   = $src_map;
-
-    #$p->{dst_map} = $dst_map;
-    $p->{hint}   = $step->hints;
-    #$p->{logstr} =
-    $p->{fields} = $fields_lkp;                 # lookup fields list
+    $p->{hint}      = $step->hints;
+    $p->{fields}    = $fields_lkp;           # lookup fields list
 
     return $p;
 }
@@ -469,8 +564,6 @@ sub build_lookup_db_para {
 sub type_lookup_db {
     my ( $self, $p, $record ) = @_;
 
-    # say "*** input:";
-    # dd $record;
     my $field_src = $p->{field_src};
     my $field_dst = $p->{field_dst};
 
@@ -479,9 +572,6 @@ sub type_lookup_db {
     my $lookup_val = $record->{$field_src};
     return $record unless defined $lookup_val; # skip if undef
 
-    # say "\n** lookup_val:";
-    # dd $lookup_val;
-
     # Hints
     if ( my $hint = $p->{hint} ) {
         my $hints = $self->recipe->datasource->get_hints($hint);
@@ -489,8 +579,6 @@ sub type_lookup_db {
             $lookup_val = $hints->{$lookup_val};
         }
     }
-    # say "\n** hint lookup_val:";
-    # dd $lookup_val;
 
     # Build WHERE for the lookup
     $p->{lookup}  = $lookup_val;       # required, used only for loging

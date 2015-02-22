@@ -26,7 +26,7 @@ sub run {
 
     my $class           = $p{class};
     my @trafo_params = @{ $p{trafo_params} || [] };
-    my $mock_transfer   = Test::MockModule->new('App::Transfer');
+    #my $mock_transfer   = Test::MockModule->new('App::Transfer');
 
     can_ok $class, qw(
         get_info
@@ -445,7 +445,7 @@ sub run {
             push @records, $trafo->type_lookup_db( $p, $rec );
         }
 
-        my $expected = [
+        my $expected_4c = [
             {   id       => 1,
                 denumire => 'Izvorul Mures',
                 siruta   => 86357,
@@ -478,9 +478,147 @@ sub run {
             },
         ];
 
-        is_deeply \@records, $expected, 'c. resulting records again';
+        is_deeply \@records, $expected_4c, 'c. resulting records again';
 
         };                      # subtest c.
+
+
+        ######################################################################
+        # Test the split_field plugin and type_split trafo method
+
+        # The step config section
+        # <step>
+        #   type                = split
+        #   separator           = ,
+        #   field_src           = adresa
+        #   method              = split_field
+        #   field_dst           = localitate
+        #   field_dst           = strada
+        #   field_dst           = numarul
+        # </step>
+
+        subtest 'd. split' => sub {
+
+        ok my $step = shift @{$trafos_row}, 'the step no 4';
+
+        ok my $p = $trafo->build_split_para($step), 'build para';
+        my $expected_para_4d = {
+            destination => [ "localitate", "strada", "numarul" ],
+            field_src   => "adresa",
+            limit       => 3,
+            method      => "split_field",
+            separator   => ",",
+        };
+        is_deeply $p, $expected_para_4d, 'd. resulting para';
+
+        my $records_4d = [
+            { adresa => "Izvorul Mures, str. Brasovului, nr. 5", id => 1 },
+            { adresa => "Sfintu Gheorghe,  str. Covasna",        id => 2 },
+            { adresa => "Brasov, str. Bucurestilor,    nr. 23",  id => 3 },
+        ];
+
+        my @records;
+        foreach my $rec ( @{$records_4d} ) {
+            push @records, $trafo->type_split( $p, $rec );
+        }
+
+        my $expected_4d = [
+            {   adresa     => "Izvorul Mures, str. Brasovului, nr. 5",
+                id         => 1,
+                localitate => "Izvorul Mures",
+                numarul    => "nr. 5",
+                strada     => "str. Brasovului",
+            },
+            {   adresa     => "Sfintu Gheorghe,  str. Covasna",
+                id         => 2,
+                localitate => "Sfintu Gheorghe",
+                strada     => "str. Covasna",
+            },
+            {   adresa     => "Brasov, str. Bucurestilor,    nr. 23",
+                id         => 3,
+                localitate => "Brasov",
+                numarul    => "nr. 23",
+                strada     => "str. Bucurestilor",
+            },
+        ];
+
+        is_deeply \@records, $expected_4d, 'd. resulting records';
+
+        };                      # subtest d.
+
+
+        ######################################################################
+        # Test the join_field plugin and type_join trafo method
+
+        # The step config section
+        # <step>
+        #   type                = join
+        #   separator           = ', '
+        #   field_src           = localitate
+        #   field_src           = strada
+        #   field_src           = numarul
+        #   method              = join_field
+        #   field_dst           = adresa
+        # </step>
+
+        subtest 'e. join' => sub {
+
+        ok my $step = shift @{$trafos_row}, 'the step no 5';
+
+        ok my $p = $trafo->build_join_para($step), 'build para';
+        my $expected_para_4e = {
+            field_dst => "adresa",
+            method    => "join_fields",
+            separator => ", ",
+            source    => [ "localitate", "strada", "numarul" ],
+        };
+        is_deeply $p, $expected_para_4e, 'e. resulting para';
+
+        my $records_4e = [
+            {   id         => 1,
+                localitate => "Izvorul Mures",
+                numarul    => "nr. 5",
+                strada     => "str. Brasovului",
+            },
+            {   id         => 2,
+                localitate => "Sfintu Gheorghe",
+                strada     => "str. Covasna",
+            },
+            {   id         => 3,
+                localitate => "Brasov",
+                numarul    => "nr. 23",
+                strada     => "str. Bucurestilor",
+            },
+        ];
+
+        my @records;
+        foreach my $rec ( @{$records_4e} ) {
+            push @records, $trafo->type_join( $p, $rec );
+        }
+
+        my $expected_4e = [
+            {   adresa     => "Izvorul Mures, str. Brasovului, nr. 5",
+                id         => 1,
+                localitate => "Izvorul Mures",
+                numarul    => "nr. 5",
+                strada     => "str. Brasovului",
+            },
+            {   adresa     => "Sfintu Gheorghe, str. Covasna",
+                id         => 2,
+                localitate => "Sfintu Gheorghe",
+                strada     => "str. Covasna",
+            },
+            {   adresa     => "Brasov, str. Bucurestilor, nr. 23",
+                id         => 3,
+                localitate => "Brasov",
+                numarul    => "nr. 23",
+                strada     => "str. Bucurestilor",
+            },
+        ];
+
+        is_deeply \@records, $expected_4e, 'e. resulting records';
+
+        };                      # subtest e.
 
 
         ######################################################################
