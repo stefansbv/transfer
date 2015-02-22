@@ -31,12 +31,15 @@ has dbh => (
             AutoCommit       => 1,
             ib_enable_utf8   => 1,
             FetchHashKeyName => 'NAME_lc',
-            HandleError      => sub {
-                my ($err, $dbh) = @_;
-                my ($type, $name) = $self->parse_error($err);
-                my $message = $self->get_message($type);
-                hurl firebird => __x( $message, name => $name );
-            },
+            HandleError => sub {
+                my ( $err,  $dbh )  = @_;
+                my ( $type, $error ) = $self->parse_error($err);
+                my $message
+                    = ( $type eq 'errstr' )
+                    ? $error
+                    : $self->get_message($type);
+                hurl firebird => __x( $message, name => $error );
+                },
         });
     }
 );
@@ -44,7 +47,7 @@ has dbh => (
 sub parse_error {
     my ( $self, $err ) = @_;
 
-    #say "FB: >$err<";
+    # say "FB: >$err<";
     my $message_type
         = $err eq q{} ? "nomessage"
         : $err =~ m/operation for file ($RE{quoted})/smi ? "dbnotfound:$1"
@@ -58,7 +61,9 @@ sub parse_error {
         : $err =~ m/not connected/smi                    ? "notconn"
         :                                                  "unknown";
 
+
     my ( $type, $name ) = split /:/x, $message_type, 2;
+    return ('errstr', $err) if $ type eq "unknown";
     $name = $name ? $name : '';
     $name =~ s{\n\-}{\ }xgsm;                  # cleanup
 
