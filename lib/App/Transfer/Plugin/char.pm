@@ -10,13 +10,13 @@ with 'MooX::Log::Any';
 
 sub char {
     my ( $self, $p ) = @_;
-    my ( $logfld, $logidx, $field, $text, $len )
-        = @$p{qw(logfld logidx name value length)};
+    my ( $logstr, $field, $text, $len )
+        = @$p{qw(logstr name value length)};
     return unless defined $text;
     my $str_len = length $text;
     if ( $str_len > $len ) {
         $self->log->info(
-            "[$logfld=$logidx] char: $field='$text' overflow ($str_len > $len)"
+            "$logstr char: $field='$text' overflow ($str_len > $len)"
         );
         return;
     }
@@ -45,9 +45,7 @@ Parameters:
 
 =over
 
-=item C<$logfld> log field name
-
-=item C<$logidx> log field value
+=item C<$logstr> log string
 
 =item C<$field>  field name
 

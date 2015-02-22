@@ -4,20 +4,29 @@ package App::Transfer::Plugin::varchar;
 
 use 5.010001;
 use Moose;
+use Lingua::Translit;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
+has 'latin10' => (
+    is      => 'ro',
+    isa     => 'Lingua::Translit',
+    default => sub {
+        return Lingua::Translit->new('RON-Latin10');
+    },
+);
+
 sub varchar {
     my ($self, $p) = @_;
-    my ($logfld, $logidx, $field, $text, $len ) = @$p{qw(logfld logidx name value length)};
+    my ($logstr, $field, $text, $len ) = @$p{qw(logstr name value length)};
     return unless $text;
     my $str_len = length $text;
     if ($str_len > $len) {
-        $self->log->info("[$logfld=$logidx] varchar: $field='$text' overflow ($str_len > $len)");
+        $self->log->info("$logstr varchar: $field='$text' overflow ($str_len > $len)");
         return;
     }
-    return $text;
+    return $self->latin10->translit($text);
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -42,9 +51,7 @@ Parameters:
 
 =over
 
-=item C<$logfld> log field name
-
-=item C<$logidx> log field value
+=item C<$logstr> log string
 
 =item C<$field>  field name
 

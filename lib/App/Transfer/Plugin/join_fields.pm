@@ -10,8 +10,8 @@ with 'MooX::Log::Any';
 
 sub join_fields {
     my ( $self, $p ) = @_;
-    my ( $logfld, $logidx, $field, $text, $separator )
-        = @$p{qw(logfld logidx name value separator)};
+    my ( $logstr, $field, $text, $separator )
+        = @$p{qw(logstr name value separator)};
     return unless ref $text;
     return join $separator, @{$text};
 }
@@ -38,9 +38,7 @@ Parameters:
 
 =over
 
-=item C<$logfld>    log field name
-
-=item C<$logidx>    log field value
+=item C<$logstr>    log string
 
 =item C<$field>     field name
 

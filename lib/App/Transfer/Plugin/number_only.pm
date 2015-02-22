@@ -10,7 +10,7 @@ with 'MooX::Log::Any';
 
 sub number_only {
     my ($self, $p) = @_;
-    my ($logfld, $logidx, $field, $text ) = @$p{qw(logfld logidx name value)};
+    my ($text ) = @$p{qw(value)};
     return unless $text;
     $text =~ s{[^\d.]+}{}g;
     return $text;
@@ -38,9 +38,7 @@ Parameters:
 
 =over
 
-=item C<$logfld> log field name
-
-=item C<$logidx> log field value
+=item C<$logstr> log string
 
 =item C<$field>  field name
 

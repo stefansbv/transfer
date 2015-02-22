@@ -10,7 +10,7 @@ with 'MooX::Log::Any';
 
 sub no_space {
     my ($self, $p) = @_;
-    my ($logfld, $logidx, $field, $text, $len ) = @$p{qw(logfld logidx name value length)};
+    my ($logstr, $field, $text, $len ) = @$p{qw(logstr name value length)};
     return unless $text;
     $text =~ s{\s+}{}gmx;
     return $text;
@@ -37,9 +37,7 @@ Parameters:
 
 =over
 
-=item C<$logfld> log field name
-
-=item C<$logidx> log field value
+=item C<$logstr> log string
 
 =item C<$field>  field name
 

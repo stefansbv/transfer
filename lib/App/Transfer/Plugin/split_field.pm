@@ -10,8 +10,8 @@ with 'MooX::Log::Any';
 
 sub split_field {
     my ($self, $p) = @_;
-    my ($logfld, $logidx, $field, $text, $limit, $separator )
-        = @$p{qw(logfld logidx name value limit separator)};
+    my ($logstr, $field, $text, $limit, $separator )
+        = @$p{qw(logstr name value limit separator)};
     return unless $text;
     return split /$separator/, $text, $limit;
 }
@@ -38,9 +38,7 @@ Parameters:
 
 =over
 
-=item C<$logfld>    log field name
-
-=item C<$logidx>    log field value
+=item C<$logstr>    log string
 
 =item C<$field>     field name
 

@@ -11,22 +11,22 @@ with 'MooX::Log::Any';
 
 sub date {
     my ($self, $p) = @_;
-    my ($logfld, $logidx, $field, $text ) = @$p{qw(logfld logidx name value)};
+    my ($logstr, $field, $text ) = @$p{qw(logstr name value)};
     return unless defined $text;
     return if length $text == 0;    # return undef => NULL
     if (length $text != 10) {
-        $self->log->info("[$logfld=$logidx] date: $field='$text' is not a date\n");
+        $self->log->info("$logstr date: $field='$text' is not a date\n");
         return;
     }
-    return $self->eu_to_iso($field, $text, $logfld, $logidx);
+    return $self->eu_to_iso($field, $text, $logstr);
 }
 
 sub eu_to_iso {
-    my ($self, $field, $text, $logfld, $logidx) = @_;
+    my ($self, $field, $text, $logstr) = @_;
     return unless $text;
     my ( $year, $month, $day ) = Decode_Date_EU($text);
     unless ( $year and $month and $day ) {
-        $self->log->info("[$logfld=$logidx] date: $field='$text' is not a valid EU date");
+        $self->log->info("$logstr date: $field='$text' is not a valid EU date");
         return;
     }
     return sprintf( "%04d\-%02d\-%02d", $year, $month, $day );
@@ -54,9 +54,7 @@ Parameters:
 
 =over
 
-=item C<$logfld> log field name
-
-=item C<$logidx> log field value
+=item C<$logstr> log string
 
 =item C<$field>  field name
 

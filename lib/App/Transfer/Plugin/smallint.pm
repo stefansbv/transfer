@@ -24,13 +24,13 @@ with 'MooX::Log::Any';
 
 sub smallint {
     my ( $self, $p ) = @_;
-    my ( $logfld, $logidx, $field, $text ) = @$p{qw(logfld logidx name value)};
+    my ( $logstr, $field, $text ) = @$p{qw(logstr name value)};
     return unless defined $text;
     if ( is_numeric( $text, convertible => 1 ) ) {
         $text = to_number($text);
         if ( $text < $self->min or $text > $self->max ) {
             $self->log->info(
-                "[$logfld=$logidx] smallint: '$field'='$text' outside of range."
+                "$logstr smallint: '$field'='$text' outside of range."
             );
         }
         else {
@@ -39,7 +39,7 @@ sub smallint {
     }
     else {
         $self->log->info(
-            "[$logfld=$logidx] smallint: '$field'='$text' is not numeric.");
+            "$logstr smallint: '$field'='$text' is not numeric.");
     }
     return;
 }
@@ -76,9 +76,7 @@ Parameters:
 
 =over
 
-=item C<$logfld> log field name
-
-=item C<$logidx> log field value
+=item C<$logstr> log string
 
 =item C<$field>  field name
 

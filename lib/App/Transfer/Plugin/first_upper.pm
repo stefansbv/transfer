@@ -10,7 +10,7 @@ with 'MooX::Log::Any';
 
 sub first_upper {
     my ($self, $p) = @_;
-    my ($logfld, $logidx, $field, $text ) = @$p{qw(logfld logidx name value)};
+    my ($logstr, $field, $text ) = @$p{qw(logstr name value)};
     return unless $text;
     return uc substr $text, 0, 1;
 }
@@ -37,9 +37,7 @@ Parameters:
 
 =over
 
-=item C<$logfld> log field name
-
-=item C<$logidx> log field value
+=item C<$logstr> log string
 
 =item C<$field>  field name
 

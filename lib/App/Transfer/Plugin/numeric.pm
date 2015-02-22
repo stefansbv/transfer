@@ -11,13 +11,12 @@ with 'MooX::Log::Any';
 
 sub numeric {
     my ( $self, $p ) = @_;
-    my ( $logfld, $logidx, $field, $text, $prec, $scale )
-        = @$p{qw(logfld logidx name value prec scale)};
+    my ( $logstr, $field, $text, $prec, $scale )
+        = @$p{qw(logstr name value prec scale)};
     return unless defined $text;
     is_numeric( $text, convertible => 1 )
         ? return to_number($text)
-        : $self->log->info(
-        "[$logfld=$logidx] numeric: $field='$text' is not numeric\n");
+        : $self->log->info("$logstr numeric: $field='$text' is not numeric\n");
     return;
 }
 
@@ -43,9 +42,7 @@ Parameters:
 
 =over
 
-=item C<$logfld> log field name
-
-=item C<$logidx> log field value
+=item C<$logstr> log string
 
 =item C<$field>  field name
 

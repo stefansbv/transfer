@@ -40,13 +40,13 @@ Example recipe configuration:
 
 sub move_filtered {
     my ( $self, $p ) = @_;
-    my ($logfld, $logidx, $field, $text, $lookup_list, $field_src, $field_dst, $attributes)
-        = @$p{qw(logfld logidx name value lookup_list field_src field_dst attributes)};
+    my ($logstr, $field, $text, $lookup_list, $field_src, $field_dst, $attributes)
+        = @$p{qw(logstr name value lookup_list field_src field_dst attributes)};
     return unless $text;
     unless ( any { $text eq $_ } @{$lookup_list} ) {
         my $r   = {};
         my $msg = $attributes->{MOVE} ? 'move' : 'copy';
-        $self->log->info("[$logfld=$logidx] $msg: '$field_src'='$text' to $field_dst");
+        $self->log->info("$logstr $msg: '$field_src'='$text' to $field_dst");
         $r->{$field_src} = undef if $attributes->{MOVE};
         $r->{$field_dst} = $text;
         return $r;

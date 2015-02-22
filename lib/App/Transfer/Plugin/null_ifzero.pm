@@ -10,7 +10,7 @@ with 'MooX::Log::Any';
 
 sub null_ifzero {
     my ($self, $p) = @_;
-    my ($logfld, $logidx, $field, $text ) = @$p{qw(logfld logidx name value)};
+    my ($logstr, $text ) = @$p{qw(logstr name value)};
     return unless defined $text;
     return if $text == 0;
     return $text;
@@ -38,9 +38,7 @@ Parameters:
 
 =over
 
-=item C<$logfld> log field name
-
-=item C<$logidx> log field value
+=item C<$logstr> log string
 
 =item C<$field>  field name
 
