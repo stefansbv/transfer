@@ -36,7 +36,7 @@ ok my $reader = App::Transfer::Reader->load({
     options  => $options,
 }), 'new reader excel object';
 is $reader->input_file, 't/siruta.xls', 'excel file name';
-is $reader->table, 'siruta', 'table name';
+is $reader->dst_table, 'siruta', 'table name';
 is $reader->worksheet, 'Foaie1', 'worksheet name';
 is $reader->lastrow, 70, 'last row';
 isa_ok $reader->workbook, 'Spreadsheet::ParseExcel::Workbook', 'workbook';

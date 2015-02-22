@@ -2,7 +2,7 @@ package App::Transfer::Reader::db;
 
 # ABSTRACT: Reader for Database engines
 
-use 5.010;
+use 5.010001;
 use List::Compare;
 use Moose;
 use MooseX::FileAttribute;
@@ -14,14 +14,25 @@ use namespace::autoclean;
 
 extends 'App::Transfer::Reader';
 
-has 'table' => (
+has 'src_table' => (
     is       => 'ro',
     isa      => 'Str',
     required => 1,
     lazy     => 1,
     default => sub {
         my $self = shift;
-        return $self->recipe->source->table, # XXX $self->options->target
+        return $self->recipe->source->table,
+    },
+);
+
+has 'dst_table' => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+    lazy     => 1,
+    default => sub {
+        my $self = shift;
+        return $self->recipe->destination->table,
     },
 );
 
@@ -45,7 +56,7 @@ has '_contents' => (
     lazy    => 1,
     default => sub {
         my $self   = shift;
-        my $table  = $self->table;
+        my $table  = $self->src_table;
         my $engine = $self->target->engine;
         my $where  = $self->get_header(0)->{where};
         my $order  = $self->get_header(0)->{order};
@@ -102,7 +113,6 @@ sub has_table {
 sub get_fields {
     my ($self, $table) = @_;
 
-    # my $target = $self->recipe->destination->target;
     my $engine = $self->target->engine;
     hurl {
         ident   => 'reader',
@@ -115,12 +125,14 @@ sub get_fields {
     my @table_fields = keys %{$fields_href};
 
     # The fields from the header map
-    my $recipe_table = $self->recipe->tables->get_table($table);
+    my $dst_table = $self->dst_table;
+    my $recipe_table = $self->recipe->tables->get_table($dst_table);
     hurl {
         ident   => 'reader',
         exitval => 1,
         message => __x(
-            'Table "{table}" has no header-map in the recipe', table => $table ),
+            'Table "{table}" has no header-map in the recipe',
+            table => $dst_table ),
     } unless $recipe_table;
     my $header = $recipe_table->headermap;
     my @hmap_fields = keys %{$header};
@@ -134,7 +146,7 @@ sub get_fields {
         message => __x(
             q{Columns from the map file not found in the "{table}" table: "{list}"},
             list  => $not_found,
-            table => $table,
+            table => $dst_table,
         ),
         }
         if $not_found;
@@ -149,7 +161,7 @@ has 'contents_iter' => (
 
 sub get_data {
     my $self   = shift;
-    my $table  = $self->table;
+    my $table  = $self->src_table;
     my $engine = $self->target->engine;
     hurl {
         ident   => 'reader',

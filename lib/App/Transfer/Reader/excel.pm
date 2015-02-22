@@ -27,7 +27,7 @@ has 'input_file' => (
     },
 );
 
-has 'table' => (
+has 'dst_table' => (
     is      => 'ro',
     isa     => 'Str',
     lazy    => 1,
@@ -121,6 +121,8 @@ sub _build_headers {
     my @headers;
     my $row_count = 0;
     my $iter      = $self->contents_iter;
+    my $found_tables    = 0;
+    my $expected_tables = $self->recipe->tables->count_tables; # XXX stop when all found
     while ( $iter->has_next ) {
         my $row  = $iter->next;
 
@@ -142,7 +144,7 @@ sub _build_headers {
             my $lc = List::Compare->new( $header_cols, $cols );
             next HEADER unless $lc->is_LequivalentR;
 
-            # say "Found header at row $row_count" # if $self->verbose;
+            #say "Found header at row $row_count"; # if $self->verbose;
             my $record = [];
             foreach my $col ( @{$cols} ) {
                 push @{$record}, $headermap->{$col};
@@ -159,6 +161,7 @@ sub _build_headers {
                     skip   => $skip_rows,
                 };
             }
+            $found_tables++;
         }
         $row_count++;
     }
@@ -217,6 +220,8 @@ sub _build_contents {
     my $self = shift;
 
     my $worksheet = $self->workbook->worksheet( $self->worksheet );
+    hurl excel => __x( 'Worksheet "{worksheet}" not found in the XSL file',
+        worksheet => $self->worksheet) unless defined $worksheet;
 
     my ( $row_min, $row_max ) = $worksheet->row_range();
     my ( $col_min, $col_max ) = $worksheet->col_range();
@@ -247,7 +252,7 @@ sub has_table {
 sub get_data {
     my $self = shift;
 
-    my $table    = $self->table;
+    my $table    = $self->dst_table;
     die "Error: no table named '$table'!" unless $self->has_table($table);
     die "No record set for '$table'" if $self->has_no_recordsets;
     my $iter     = $self->contents_iter;
@@ -306,9 +311,9 @@ builds a AoH data structure for the entire contents.
 
 A L<Path::Tiny::File> object representing the Excel input file.
 
-=head3 C<table>
+=head3 C<dst_table>
 
-The name of the destination table.  XXX Should be a name for the source...
+The name of the destination table.
 
 =head3 C<worksheet>
 
