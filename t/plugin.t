@@ -22,8 +22,7 @@ my $p = {
     length      => undef,
     prec        => undef,
     scale       => undef,
-    logfld      => 'logfld',
-    logidx      => 'logidx',
+    logstr      => 'error',
 };
 
 # Type functions
