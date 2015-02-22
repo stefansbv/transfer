@@ -27,6 +27,7 @@ has '_table_list' => (
         get_table_name  => 'get',
         all_table_names => 'elements',
         find_table_name => 'first',
+        count_tables    => 'count',
     },
 );
 
