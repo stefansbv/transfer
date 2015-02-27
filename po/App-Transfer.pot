@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: App-Transfer 0.16\n"
+"Project-Id-Version: App-Transfer 0.17_03\n"
 "Report-Msgid-Bugs-To: stefan@s2i2.ro\n"
-"POT-Creation-Date: 2015-02-04 10:52+0200\n"
+"POT-Creation-Date: 2015-02-27 10:57+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,12 +21,12 @@ msgstr ""
 msgid "Could not determine home directory"
 msgstr ""
 
-#: lib/App/Transfer/Reader.pm:53
+#: lib/App/Transfer/Reader.pm:62
 #, perl-brace-format
 msgid "\"{reader}\" is not a valid reader"
 msgstr ""
 
-#: lib/App/Transfer/Writer.pm:71
+#: lib/App/Transfer/Writer.pm:78
 #, perl-brace-format
 msgid "\"{writer}\" is not a valid writer"
 msgstr ""
@@ -44,8 +44,13 @@ msgid ""
 "The recipe must have a 'config' section with a 'destination' subsection."
 msgstr ""
 
-#: lib/App/Transfer/Recipe.pm:184
-msgid "The recipe must have a 'recipe_file' attribute"
+#: lib/App/Transfer/Plugin.pm:27
+msgid "Undefined param in do_transform!"
+msgstr ""
+
+#: lib/App/Transfer/Plugin.pm:39
+#, perl-brace-format
+msgid "No plugin for '{method}' in 'do_transform'."
 msgstr ""
 
 #: lib/App/Transfer/Engine.pm:39 lib/App/Transfer/Engine.pm:51
@@ -57,34 +62,139 @@ msgstr ""
 msgid "{driver} required to manage {engine}"
 msgstr ""
 
-#: lib/App/Transfer/Options.pm:93 lib/App/Transfer/Options.pm:136
+#: lib/App/Transfer/Options.pm:85 lib/App/Transfer/Options.pm:131
 msgid "Unknown reader/writer type"
 msgstr ""
 
-#: lib/App/Transfer/Options.pm:115
-msgid "Failed to set an FILE option"
+#: lib/App/Transfer/Options.pm:107
+#, perl-brace-format
+msgid "The file {rw_type} must have a valid file option or configuration."
 msgstr ""
 
-#: lib/App/Transfer/Options.pm:148
+#: lib/App/Transfer/Options.pm:143
 msgid "The URI option supersede the target option"
 msgstr ""
 
-#: lib/App/Transfer/Options.pm:200
+#: lib/App/Transfer/Options.pm:195
 #, perl-brace-format
 msgid ""
 "The db {rw_type} must have a valid target or URI option or configuration."
 msgstr ""
 
-#: lib/App/Transfer/Transform.pm:36
-msgid "Undefined param in do_transform!"
-msgstr ""
-
-#: lib/App/Transfer/Transform.pm:48
+#: lib/App/Transfer/Transform.pm:279
 #, perl-brace-format
-msgid "No plugin for '{method}' in 'do_transform'."
+msgid "Error in recipe (batch): no such field '{field}'"
 msgstr ""
 
-#: lib/App/Transfer/Recipe/Dst.pm:25
+#: lib/App/Transfer/Transform.pm:360
+msgid "Recipe:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:363
+msgid "version:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:363
+msgid "syntax version:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:363
+msgid "description:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:389
+msgid ""
+"No input file specified; use '--if' or set the source file in the recipe."
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:391
+msgid ""
+"Invalid input file specified; use '--if' or fix the source file in the "
+"recipe."
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:393
+#, perl-brace-format
+msgid "The table '{table}' does not exists!"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:398 lib/App/Transfer/Transform.pm:505
+msgid "No columns type info retrieved from database!"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:412 lib/App/Transfer/Transform.pm:521
+msgid "Working:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:413 lib/App/Transfer/Transform.pm:522
+msgid "records read:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:446 lib/App/Transfer/Transform.pm:556
+msgid "Input:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:456
+msgid "file:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:456
+msgid "worksheet:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:464 lib/App/Transfer/Transform.pm:570
+msgid "Output:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:470 lib/App/Transfer/Transform.pm:562
+#: lib/App/Transfer/Transform.pm:576
+msgid "table:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:470 lib/App/Transfer/Transform.pm:562
+#: lib/App/Transfer/Transform.pm:576
+msgid "database:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:491
+#, perl-brace-format
+msgid "The source table '{table}' does not exists!"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:495
+#, perl-brace-format
+msgid "The destination table '{table}' does not exists!"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:501
+msgid "The source and the destination tables must be different!"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:590
+msgid "Summary:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:596
+msgid "records inserted:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:596
+msgid "records skipped:"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:620 lib/App/Transfer/Transform.pm:650
+#, perl-brace-format
+msgid ""
+"Field info for '{field}' not found!  Header map config. <--> DB schema "
+"inconsistency"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:642
+#, perl-brace-format
+msgid "Trafo type {type} not implemented"
+msgstr ""
+
+#: lib/App/Transfer/Recipe/Dst.pm:24
 msgid "The destination section must have a 'writer' attribute"
 msgstr ""
 
@@ -96,8 +206,13 @@ msgstr ""
 msgid "The recipe must have a valid 'syntaxversion' attribute"
 msgstr ""
 
-#: lib/App/Transfer/Recipe/Src.pm:25
+#: lib/App/Transfer/Recipe/Src.pm:24
 msgid "The source section must have a 'reader' attribute"
+msgstr ""
+
+#: lib/App/Transfer/Recipe/Transform.pm:65
+#, perl-brace-format
+msgid "Row transformation step type \"{type}\" not known"
 msgstr ""
 
 #: lib/App/Transfer/Role/DBIEngine.pm:55
@@ -111,160 +226,59 @@ msgstr ""
 msgid "Select failed: {error}"
 msgstr ""
 
-#: lib/App/Transfer/Command/config.pm:64 lib/App/Transfer/Command/run.pm:400
-msgid "Recipe:"
+#: lib/App/Transfer/Command/config.pm:187
+msgid "No such section!"
 msgstr ""
 
-#: lib/App/Transfer/Command/run.pm:229
+#: lib/App/Transfer/Command/run.pm:128
 #, perl-brace-format
 msgid "Unknown recipe syntax version: {version}"
 msgstr ""
 
-#: lib/App/Transfer/Command/run.pm:242
+#: lib/App/Transfer/Command/run.pm:140
 #, perl-brace-format
-msgid "Wrong reader-writer combo: '{type}'!"
+msgid "Unimplemented reader-writer combo: '{type}'!"
 msgstr ""
 
-#: lib/App/Transfer/Command/run.pm:256
-msgid ""
-"No input file specified; use '--if' or set the source file in the recipe."
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:258
-#, perl-brace-format
-msgid "The table '{table}' does not exists!"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:263 lib/App/Transfer/Command/run.pm:305
-msgid "No columns type info retrieved from database!"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:293
-#, perl-brace-format
-msgid "The source table '{table}' does not exists!"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:296
-#, perl-brace-format
-msgid "The destination table '{table}' does not exists!"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:301
-msgid "The source and the destination tables must be different!"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:328 lib/App/Transfer/Command/run.pm:362
-msgid "Input:"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:334 lib/App/Transfer/Command/run.pm:348
-#: lib/App/Transfer/Command/run.pm:386
-msgid "table:"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:334 lib/App/Transfer/Command/run.pm:348
-#: lib/App/Transfer/Command/run.pm:386
-msgid "database:"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:342 lib/App/Transfer/Command/run.pm:380
-msgid "Output:"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:372
-msgid "file:"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:372
-msgid "worksheet:"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:405
-msgid "version:"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:405
-msgid "syntax version:"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:405
-msgid "description:"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:428
-msgid "Summary:"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:434
-msgid "records inserted:"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:434
-msgid "records skipped:"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:458 lib/App/Transfer/Command/run.pm:488
-#, perl-brace-format
-msgid ""
-"Field info for '{field}' not found!  Header map config. <--> DB schema "
-"inconsistency"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:480
-#, perl-brace-format
-msgid "Trafo type {type} not implemented"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:508
-#, perl-brace-format
-msgid "Error in recipe (split): no such field '{field}'"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:517 lib/App/Transfer/Command/run.pm:530
-#: lib/App/Transfer/Command/run.pm:671
-#, perl-brace-format
-msgid ""
-"Field info for '{field}' not found!  Recipe <--> DB schema inconsistency"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:549 lib/App/Transfer/Command/run.pm:646
-#, perl-brace-format
-msgid "Error in recipe (join): no such field '{field}'"
-msgstr ""
-
-#: lib/App/Transfer/Command/run.pm:554 lib/App/Transfer/Command/run.pm:587
-#: lib/App/Transfer/Command/run.pm:651 lib/App/Transfer/Command/run.pm:692
-#: lib/App/Transfer/Command/run.pm:731
-#, perl-brace-format
-msgid ""
-"Field info for '{field}' not found!  Recipe <--> DB schema inconsistency "
-"({context})"
-msgstr ""
-
-#: lib/App/Transfer/Reader/db.pm:127
+#: lib/App/Transfer/Reader/db.pm:120 lib/App/Transfer/Reader/db.pm:169
 #, perl-brace-format
 msgid "Table \"{table}\" does not exists"
 msgstr ""
 
-#: lib/App/Transfer/Reader/db.pm:145
+#: lib/App/Transfer/Reader/db.pm:134
+#, perl-brace-format
+msgid "Table \"{table}\" has no header-map in the recipe"
+msgstr ""
+
+#: lib/App/Transfer/Reader/db.pm:147
 #, perl-brace-format
 msgid ""
 "Columns from the map file not found in the \"{table}\" table: \"{list}\""
 msgstr ""
 
-#: lib/App/Transfer/Reader/csv.pm:113
+#: lib/App/Transfer/Reader/excel.pm:223
+#, perl-brace-format
+msgid "Worksheet \"{worksheet}\" not found in the XSL file"
+msgstr ""
+
+#: lib/App/Transfer/Reader/csv.pm:102
 #, perl-brace-format
 msgid ""
 "Header map <--> CSV file header inconsistency. Column \"{col}\" not found."
 msgstr ""
 
-#: lib/App/Transfer/Engine/pg.pm:104 lib/App/Transfer/Engine/pg.pm:142
-#: lib/App/Transfer/Engine/firebird.pm:136
-#: lib/App/Transfer/Engine/firebird.pm:162
+#: lib/App/Transfer/Engine/pg.pm:106 lib/App/Transfer/Engine/pg.pm:146
+#: lib/App/Transfer/Engine/firebird.pm:143
+#: lib/App/Transfer/Engine/firebird.pm:168
 #, perl-brace-format
 msgid "Transaction aborted because: {error}"
 msgstr ""
 
-#: t/lib/DBIEngineTest.pm:166
+#: lib/App/Transfer/Engine/firebird.pm:173
+#, perl-brace-format
+msgid "XXX Transaction aborted because: {error}"
+msgstr ""
+
+#: t/lib/DBIEngineTest.pm:276
 msgid "Table \"nonexistenttable\" does not exists"
 msgstr ""
