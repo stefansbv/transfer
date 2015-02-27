@@ -148,6 +148,35 @@ sub get_info {
     return $flds_ref;
 }
 
+sub get_columns {
+    my ($self, $table) = @_;
+
+    hurl "The 'table' parameter is required for 'get_columns'" unless $table;
+
+    my $sql = qq(SELECT LOWER(r.RDB\$FIELD_NAME) AS name
+                    FROM RDB\$RELATION_FIELDS r
+                    WHERE r.RDB\$RELATION_NAME = UPPER('$table')
+                    ORDER BY r.RDB\$FIELD_POSITION;
+    );
+
+    my $dbh = $self->dbh;
+
+    $dbh->{ChopBlanks} = 1;    # trim CHAR fields
+
+    my $column_list;
+    try {
+        $column_list = $dbh->selectcol_arrayref($sql);
+    }
+    catch {
+        hurl firebird => __x(
+            'Transaction aborted because: {error}',
+            error    => $_,
+        );
+    };
+
+    return $column_list;
+}
+
 sub table_exists {
     my ( $self, $table ) = @_;
 
