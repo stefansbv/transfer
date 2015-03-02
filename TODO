@@ -1,1 +1,4 @@
 Show some info about no of records transfered during run
+
+Make the return of row type plugins consistent record or value. Make a
+distinction somehow between plugin types...
