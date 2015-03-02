@@ -14,7 +14,7 @@ has 'field' => ( is => 'ro', isa => 'Str' );
 has 'method' => (
     is     => 'ro',
     isa    => 'ArrayRefFromStr',
-    coerce => 1
+    coerce => 1,
 );
 
 __PACKAGE__->meta->make_immutable;

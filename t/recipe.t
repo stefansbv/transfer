@@ -10,7 +10,7 @@ use App::Transfer::Recipe;
 
 ok my $recipe_file = file( 't', 'recipes', 'recipe.conf' ), "the recipe file";
 ok my $recipe = App::Transfer::Recipe->new(
-    recipe_file => $recipe_file->stringify,
+ recipe_file => $recipe_file->stringify,
 ), 'new recipe instance';
 
 subtest 'Header section' => sub {
@@ -65,8 +65,49 @@ subtest 'Column transformation type' => sub {
 
 subtest 'Row transformation type' => sub {
     ok my $trafos_row = $recipe->transform->row, 'row trafos';
+    # Expected result in the recipe order
+    my $expected_lookupdb = [
+        {   field_src     => 'denumire',
+            field_src_map => { denumire => 'localitate' },
+            method        => 'lookup_in_dbtable',
+            field_dst     => [ 'denloc', 'cod' ],
+            table         => 'test_dict',
+            hints         => 'localitati',
+            fields        => ['localitate', 'siruta'],
+            where_fld     => 'localitate',
+        },
+        {   field_src     => 'denumire',
+            field_src_map => { denumire => 'localitate' },
+            method        => 'lookup_in_dbtable',
+            field_dst     => [ 'denloc', 'cod' ],
+            table         => 'test_dict',
+            hints         => 'localitati',
+            fields        => ['localitate', 'siruta'],
+            where_fld     => 'localitate',
+        },
+        {   field_src     => 'denumire',
+            field_src_map => { denumire => 'localitate' },
+            method        => 'lookup_in_dbtable',
+            field_dst     => [ 'denloc', 'siruta' ],
+            table         => 'test_dict',
+            hints         => 'localitati',
+            fields        => ['localitate', 'siruta'],
+            where_fld     => 'localitate',
+        },
+        {   field_src     => 'localitate',
+            field_src_map => 'localitate',
+            method        => 'lookup_in_dbtable',
+            field_dst     => ['siruta'],
+            table         => 'test_dict',
+            hints         => undef,
+            fields        => ['siruta'],
+            where_fld     => 'localitate',
+        },
+    ];
+
     foreach my $step ( @{$trafos_row} ) {
         ok my $type = $step->type, 'step type';
+        say "*** TYPE: $type";
         ok my $field_src = $step->field_src,  'src field(s)';
         ok my $field_dst = $step->field_dst,  'dst field(s)';
         ok my $method    = $step->method,     'method(s)';
@@ -83,18 +124,29 @@ subtest 'Row transformation type' => sub {
         if ($type eq 'copy') {
             is ref $field_src, '', 'copy src field string';
             is ref $field_dst, '', 'copy dst field string';
-            is $step->datasource, '', 'copy datasource';
+            is $step->datasource, 'status', 'copy datasource';
         }
         if ($type eq 'lookup') {
-            is ref $field_src, '', 'lookup src field string';
-            is ref $field_dst, 'ARRAY', 'lookup dst field array';
-            is $step->datasource, 'two_elements', 'lookup datasource';
+            is $step->method, 'lookup_in_ds', 'lookup method';
+            is $field_src, 'category', 'lookup src field string';
+            is $field_dst, 'categ_code', 'lookup dst field array';
+            is $step->datasource, 'category', 'lookup datasource';
         }
-        if ($type eq 'lookup_db') {
-            is ref $field_src, 'HASH',      'lookup_db src field string';
-            is ref $field_dst, 'ARRAY', 'lookup_db dst fields array';
-            is $step->datasource, 'siruta', 'lookup_db datasource';
-            ok $step->can('hints'), 'lookup_db hints';
+        if ( $type eq 'lookupdb' ) {
+            my $expected = shift @{$expected_lookupdb};
+            is $field_src, $expected->{field_src},
+                'lookupdb src field string';
+            is_deeply $field_dst, $expected->{field_dst},
+                'lookupdb dst fields array';
+            is $step->table, $expected->{table},
+                'lookupdb datasource table';
+            is $step->hints, $expected->{hints}, 'lookupdb hints';
+            is_deeply $step->field_src_map, $expected->{field_src_map},
+                'source field mapping';
+            is_deeply $step->fields, $expected->{fields},
+                'lookup fields list';
+            is $step->where_fld, $expected->{where_fld},
+                'lookupdb where field';
         }
     }
 };

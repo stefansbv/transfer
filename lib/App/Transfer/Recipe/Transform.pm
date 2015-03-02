@@ -7,10 +7,11 @@ use Moose;
 use Moose::Util::TypeConstraints;
 use App::Transfer::X qw(hurl);
 use Locale::TextDomain 1.20 qw(App-Transfer);
+use List::Util qw(none);
 use namespace::autoclean;
 
 use App::Transfer::Recipe::Transform::Col::Step;
-use App::Transfer::Recipe::Transform::Row::Step;
+use App::Transfer::Recipe::Transform::Row::Factory;
 
 subtype 'ArrayRefColStep',
     as 'ArrayRef[App::Transfer::Recipe::Transform::Col::Step]';
@@ -28,10 +29,12 @@ coerce 'ArrayRefColStep'
 
 coerce 'ArrayRefRowStep'
     => from 'HashRef[ArrayRef]' => via {
-        [ map { App::Transfer::Recipe::Transform::Row::Step->new($_) }
-          @{ $_->{step} } ] }
+        [ map {
+            App::Transfer::Recipe::Transform::Row::Factory->create(
+                $_->{type}, $_ ) } @{ $_->{step} } ] }
     => from 'HashRef[HashRef]' => via {
-        [ App::Transfer::Recipe::Transform::Row::Step->new( $_->{step} ) ];
+        [ App::Transfer::Recipe::Transform::Row::Factory->create(
+            $_->{step}{type}, $_->{step} ) ];
     };
 
 has 'column' => (
@@ -45,6 +48,26 @@ has 'row' => (
     isa    => 'ArrayRefRowStep',
     coerce => 1,
 );
+
+around BUILDARGS => sub {
+    my $orig  = shift;
+    my $class = shift;
+
+    my $p = @_ == 1 && ref $_[0] ? { %{ +shift } } : { @_ };
+
+    # Check the type of the steps
+    foreach my $step ( @{ $p->{row}{step} } ) {
+        if ( none { $_ eq $step->{type} }
+            (qw(split join copy batch lookup lookupdb)) )
+        {
+            hurl recipe =>
+                __x( 'Row transformation step type "{type}" not known',
+                type => $step->{type} );
+        }
+    }
+
+    return $class->$orig( %{$p} );
+};
 
 __PACKAGE__->meta->make_immutable;
 

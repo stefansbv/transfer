@@ -16,6 +16,7 @@ use_ok( 'App::Transfer::Recipe::Table' );
 use_ok( 'App::Transfer::Recipe::Transform::Types' );
 use_ok( 'App::Transfer::Recipe::Transform::Col::Step' );
 use_ok( 'App::Transfer::Recipe::Transform::Row::Step' );
+use_ok( 'App::Transfer::Recipe::Transform::Row::Factory' );
 use_ok( 'App::Transfer::Recipe::Header' );
 use_ok( 'App::Transfer::Recipe::Load' );
 use_ok( 'App::Transfer::Recipe::Datasource' );
