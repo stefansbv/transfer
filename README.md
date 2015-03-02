@@ -1,9 +1,9 @@
 App/Transfer
 ============
 Ștefan Suciu
-2015-02-04
+2015-03-02
 
-Version: 0.17
+Version: 0.18
 
 A tool created to transfer and transform data between files and
 databases using recipes.
@@ -13,10 +13,10 @@ Disclaimer
 ----------
 
 This is a tool from my toolbox.  It is designed to work with small
-datasets and while it is quite flexible it is also quite slow.
+datasets and while it is quite flexible but it is also quite slow.
 
 See also the `License And Copyright` section at the end of this README
-document.
+document. TODO!
 
 
 Description
@@ -29,6 +29,9 @@ make some transformation and transfer it to the destination table.
 Currently (for v0.17) the source can be a file in XLS or CSV format or
 a database table.  The destination can be a database table.
 
+The required configurations for the transformations are hold in files
+named `recipes`.
+
 
 Concepts
 --------
@@ -36,8 +39,8 @@ Concepts
 ### The Recipe ###
 
 The recipe is a file in Apache format (parsed with the Config::General
-Perl module) and describes how to transform the data.  Transformations
-are made using plugins.
+Perl module) and describes the source and the destionation and how to
+transform the data.  Transformations are made using plugins.
 
 All recipes contains a few mandatory sections:
 
@@ -46,7 +49,7 @@ All recipes contains a few mandatory sections:
 - column transformation section
 - row transformation section
 
-This are detailed in other documents...
+TODO: This are detailed in other documents...
 
 
 ### Plugins ###
@@ -65,13 +68,13 @@ Installation
 Acknowledgements
 ----------------
 
-Concepts, blocks of code or even entire modules, comments and
-documentation are borrowed and/or inspired from the
-[Sqitch](https://github.com/theorx/sqitch) project by @theory.  Thank
+Concepts, blocks of code and even entire modules, comments and
+documentation are borrowed and/or inspired from the excelent
+[Sqitch](https://github.com/theory/sqitch) project by @theory.  Thank
 you!
 
 
 License And Copyright
 ---------------------
 
-TODO
+TODO!
