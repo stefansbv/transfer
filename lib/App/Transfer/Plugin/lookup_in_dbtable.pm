@@ -10,6 +10,7 @@ with 'MooX::Log::Any';
 
 sub lookup_in_dbtable {
     my ( $self, $p ) = @_;
+
     my ( $logstr, $fields, $table, $engine, $where, $lookup )
         = @$p{qw(logstr fields table engine where lookup)};
     return unless $lookup;
@@ -78,7 +79,7 @@ XXX
 Recipe configuration example step:
 
   <step>
-    type              = lookup_db
+    type              = lookupdb
     datasource        = v_siruta
     field_src         = localitate
     method            = lookup_in_dbtable

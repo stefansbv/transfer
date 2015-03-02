@@ -10,10 +10,10 @@ with 'MooX::Log::Any';
 
 sub lookup_in_ds {
     my ( $self, $p ) = @_;
-    my ( $logstr, $field, $text, $table )
-        = @$p{qw(logstr name value lookup_table)};
+    my ( $logstr, $field, $text, $lookup_table )
+        = @$p{qw(logstr field_src value lookup_table)};
     return unless $text;
-    foreach my $rec ( @{$table} ) {
+    foreach my $rec ( @{$lookup_table} ) {
         foreach my $key ( keys %{$rec} ) {
             return $rec->{$key} if $text =~ m{$key};
         }
