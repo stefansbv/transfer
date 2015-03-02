@@ -1,12 +1,11 @@
 package DBIEngineTest;
 #
+# Adapted from Sqitch by theory.
 #
-# Have to use ASCII because of:
-# Wide character in print at
-# /home/stefan/perl5/perlbrew/perls/5.14.4t/lib/site_perl/5.14.4/Test/Builder.pm
-# line 1826.
+# Changed to to use only ASCII because of:
+# Wide character in print at lib/site_perl/5.14.4/Test/Builder.pm line 1826.
 # when is_deeply reports failure
-
+#
 use 5.010;
 use strict;
 use warnings;
