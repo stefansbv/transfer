@@ -36,7 +36,7 @@ coerce 'FieldsArrayRefOfStrs'
 # From { denloc => "localitate" } to "denloc"
 coerce 'SrcFieldStr'
     => from 'HashRef'
-    => via { shift [ keys %{ $_ } ] };
+    => via { shift @{ [ keys %{ $_ } ] } };
 
 # From "denloc" to ["denloc"]
 coerce 'DstArrayRefOfStrs'
@@ -52,13 +52,13 @@ coerce 'FieldsArrayRefOfStrs'
 # From [{ denloc => "localitate" }, { cod => "siruta" }] to ["denloc", "cod"]
 coerce 'DstArrayRefOfStrs'
     => from 'ArrayRef'
-    => via { [ map { ref $_ ? keys $_ : $_ } @{ $_ } ] };
+    => via { [ map { ref $_ ? keys %{ $_ } : $_ } @{ $_ } ] };
 
 # From [{ denloc => "localitate" }, "siruta"] to ["localitate", "siruta"]
 # From [{ denloc => "localitate" }, { cod => "siruta" }] to ["localitate", "siruta"]
 coerce 'FieldsArrayRefOfStrs'
     => from 'ArrayRef'
-    => via { [ map { ref $_ ? values $_ : $_ } @{ $_ } ] };
+    => via { [ map { ref $_ ? values %{ $_ } : $_ } @{ $_ } ] };
 
 has 'field_src' => (
     is       => 'ro',
