@@ -124,6 +124,35 @@ sub get_info {
     return $flds_type;
 }
 
+sub get_columns {
+    my ($self, $table) = @_;
+
+    hurl "The 'table' parameter is required for 'get_columns'" unless $table;
+
+    my $sql = qq( SELECT column_name AS name
+               FROM information_schema.columns
+               WHERE table_name = '$table'
+               ORDER BY ordinal_position;
+    );
+
+    my $dbh = $self->dbh;
+
+    $dbh->{ChopBlanks} = 1;    # trim CHAR fields
+
+    my $column_list;
+    try {
+        $column_list = $dbh->selectcol_arrayref($sql);
+    }
+    catch {
+        hurl firebird => __x(
+            'Transaction aborted because: {error}',
+            error    => $_,
+        );
+    };
+
+    return $column_list;
+}
+
 sub table_exists {
     my ( $self, $table ) = @_;
 
