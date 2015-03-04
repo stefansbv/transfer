@@ -102,9 +102,9 @@ App::Transfer::Reader is the base class for all reader modules.
 
   my $reader = App::Transfer::Reader->load( \%params );
 
-A factory method for instantiating Transfer readers. It loads the
+A factory method for instantiating Transfer readers.  It loads the
 subclass for the specified reader and calls C<new> with the hash
-parameter. Supported parameters are:
+parameter.  Supported parameters are:
 
 =over
 

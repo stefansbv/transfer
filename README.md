@@ -24,9 +24,9 @@ Description
 
 Transfer is a CLI application written in Perl.
 
-The concept is simple, reads a table data from a source, optionally
+The concept is simple, read a table data from a source, optionally
 make some transformation and transfer it to the destination table.
-Currently (for v0.17) the source can be a file in XLS or CSV format or
+Currently (for v0.18) the source can be a file in XLS or CSV format or
 a database table.  The destination can be a database table.
 
 The required configurations for the transformations are hold in files
@@ -39,7 +39,7 @@ Concepts
 ### The Recipe ###
 
 The recipe is a file in Apache format (parsed with the Config::General
-Perl module) and describes the source and the destionation and how to
+Perl module) and describes the source and the destination and how to
 transform the data.  Transformations are made using plugins.
 
 All recipes contains a few mandatory sections:
@@ -56,7 +56,7 @@ TODO: This are detailed in other documents...
 
 A plugin is a Perl module specialized to make simple transformations.
 It receives a hash reference containing info about the field (and some
-extra info needed for loging) and the current value.  Transforms the
+extra info needed for logging) and the current value.  Transforms the
 value using Perl functions and returns the new value.  Plugin
 functions can be chained together to make complex transformations.
 
@@ -69,7 +69,7 @@ Acknowledgements
 ----------------
 
 Concepts, blocks of code and even entire modules, comments and
-documentation are borrowed and/or inspired from the excelent
+documentation are borrowed and/or inspired from the excellent
 [Sqitch](https://github.com/theory/sqitch) project by @theory.  Thank
 you!
 
