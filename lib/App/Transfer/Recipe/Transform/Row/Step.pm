@@ -1,6 +1,6 @@
 package App::Transfer::Recipe::Transform::Row::Step;
 
-# ABSTRACT: Row transformation step
+# ABSTRACT: Base class for the row transformation step
 
 use 5.010001;
 use Moose;
