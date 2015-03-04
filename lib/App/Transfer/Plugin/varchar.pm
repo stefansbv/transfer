@@ -9,13 +9,14 @@ use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
-has 'latin10' => (
-    is      => 'ro',
-    isa     => 'Lingua::Translit',
-    default => sub {
-        return Lingua::Translit->new('RON-Latin10');
-    },
-);
+## Transliteration exmple
+# has 'latin10' => (
+#     is      => 'ro',
+#     isa     => 'Lingua::Translit',
+#     default => sub {
+#         return Lingua::Translit->new('RON-Latin10');
+#     },
+# );
 
 sub varchar {
     my ($self, $p) = @_;
@@ -26,7 +27,8 @@ sub varchar {
         $self->log->info("$logstr varchar: $field='$text' overflow ($str_len > $len)");
         return;
     }
-    return $self->latin10->translit($text);
+    # return $self->latin10->translit($text);
+    return $text;
 }
 
 __PACKAGE__->meta->make_immutable;
