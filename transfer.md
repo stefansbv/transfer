@@ -44,6 +44,13 @@ All recipes contains a few mandatory sections:
 - column transformation section
 - row transformation section
 
+Each recipe is for the transfer and transformation of a single table
+from the source to the destination.
+
+NOTE: A recipe with the C<excel> source reader can have more than one
+table configured in the C<tables> section but it is used only for
+separating the required data along with its header.
+
 
 ## The Header (recipe) Section ##
 

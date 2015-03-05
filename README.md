@@ -5,15 +5,14 @@ App/Transfer
 
 Version: 0.18
 
-A tool created to transfer and transform data between files and
-databases using recipes.
+Transform and transfer data between files and databases using recipes.
 
 
 Disclaimer
 ----------
 
 This is a tool from my toolbox.  It is designed to work with small
-datasets and while it is quite flexible but it is also quite slow.
+datasets and while it is quite flexible it is also quite slow.
 
 See also the `License And Copyright` section at the end of this README
 document. TODO!
