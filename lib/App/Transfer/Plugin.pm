@@ -10,7 +10,11 @@ use Module::Pluggable::Object;
 use App::Transfer::Config;
 use namespace::autoclean;
 
-has 'plugins', is => 'ro', isa => 'ArrayRef', lazy_build => 1;
+has 'plugins' => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    builder => '_build_plugins',
+);
 
 sub _build_plugins {
     return [
