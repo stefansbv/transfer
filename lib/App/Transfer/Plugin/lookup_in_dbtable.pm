@@ -62,32 +62,29 @@ Parameters:
 
 =item C<$logstr> log string
 
-=item C<$field>  destination field name
+Used for identifying the source row data.  It is a string like: "[recno=143"
 
-=item C<$table>  table name
+=item C<$field>  a field array reference to be passed to C<$engine->lookup>
+
+=item C<$table>  the table name to be passed to C<$engine->lookup>
+
+=item C<$where>  a hash reference to be passed to C<$engine->lookup>
 
 =item C<$engine> the destination engine object
 
-=item C<$where>  where
-
 =item C<$lookup> the value to lookup
 
+Returns a hash reference.
+
+   {
+     field_name1 => value1,
+     field_name2 => value2,
+     ...
+   }
+
+or nothing if there are no results or more then one result and in this
+case also creates a log entry.
+
 =back
-
-XXX
-
-Recipe configuration example step:
-
-  <step>
-    type              = lookupdb
-    datasource        = v_siruta
-    field_src         = localitate
-    method            = lookup_in_dbtable
-    field_dst         = siruta
-    field_dst         = codp
-  </step>
-
-Lookup for the C<$lookup> value in the C<$field> field where C<$where>
-and return the result if ...
 
 =cut
