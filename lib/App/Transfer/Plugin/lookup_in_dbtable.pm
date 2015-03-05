@@ -48,7 +48,7 @@ __END__
 
 =head1 Name
 
-App::Transfer::Plugin::lookup_in_dbtable - Transfer plugin to lookup in tables
+App::Transfer::Plugin::lookup_in_dbtable - lookup in tables
 
 =head1 Interface
 
@@ -66,7 +66,7 @@ Used for identifying the source row data.  It is a string like: "[recno=143"
 
 =item C<$field>  a field array reference to be passed to C<$engine->lookup>
 
-=item C<$table>  the table name to be passed to C<$engine->lookup>
+=item C<$table>  the database dictionary table name to be passed to C<$engine->lookup>
 
 =item C<$where>  a hash reference to be passed to C<$engine->lookup>
 

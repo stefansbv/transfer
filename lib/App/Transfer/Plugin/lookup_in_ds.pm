@@ -32,7 +32,7 @@ __END__
 
 =head1 Name
 
-App::Transfer::Plugin::lookup_in_ds - Transfer plugin to lookup in datasource
+App::Transfer::Plugin::lookup_in_ds - lookup in datasources
 
 =head1 Interface
 
@@ -46,23 +46,14 @@ Parameters:
 
 =item C<$logstr> log string
 
-=item C<$field>  destination field name
+Used for identifying the source row data.  It is a string like: "[recno=143"
 
-=item C<$table>  datasource table name
+=item C<$lookup_table> a AoH dictionary table
 
-=item C<$text>   the value to lookup
+=item C<$text>         the value to lookup
+
+=item C<$field>        the source field, used for logging
 
 =back
-
-XXX
-
-Recipe configuration example step:
-
-  <step>
-...
-  </step>
-
-Lookup for the C<$lookup> value in the C<$field> field where C<$where>
-and return the result if ...
 
 =cut
