@@ -30,24 +30,6 @@ has 'limit' => (
     },
 );
 
-has 'params' => (
-    is       => 'ro',
-    isa      => 'HashRef',
-    lazy     => 1,
-    builder  => '_build_params',
-);
-
-sub _build_params {
-    my $self = shift;
-    my $p = {};
-    $p->{field_src} = $self->field_src;
-    $p->{field_dst} = $self->field_dst;
-    $p->{limit}     = $self->limit;
-    $p->{separator} = $self->separator;
-    $p->{method}    = $self->method // 'split_field';
-    return $p;
-}
-
 __PACKAGE__->meta->make_immutable;
 
 1;

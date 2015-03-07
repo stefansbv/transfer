@@ -116,25 +116,6 @@ has 'hints' => (
     required => 0,
 );
 
-has 'params' => (
-    is       => 'ro',
-    isa      => 'HashRef',
-    lazy     => 1,
-    builder  => '_build_params',
-);
-
-sub _build_params {
-    my $self = shift;
-    my $p = {};
-    $p->{table}     = $self->table;
-    $p->{field_src} = $self->field_src;
-    $p->{field_dst} = $self->field_dst;
-    $p->{hints}     = $self->hints;
-    $p->{fields}    = $self->fields;         # lookup fields list
-    $p->{method}    = $self->method // 'lookup_in_dbtable';
-    return $p;
-}
-
 __PACKAGE__->meta->make_immutable;
 
 1;

@@ -27,14 +27,14 @@ sub _build_plugins {
 };
 
 sub do_transform {
-    my ($self, $method, $p) = @_;
+    my ($self, $method, %p) = @_;
     hurl transform => __ "Undefined param in do_transform!"
         unless defined $method;
     my $found = 0;
     for my $plugin ( @{ $self->plugins } ) {
         if ($plugin->can($method)) {
             $found = 1;
-            return $plugin->$method($p);
+            return $plugin->$method(%p);
         }
         else {
             next;

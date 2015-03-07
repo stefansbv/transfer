@@ -4,15 +4,24 @@ package App::Transfer::Plugin::lookup_in_dbtable;
 
 use 5.010001;
 use Moose;
+use MooseX::Params::Validate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 sub lookup_in_dbtable {
-    my ( $self, $p ) = @_;
+    my ( $self, %p ) = validated_hash(
+        \@_,
+        logstr => { isa => 'Str' },
+        fields => { isa => 'ArrayRef' },
+        table  => { isa => 'Str' },
+        engine => { isa => 'App::Transfer::Engine' },
+        where  => { isa => 'HashRef' },
+        lookup => { isa => 'Str' },
+    );
 
     my ( $logstr, $fields, $table, $engine, $where, $lookup )
-        = @$p{qw(logstr fields table engine where lookup)};
+        = @p{qw(logstr fields table engine where lookup)};
     return unless $lookup;
 
     my $result_aref = $engine->lookup( $table, $fields, $where );

@@ -4,13 +4,19 @@ package App::Transfer::Plugin::number_only;
 
 use 5.010001;
 use Moose;
+use MooseX::Params::Validate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 sub number_only {
-    my ($self, $p) = @_;
-    my ($text ) = @$p{qw(value)};
+    my ( $self, %p ) = validated_hash(
+        \@_,
+        logstr => { isa => 'Str' },
+        name   => { isa => 'Str' },
+        value  => { isa => 'Any' },
+    );
+    my ($text ) = @p{qw(value)};
     return unless $text;
     $text =~ s{[^\d.]+}{}g;
     return $text;

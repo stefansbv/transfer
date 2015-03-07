@@ -5,14 +5,27 @@ package App::Transfer::Plugin::numeric;
 use 5.010001;
 use Moose;
 use Number::Misc ':all';
+use MooseX::Params::Validate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 sub numeric {
-    my ( $self, $p ) = @_;
+    my ( $self, %p ) = validated_hash(
+        \@_,
+        logstr      => { isa => 'Str' },
+        pos         => { isa => 'Int' },
+        is_nullable => { isa => 'Maybe[Str]' },
+        type        => { isa => 'Maybe[Str]' },
+        name        => { isa => 'Str' },
+        value       => { isa => 'Any' },
+        defa        => { isa => 'Maybe[Str]' },
+        length      => { isa => 'Maybe[Int]' },
+        prec        => { isa => 'Maybe[Int]' },
+        scale       => { isa => 'Maybe[Int]' },
+    );
     my ( $logstr, $field, $text, $prec, $scale )
-        = @$p{qw(logstr name value prec scale)};
+        = @p{qw(logstr name value prec scale)};
     return unless defined $text;
     is_numeric( $text, convertible => 1 )
         ? return to_number($text)

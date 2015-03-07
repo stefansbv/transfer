@@ -4,13 +4,19 @@ package App::Transfer::Plugin::digits_only;
 
 use 5.010001;
 use Moose;
+use MooseX::Params::Validate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 sub digits_only {
-    my ($self, $p) = @_;
-    my ($logstr, $field, $text ) = @$p{qw(logstr name value)};
+    my ( $self, %p ) = validated_hash(
+        \@_,
+        logstr => { isa => 'Str' },
+        name   => { isa => 'Str' },
+        value  => { isa => 'Any' },
+    );
+    my ($logstr, $field, $text ) = @p{qw(logstr name value)};
     return unless $text;
     $text =~ s{[^\d]+}{}g;
     return $text;

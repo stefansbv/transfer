@@ -4,14 +4,22 @@ package App::Transfer::Plugin::lookup_in_ds;
 
 use 5.010001;
 use Moose;
+use MooseX::Params::Validate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 sub lookup_in_ds {
-    my ( $self, $p ) = @_;
+    my ( $self, %p ) = validated_hash(
+        \@_,
+        logstr       => { isa => 'Str' },
+        field_src    => { isa => 'Str' },
+        value        => { isa => 'Str' },
+        lookup_table => { isa => 'ArrayRef' },
+    );
+
     my ( $logstr, $field, $text, $lookup_table )
-        = @$p{qw(logstr field_src value lookup_table)};
+        = @p{qw(logstr field_src value lookup_table)};
     return unless $text;
     foreach my $rec ( @{$lookup_table} ) {
         foreach my $key ( keys %{$rec} ) {

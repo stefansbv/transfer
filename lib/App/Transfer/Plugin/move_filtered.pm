@@ -5,14 +5,24 @@ package App::Transfer::Plugin::move_filtered;
 use 5.010001;
 use Moose;
 use List::Util qw/any/;
+use MooseX::Params::Validate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 sub move_filtered {
-    my ( $self, $p ) = @_;
+    my ( $self, %p ) = validated_hash(
+        \@_,
+        logstr      => { isa => 'Str' },
+        value       => { isa => 'Str' },
+        lookup_list => { isa => 'ArrayRef' },
+        field_src   => { isa => 'Str' },
+        field_dst   => { isa => 'Str' },
+        attributes  => { isa => 'HashRef' },
+    );
+
     my ($logstr, $text, $lookup_list, $field_src, $field_dst, $attrib)
-        = @$p{qw(logstr value lookup_list field_src field_dst attributes)};
+        = @p{qw(logstr value lookup_list field_src field_dst attributes)};
     return unless $text;
     unless ( any { $text eq $_ } @{$lookup_list} ) {
         my $r  = {};

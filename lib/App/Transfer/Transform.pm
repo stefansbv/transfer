@@ -21,8 +21,6 @@ use App::Transfer::Reader;
 use App::Transfer::Writer;
 use App::Transfer::Plugin;
 
-use Data::Dump;
-
 with qw(App::Transfer::Role::Utils
         MooX::Log::Any);
 
@@ -158,7 +156,7 @@ has '_trafo_types' => (
             copy      => \&type_copy,
             batch     => \&type_batch,
             lookup    => \&type_lookup,
-            lookupdb => \&type_lookupdb,
+            lookupdb  => \&type_lookupdb,
         };
     },
     handles => {
@@ -185,14 +183,18 @@ has '_contents_iter' => (
 sub type_split {
     my ( $self, $step, $record, $logstr ) = @_;
 
-    my $p = $step->params;
-    $p->{value} = $record->{ $p->{field_src} }; # add the value to p
+    my %p;
+    $p{logstr}    = $logstr;
+    $p{name}      = $step->field_src;
+    $p{value}     = $record->{ $step->field_src };
+    $p{limit}     = $step->limit;
+    $p{separator} = $step->separator;
 
     # Assuming that the number of values matches the number of destinations
-    my @values = $self->plugin->do_transform( $p->{method}, $p );
+    my @values = $self->plugin->do_transform( $step->method, %p );
     my $i = 0;
     foreach my $value (@values) {
-        my $field = ${ $p->{field_dst} }[$i];
+        my $field = ${ $step->field_dst }[$i];
         $record->{$field} = $value;
         $i++
     }
@@ -203,15 +205,18 @@ sub type_split {
 sub type_join {
     my ( $self, $step, $record, $logstr ) = @_;
 
-    my $p = $step->params;
     my $values;
-    foreach my $field_src ( @{ $p->{field_src} } ) {
-        my $value = $record->{$field_src};
+    foreach my $field ( @{ $step->field_src } ) {
+        my $value = $record->{$field};
         push @{$values}, $value if defined $value;
     }
-    $p->{value} = $values;
-    $record->{ $p->{field_dst} }
-        = $self->plugin->do_transform( $p->{method}, $p );
+    my %p;
+    $p{logstr}    = $logstr;
+    $p{name}      = $step->field_dst;
+    $p{separator} = $step->separator;
+    $p{value}     = $values;
+    $record->{ $step->field_dst }
+        = $self->plugin->do_transform( $step->method, %p );
 
     return $record;
 }
@@ -219,20 +224,22 @@ sub type_join {
 sub type_copy {
     my ( $self, $step, $record, $logstr ) = @_;
 
-    my $p = $step->params;
     my $field_src  = $step->field_src;
     my $field_dst  = $step->field_dst;
     my $attributes = $step->attributes;
 
-    $p->{value}  = $record->{$field_src};
-    $p->{lookup_list}
-        = $self->recipe->datasource->get_valid_list( $p->{datasource} );
-    $p->{logstr} = $logstr;
-    my $r = $self->plugin->do_transform( $p->{method}, $p );
+    my %p;
+    $p{logstr}     = $logstr;
+    $p{value}      = $record->{$field_src};
+    $p{field_src}  = $field_src;
+    $p{field_dst}  = $field_dst;
+    $p{attributes} = $attributes;
+    $p{lookup_list}
+        = $self->recipe->datasource->get_valid_list( $step->datasource );
+    my $r = $self->plugin->do_transform( $step->method, %p );
     if ( ref $r ) {
 
         # Write to the destination field
-        # XXX Generalize and implement for other trafo types
         if ( $attributes->{APPEND} ) {
             if ( exists $r->{$field_dst} ) {
                 my $old = $record->{$field_dst};
@@ -271,26 +278,30 @@ sub type_copy {
 sub type_batch {
     my ( $self, $step, $record, $logstr ) = @_;
 
-    my $p = $step->params;
-    my $fields_src = $p->{field_src};
-    my $field_dst  = $p->{field_dst};
+    my $field_src  = $step->field_src;
+    my $field_dst  = $step->field_dst;
+    my $attributes = $step->attributes;
 
     my $values;
-    foreach my $field_src ( @{$fields_src} ) {
-        unless ( exists $record->{$field_src} ) {
+    foreach my $field ( @{$field_src} ) {
+        unless ( exists $record->{$field} ) {
             hurl type_batch =>
                 __x( "Error in recipe (batch): no such field '{field}'",
-                field => $field_src );
+                field => $field );
         }
-        push @{$values}, $record->{$field_src}
-            if defined $record->{$field_src};
+        push @{$values}, $record->{$field}
+            if defined $record->{$field};
     }
 
-    $p->{value}  = $values;
-    $p->{logstr} = $logstr;
-    my $r = $self->plugin->do_transform( $p->{method}, $p );
-    foreach my $field_dst ( keys %{$r} ) {
-        $record->{$field_dst} = $r->{$field_dst};
+    my %p;
+    $p{logstr}     = $logstr;
+    $p{value}      = $values;
+    $p{field_src}  = $field_src;
+    $p{field_dst}  = $field_dst;
+    $p{attributes} = $attributes;
+    my $r = $self->plugin->do_transform( $step->method, %p );
+    foreach my $field ( keys %{$r} ) {
+        $record->{$field} = $r->{$field};
     }
 
     return $record;
@@ -299,23 +310,20 @@ sub type_batch {
 sub type_lookup {
     my ( $self, $step, $record, $logstr ) = @_;
 
-    my $p = $step->params;
-    my $field_src = $step->field_src;
-    my $field_dst = $step->field_dst;
-
     # Lookup value
+    my $field_src  = $step->field_src;
     my $lookup_val = $record->{$field_src};
 
     return $record unless defined $lookup_val; # skip if undef
 
-    $p->{lookup_table}
-        = $self->recipe->datasource->get_ds( $p->{datasource} );
+    my %p;
+    $p{logstr}     = $logstr;
+    $p{value}      = $lookup_val;
+    $p{field_src}  = $field_src;
+    $p{lookup_table} = $self->recipe->datasource->get_ds( $step->datasource );
 
-    $p->{value}     = $lookup_val;
-    $p->{field_src} = $field_src;
-    $p->{logstr}    = $logstr;
-
-    $record->{$field_dst} = $self->plugin->do_transform( $p->{method}, $p );
+    $record->{ $step->field_dst }
+        = $self->plugin->do_transform( $step->method, %p );
 
     return $record;
 }
@@ -323,16 +331,12 @@ sub type_lookup {
 sub type_lookupdb {
     my ( $self, $step, $record, $logstr ) = @_;
 
-    my $p = $step->params;
-    my $field_src = $step->field_src;
-    my $field_dst = $step->field_dst;
-
     # Lookup value
-    my $lookup_val = $record->{$field_src};
+    my $lookup_val = $record->{ $step->field_src };
     return $record unless defined $lookup_val; # skip if undef
 
     # Hints
-    if ( my $hint = $p->{hints} ) {
+    if ( my $hint = $step->hints ) {
         my $hints = $self->recipe->datasource->get_hints($hint);
         if ( exists $hints->{$lookup_val} ) {
             $lookup_val = $hints->{$lookup_val};
@@ -340,13 +344,16 @@ sub type_lookupdb {
     }
 
     # Run-time parameters for the plugin
-    $p->{engine} = $self->engine;
-    $p->{lookup} = $lookup_val;       # required, used only for loging
-    $p->{logstr} = $logstr;
-    $p->{where}{$step->where_fld} = $lookup_val;
+    my %p;
+    $p{logstr} = $logstr;
+    $p{table}  = $step->table;
+    $p{engine} = $self->engine;
+    $p{lookup} = $lookup_val;       # required, used only for loging
+    $p{fields} = $step->fields;
+    $p{where}  = { $step->where_fld => $lookup_val };
 
-    my $result_aref = $self->plugin->do_transform( $p->{method}, $p );
-    foreach my $field ( @{$field_dst} ) {
+    my $result_aref = $self->plugin->do_transform( $step->method, %p );
+    foreach my $field ( @{ $step->field_dst } ) {
         $record->{$field} = shift @{$result_aref};
     }
 
@@ -618,36 +625,55 @@ sub transformations {
     my $logidx = exists $record->{$logfld} ? $record->{$logfld} : '?';
     my $logstr = qq{[$logfld=$logidx]};
 
+    $record = $self->column_trafos( $record, $info, $logstr );
+    $record = $self->record_trafos( $record, $info, $logstr );
+    $record = $self->column_type_trafos( $record, $info, $logstr );
+
+    return $record;
+}
+
+sub column_trafos {
+    my ($self, $record, $info, $logstr) = @_;
+
     #--  Custom per field transformations from the recipe
 
     foreach my $step ( @{ $self->recipe->transform->column } ) {
         my $field = $step->field;
-        # hurl field_info => __x(
-        #     "Field info for '{field}' not found!  Header map config. <--> DB schema inconsistency",
-        #     field => $field,
-        # ) unless exists $info->{$field} and ref $info->{$field};
-        my $p = $info->{$field};
-        $p->{logstr} = $logstr;
-        $p->{value}  = $record->{$field};
+        # my $info  = $info->{$field};
+        my %p;
+        $p{logstr} = $logstr;
+        $p{name}   = $field;
+        $p{value}  = $record->{$field};
         foreach my $meth ( @{ $step->method } ) {
-            $p->{value} = $self->plugin->do_transform( $meth, $p );
+            $p{value} = $self->plugin->do_transform( $meth, %p );
         }
-        $record->{$field} = $p->{value};
+        $record->{$field} = $p{value};
     }
+    return $record;
+}
+
+sub record_trafos {
+    my ($self, $record, $info, $logstr) = @_;
 
     #--  Transformations per record (row)
 
     foreach my $step ( @{ $self->recipe->transform->row } ) {
         my $type = $step->type;
-        my $p = {};
+        my $p    = {};
         if ( $type and $self->trafo->exists_in_type($type) ) {
-            $record = $self->trafo->get_type($type)->($self, $step, $record, $logstr);
+            $record = $self->trafo->get_type($type)
+                ->( $self, $step, $record, $logstr );
         }
         else {
             hurl trafo_type =>
                 __x( "Trafo type {type} not implemented", type => $type );
         }
     }
+    return $record;
+}
+
+sub column_type_trafos {
+    my ($self, $record, $info, $logstr) = @_;
 
     #--  Transformations per field type
 
@@ -656,13 +682,13 @@ sub transformations {
             "Field info for '{field}' not found!  Header map config. <--> DB schema inconsistency",
             field => $field
         ) unless exists $info->{$field} and ref $info->{$field};
-        my $p = $info->{$field};
-        $p->{logstr} = $logstr;
-        $p->{value}  = $value;    # add the value to p
-        $p->{value}  = $self->plugin->do_transform( $p->{type}, $p );
-        $record->{$field} = $p->{value};
+        my $meth = $info->{$field}{type};
+        my %p    = %{ $info->{$field} };
+        $p{logstr}        = $logstr;
+        $p{value}         = $value;
+        $p{value}         = $self->plugin->do_transform( $meth, %p );
+        $record->{$field} = $p{value};
     }
-
     return $record;
 }
 

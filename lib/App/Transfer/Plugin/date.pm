@@ -5,13 +5,26 @@ package App::Transfer::Plugin::date;
 use 5.010001;
 use Moose;
 use Date::Calc qw ( Decode_Date_EU );
+use MooseX::Params::Validate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 sub date {
-    my ($self, $p) = @_;
-    my ($logstr, $field, $text ) = @$p{qw(logstr name value)};
+    my ( $self, %p ) = validated_hash(
+        \@_,
+        logstr      => { isa => 'Str' },
+        pos         => { isa => 'Int' },
+        is_nullable => { isa => 'Maybe[Str]' },
+        type        => { isa => 'Maybe[Str]' },
+        name        => { isa => 'Str' },
+        value       => { isa => 'Str' },
+        defa        => { isa => 'Maybe[Str]' },
+        length      => { isa => 'Maybe[Int]' },
+        prec        => { isa => 'Maybe[Int]' },
+        scale       => { isa => 'Maybe[Int]' },
+    );
+    my ($logstr, $field, $text ) = @p{qw(logstr name value)};
     return unless defined $text;
     return if length $text == 0;    # return undef => NULL
     if (length $text != 10) {

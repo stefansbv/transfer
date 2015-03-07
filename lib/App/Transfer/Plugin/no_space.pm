@@ -4,13 +4,19 @@ package App::Transfer::Plugin::no_space;
 
 use 5.010001;
 use Moose;
+use MooseX::Params::Validate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 sub no_space {
-    my ($self, $p) = @_;
-    my ($logstr, $field, $text, $len ) = @$p{qw(logstr name value length)};
+    my ( $self, %p ) = validated_hash(
+        \@_,
+        logstr => { isa => 'Str' },
+        name   => { isa => 'Str' },
+        value  => { isa => 'Any' },
+    );
+    my ($logstr, $field, $text, $len ) = @p{qw(logstr name value length)};
     return unless $text;
     $text =~ s{\s+}{}gmx;
     return $text;

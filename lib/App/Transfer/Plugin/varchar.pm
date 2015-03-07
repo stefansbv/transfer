@@ -5,6 +5,7 @@ package App::Transfer::Plugin::varchar;
 use 5.010001;
 use Moose;
 use Lingua::Translit;
+use MooseX::Params::Validate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
@@ -19,8 +20,20 @@ with 'MooX::Log::Any';
 # );
 
 sub varchar {
-    my ($self, $p) = @_;
-    my ($logstr, $field, $text, $len ) = @$p{qw(logstr name value length)};
+    my ( $self, %p ) = validated_hash(
+        \@_,
+        logstr      => { isa => 'Str' },
+        pos         => { isa => 'Int' },
+        is_nullable => { isa => 'Maybe[Str]' },
+        type        => { isa => 'Maybe[Str]' },
+        name        => { isa => 'Str' },
+        value       => { isa => 'Any' },
+        defa        => { isa => 'Maybe[Str]' },
+        length      => { isa => 'Maybe[Int]' },
+        prec        => { isa => 'Maybe[Int]' },
+        scale       => { isa => 'Maybe[Int]' },
+    );
+    my ($logstr, $field, $text, $len ) = @p{qw(logstr name value length)};
     return unless $text;
     my $str_len = length $text;
     if ($str_len > $len) {

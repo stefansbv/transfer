@@ -6,14 +6,22 @@ use 5.010001;
 use Moose;
 use List::Util qw/any none/;
 use List::MoreUtils qw/each_array/;
+use MooseX::Params::Validate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 sub copy_nonzero {
-    my ( $self, $p ) = @_;
+    my ( $self, %p ) = validated_hash(
+        \@_,
+        logstr      => { isa => 'Str' },
+        field_dst   => { isa => 'Str' },
+        value       => { isa => 'ArrayRef' },
+        field_src   => { isa => 'ArrayRef' },
+        attributes  => { isa => 'HashRef' },
+    );
     my ($logstr, $field, $values, $fields_src, $attributes)
-        = @$p{qw(logstr field_dst value field_src attributes)};
+        = @p{qw(logstr field_dst value field_src attributes)};
     if ( none { $_ != 0 } @{$values} ) {
         my $op = $attributes->{MOVE} ? 'move' : 'copy';
         $self->log->warn("$logstr $op to '$field' skipped: all values == 0");

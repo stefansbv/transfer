@@ -19,22 +19,6 @@ has 'field_src' => (
     required => 1,
 );
 has 'field_dst' => ( is => 'ro', isa => 'Str', required => 1 );
-has 'params' => (
-    is       => 'ro',
-    isa      => 'HashRef',
-    lazy     => 1,
-    builder  => '_build_params',
-);
-
-sub _build_params {
-    my $self = shift;
-    my $p = {};
-    $p->{field_src} = $self->field_src;
-    $p->{field_dst} = $self->field_dst;
-    $p->{separator} = $self->separator;
-    $p->{method}    = $self->method // 'join_field';
-    return $p;
-}
 
 __PACKAGE__->meta->make_immutable;
 
