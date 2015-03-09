@@ -621,7 +621,6 @@ sub transformations {
     my ($self, $record, $info, $logfld) = @_;
 
     #--  Logging settings
-
     my $logidx = exists $record->{$logfld} ? $record->{$logfld} : '?';
     my $logstr = qq{[$logfld=$logidx]};
 
@@ -864,6 +863,43 @@ Resulted records:
 =head3 C<job_summary>
 
 =head3 C<transformations>
+
+Apply transformation to a record in order.
+
+=head3 C<column_trafos>
+
+Custom per field transformations.  This type of transformation works
+on a field at a time.  Each transformation step defined in the
+C<transform/column> section of the recipe is applied to the C<field>
+data.  More than one method can be applied in the order of
+declaration.
+
+Example:
+
+  <transform            column>
+    <step>
+      field               = codp
+      method              = number_only
+      method              = null_ifzero
+    </step>
+  </transform>
+
+This is the first type of transformation to be applied.
+
+=head3 C<record_trafos>
+
+Transformations per record (row).  This type of transformation works
+on the entire current record of data.  It can be used to split a field
+data into two or more fields, or to join, copy or move data between
+fields.
+
+This is the second type of transformation to be applied.
+
+=head3 C<column_type_trafos>
+
+Transformations per field type are used to validate the data for the
+destination type of the column.  If the data is not a valid type or
+overflows than a log entry is added.
 
 =head1 Author
 
