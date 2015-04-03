@@ -4,11 +4,23 @@ package App::Transfer::Recipe::Table::HeaderMap;
 
 use 5.010001;
 use Moose;
+use App::Transfer::Recipe::Transform::Types;
 use namespace::autoclean;
 
 has 'description' => ( is => 'ro', isa => 'Str' );
-has 'skiprows'    => ( is => 'ro', isa => 'Int' );
 has 'logfield'    => ( is => 'ro', isa => 'Str' );
+
+has 'skiprows' => (
+    is      => 'ro',
+    isa     => 'Int',
+    default => sub { 0 },
+);
+
+has 'orderby' => (
+    is     => 'ro',
+    isa    => 'ArrayRefFromStr',
+    coerce => 1,
+);
 
 has 'headermap' => (
     is       => 'ro',

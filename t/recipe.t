@@ -35,13 +35,12 @@ subtest 'Header column map' => sub {
     foreach my $name ( $recipe->tables->all_table_names ) {
         ok my $table = $recipe->tables->has_table($name), 'has table name';
         is $table, $name, "got table name '$name'";
-        ok $recipe->tables->get_table($table)->description, 'table desc.';
-        ok defined $recipe->tables->get_table($table)->skiprows,
-            'table skip rows';
-        ok $recipe->tables->get_table($table)->logfield,
-            'log field name';
-        is ref $recipe->tables->get_table($table)->headermap, 'HASH',
-            'headermap';
+        ok my $recipe_table = $recipe->tables->get_table($table), 'table.';
+        ok $recipe_table->description, 'table desc.';
+        ok defined $recipe_table->skiprows, 'table skip rows';
+        ok $recipe_table->logfield, 'log field name';
+        is ref $recipe_table->orderby, 'ARRAY', 'table orderby';
+        is ref $recipe_table->headermap, 'HASH', 'headermap';
     }
 };
 

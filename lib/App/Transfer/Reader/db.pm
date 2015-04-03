@@ -55,14 +55,14 @@ has '_contents' => (
     isa     => 'ArrayRef',
     lazy    => 1,
     default => sub {
-        my $self   = shift;
-        my $table  = $self->src_table;
-        my $engine = $self->target->engine;
-        my $where  = $self->get_header(0)->{where};
-        my $order  = $self->get_header(0)->{order};
-        my $header = $self->get_header(0)->{header};
-        my $fields = $self->get_fields($table);
-        my $ah_ref = $engine->records_aoh( $table, $fields, $where, $order );
+        my $self    = shift;
+        my $table   = $self->src_table;
+        my $engine  = $self->target->engine;
+        my $where   = $self->get_header(0)->{where};
+        my $orderby = $self->get_header(0)->{orderby};
+        my $header  = $self->get_header(0)->{header};
+        my $fields  = $self->get_fields($table);
+        my $ah_ref  = $engine->records_aoh( $table, $fields, $where, $orderby );
         my @records;
         foreach my $row ( @{$ah_ref} ) {
             my $record = {};
@@ -86,14 +86,13 @@ has '_headers' => (
         # Header is the first row
         my @headers = ();
         foreach my $name ( $self->recipe->tables->all_table_names ) {
-            my $header    = $self->recipe->tables->get_table($name)->headermap;
-            my $skip_rows = $self->recipe->tables->get_table($name)->skiprows;
             my $row_count = 0;
             push @headers, {
-                table  => $name,
-                row    => $row_count,
-                header => $header,
-                skip   => $skip_rows,
+                table   => $name,
+                row     => $row_count,
+                header  => $self->recipe->tables->get_table($name)->headermap,
+                skip    => $self->recipe->tables->get_table($name)->skiprows,
+                orderby => $self->recipe->tables->get_table($name)->orderby,
             };
         }
         return \@headers;
