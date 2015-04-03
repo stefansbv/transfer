@@ -30,6 +30,7 @@ has dbh => (
             RaiseError       => 0,
             AutoCommit       => 1,
             ib_enable_utf8   => 1,
+            ib_time_all      => 'ISO',
             FetchHashKeyName => 'NAME_lc',
             HandleError => sub {
                 my ( $err,  $dbh )  = @_;
