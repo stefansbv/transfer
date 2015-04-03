@@ -5,9 +5,8 @@ package App::Transfer::Recipe::Transform::Col::Step;
 use 5.010001;
 use Moose;
 use Moose::Util::TypeConstraints;
-use namespace::autoclean;
-
 use App::Transfer::Recipe::Transform::Types;
+use namespace::autoclean;
 
 has 'field' => ( is => 'ro', isa => 'Str' );
 

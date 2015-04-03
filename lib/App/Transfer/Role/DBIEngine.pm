@@ -17,8 +17,8 @@ with 'MooX::Log::Any';
 requires 'dbh';
 
 has 'sql' => (
-    is => 'ro',
-    isa => 'SQL::Abstract',
+    is      => 'ro',
+    isa     => 'SQL::Abstract',
     default => sub {
         return SQL::Abstract->new;
     },
@@ -90,10 +90,10 @@ sub records_aoa {
 }
 
 sub records_aoh {
-    my ($self, $table, $fields, $where, $order) = @_;
+    my ($self, $table, $fields, $where, $orderby) = @_;
     die "The 'table' parameter is required" unless $table;
     $fields //= '*';                         # or all fields
-    my ( $sql, @bind ) = $self->sql->select( $table, $fields, $where, $order );
+    my ( $sql, @bind ) = $self->sql->select( $table, $fields, $where, $orderby );
     my @records;
     try {
         my $sth = $self->dbh->prepare($sql);
