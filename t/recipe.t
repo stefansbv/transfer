@@ -39,7 +39,7 @@ subtest 'Header column map' => sub {
         ok $recipe_table->description, 'table desc.';
         ok defined $recipe_table->skiprows, 'table skip rows';
         ok $recipe_table->logfield, 'log field name';
-        is ref $recipe_table->orderby, 'ARRAY', 'table orderby';
+        is ref $recipe_table->orderby, '', 'table orderby';
         is ref $recipe_table->headermap, 'HASH', 'headermap';
     }
 };

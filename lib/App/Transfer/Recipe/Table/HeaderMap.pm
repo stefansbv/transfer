@@ -18,8 +18,8 @@ has 'skiprows' => (
 
 has 'orderby' => (
     is     => 'ro',
-    isa    => 'ArrayRefFromStr',
-    coerce => 1,
+    isa    => 'Str|ArrayRef|HashRef',
+    coerce => 0,
 );
 
 has 'headermap' => (
@@ -69,12 +69,6 @@ object.
 
 A description of the table.  Not used, yet.
 
-=head3 C<skiprows>
-
-The number of rows to skip between the header and the table data.
-Used for the C<excel> reader, when there are empty rows after the
-header or a sub-header
-
 =head3 C<logfield>
 
 The name of the field (column) used for logging info.  Should be set to
@@ -88,6 +82,18 @@ Example log record:
     [3094] [id:6] lookup: multiple values for...
             ^
             logfield name
+
+=head3 C<skiprows>
+
+The number of rows to skip between the header and the table data.
+Used for the C<excel> reader, when there are empty or unwanted rows
+after the header or there is a sub-header.
+
+=head3 C<orderby>
+
+An attribute holding the C<order> argument for the L<SQL::Abstract>
+C<select> method.  The argument can be a C<Scalar>, a C<HashRef> or an
+<ArrayRef>.
 
 =head3 C<headermap>
 
