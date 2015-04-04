@@ -14,7 +14,7 @@ use App::Transfer::Recipe::Load;
 use App::Transfer::Recipe::Header;
 use App::Transfer::Recipe::Src;
 use App::Transfer::Recipe::Dst;
-use App::Transfer::Recipe::Table;
+use App::Transfer::Recipe::Tables;
 use App::Transfer::Recipe::Transform;
 use App::Transfer::Recipe::Datasource;
 
@@ -98,11 +98,11 @@ has 'target' => (
 
 has 'tables' => (
     is      => 'ro',
-    isa     => 'App::Transfer::Recipe::Table',
+    isa     => 'App::Transfer::Recipe::Tables',
     lazy     => 1,
     default => sub {
         my $self = shift;
-        return App::Transfer::Recipe::Table->new(
+        return App::Transfer::Recipe::Tables->new(
             $self->recipe_data->{tables} );
     },
 );

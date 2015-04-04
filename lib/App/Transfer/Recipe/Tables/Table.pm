@@ -1,4 +1,4 @@
-package App::Transfer::Recipe::Table::HeaderMap;
+package App::Transfer::Recipe::Tables::Table;
 
 # ABSTRACT: Recipe section: tables/table/headermap
 
@@ -39,11 +39,11 @@ __END__
 
 =head1 Name
 
-App::Transfer::Recipe::Table::HeaderMap - Recipe section: tables/table/headermap
+App::Transfer::Recipe::Tables::Table - Recipe section: tables/table/headermap
 
 =head1 Synopsis
 
-  my $tables = App::Transfer::Recipe::Table::HeaderMap->new(
+  my $tables = App::Transfer::Recipe::Tables::Table->new(
       $self->table->{$name},
   );
 
@@ -56,10 +56,10 @@ section of the recipe.
 
 =head3 C<new>
 
-Instantiates and returns an L<App::Transfer::Recipe::Table::HeadrMap>
+Instantiates and returns an L<App::Transfer::Recipe::Tables::HeadrMap>
 object.
 
-  my $tables = App::Transfer::Recipe::Table::HeaderMap->new(
+  my $tables = App::Transfer::Recipe::Tables::Table->new(
       $self->table->{$name},
   );
 

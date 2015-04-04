@@ -1,4 +1,4 @@
-package App::Transfer::Recipe::Table;
+package App::Transfer::Recipe::Tables;
 
 # ABSTRACT: Recipe section: tables
 
@@ -7,7 +7,7 @@ use Moose;
 use Moose::Util::TypeConstraints;
 use namespace::autoclean;
 
-use App::Transfer::Recipe::Table::HeaderMap;
+use App::Transfer::Recipe::Tables::Table;
 
 has 'worksheet' => ( is => 'ro', isa => 'Str' );
 has 'lastrow'   => ( is => 'ro', isa => 'Maybe[Int]' );
@@ -41,7 +41,7 @@ has '_tables' => (
         my $self = shift;
         my %tables;
         foreach my $name ( keys %{ $self->table } ) {
-            $tables{$name} = App::Transfer::Recipe::Table::HeaderMap->new(
+            $tables{$name} = App::Transfer::Recipe::Tables::Table->new(
                 $self->table->{$name}
             );
         }
@@ -68,11 +68,11 @@ __END__
 
 =head1 Name
 
-App::Transfer::Recipe::Table - Recipe section: tables
+App::Transfer::Recipe::Tables - Recipe section: tables
 
 =head1 Synopsis
 
-  my $tables = App::Transfer::Recipe::Table->new(
+  my $tables = App::Transfer::Recipe::Tables->new(
       $self->recipe_data->{tables},
   );
 
@@ -84,9 +84,9 @@ An object representing the C<tables> section of the recipe.
 
 =head3 C<new>
 
-Instantiates and returns an L<App::Transfer::Recipe::Table> object.
+Instantiates and returns an L<App::Transfer::Recipe::Tables> object.
 
-  my $tables = App::Transfer::Recipe::Table->new(
+  my $tables = App::Transfer::Recipe::Tables->new(
       $self->recipe_data->{tables},
   );
 
@@ -114,7 +114,7 @@ for the recipe.
 =head3 C<_tables>
 
 A hash reference holding the table names as keys and the corresponding
-object instance of L<App::Transfer::Recipe::Table::HeaderMap> as
+object instance of L<App::Transfer::Recipe::Tables::Table> as
 values.
 
 =head2 Instance Methods
