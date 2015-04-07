@@ -71,7 +71,8 @@ subtest 'Table section complex orderby config' => sub {
         { -asc  => "colA" },
         { -desc => "colB" },
         { -asc  => [ "colC", "colD" ] },
-        ], 'table orderby';
+    ], 'table orderby';
+    is $recipe_table->get_plugin('date'), 'date_german', 'plugin for date';
     is ref $recipe_table->headermap, 'HASH', 'headermap';
 };
 

@@ -29,6 +29,17 @@ has 'headermap' => (
     default  => sub { {} },
 );
 
+has 'plugins' => (
+    is       => 'ro',
+    isa      => 'HashRef',
+    traits   => ['Hash'],
+    lazy     => 1,
+    default => sub { {} },
+    handles  => {
+        get_plugin => 'get',
+    },
+);
+
 __PACKAGE__->meta->make_immutable;
 
 1;
