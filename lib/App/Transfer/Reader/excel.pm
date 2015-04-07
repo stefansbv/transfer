@@ -219,9 +219,17 @@ sub _build_record_set {
 sub _build_contents {
     my $self = shift;
 
-    my $worksheet = $self->workbook->worksheet( $self->worksheet );
-    hurl excel => __x( 'Worksheet "{worksheet}" not found in the XSL file',
-        worksheet => $self->worksheet) unless defined $worksheet;
+    my $worksheet;
+    if ( $self->worksheet ) {
+        $worksheet = $self->workbook->worksheet( $self->worksheet );
+        hurl excel =>
+            __x( 'Worksheet "{worksheet}" not found in the XSL file',
+                 worksheet => $self->worksheet )
+            unless defined $worksheet;
+    }
+    else {
+        $worksheet = $self->workbook->worksheet(0); # default 0
+    }
 
     my ( $row_min, $row_max ) = $worksheet->row_range();
     my ( $col_min, $col_max ) = $worksheet->col_range();
