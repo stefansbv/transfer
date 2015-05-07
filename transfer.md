@@ -151,3 +151,53 @@ the source and the destination fields.
   </table>
 </tables>
 ```
+
+Order by examples.
+
+{ orderby => ["colA", "colB"] }
+orderby   colA
+orderby   colB
+
+{ orderby => { -asc => "colA" } }
+<orderby>
+    -asc   colA
+</orderby>
+
+{ orderby => { -desc => "colB" } }
+<orderby>
+    -desc   colB
+</orderby>
+
+{ orderby => ["colA", { -asc => "colB" }] }
+orderby   colA
+<orderby>
+    -asc   colB
+</orderby>
+
+{ orderby => { -asc => ["colA", "colB"] } }
+<orderby>
+    -asc   colA
+    -asc   colB
+</orderby>
+
+{
+  orderby => [
+    { -asc => "colA" },
+    { -desc => "colB" },
+    { -asc => ["colC", "colD"] },
+  ],
+}
+<orderby>
+    -asc   colA
+</orderby>
+<orderby>
+    -desc   colB
+</orderby>
+<orderby>
+    -asc   colC
+    -asc   colD
+</orderby>
+
+
+Plugins for column type can clean-up, transform and validate all
+fields of the respective type.
