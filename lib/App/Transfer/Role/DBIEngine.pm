@@ -62,16 +62,19 @@ sub insert {
 
 sub lookup {
     my ($self, $table, $fields, $where) = @_;
-    my $ary_ref;
+    my ( $sql, @bind ) = $self->sql->select( $table, $fields, $where );
+    my @records;
     try {
-        my ( $stmt, @bind ) = $self->sql->select( $table, $fields, $where );
-        my $args = { MaxRows => 10 };    # limit search result
-        $ary_ref = $self->dbh->selectall_arrayref( $stmt, $args, @bind );
+        my $sth = $self->dbh->prepare($sql);
+        $sth->execute(@bind);
+        while ( my $record = $sth->fetchrow_hashref('NAME_lc') ) {
+            push( @records, $record );
+        }
     }
     catch {
         hurl insert => __x('Select failed: {error}', error => $_);
     };
-    return $ary_ref;
+    return \@records;
 }
 
 sub records_aoa {

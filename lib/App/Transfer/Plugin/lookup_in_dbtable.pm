@@ -31,9 +31,9 @@ sub lookup_in_dbtable {
     }
     elsif ( $ret_no > 1 ) {
         my $results = '';
-        foreach my $ary ( @{$result_aref} ) {
+        foreach my $h ( @{$result_aref} ) {
             $results .= ' ';
-            $results .= "'" . join( ',', @{$ary} ) . "'";
+            $results .= "'" . join( ',', values %{$h} ) . "'";
         }
         $self->log->info(
             "$logstr lookup: multiple values for '",

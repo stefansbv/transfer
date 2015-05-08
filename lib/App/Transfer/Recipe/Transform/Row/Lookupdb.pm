@@ -23,6 +23,9 @@ subtype 'DstArrayRefOfStrs'
 subtype 'FieldsArrayRefOfStrs'
     => as 'ArrayRef[Str]';
 
+subtype 'DstMapHashRefs'
+    => as 'HashRef';
+
 # From { denloc => "localitate", cod => "siruta" } to ["denloc", "cod"]
 coerce 'DstArrayRefOfStrs'
     => from 'HashRef'
@@ -60,6 +63,22 @@ coerce 'FieldsArrayRefOfStrs'
     => from 'ArrayRef'
     => via { [ map { ref $_ ? values %{ $_ } : $_ } @{ $_ } ] };
 
+# From [ { denloc => "localitate" }, "siruta" ]
+#  to { localitate => "denloc", siruta => "siruta" }
+# From [ { denloc => "localitate" }, { cod => "siruta" } ]
+#  to { localitate => "denloc", siruta => "cod" }
+coerce 'DstMapHashRefs'
+    => from 'ArrayRef'
+    => via { aoh2h($_) };
+
+coerce 'DstMapHashRefs'
+    => from 'HashRef'
+    => via { %{ $_ } };
+
+coerce 'DstMapHashRefs'
+    => from 'Str'
+    => via { str2h($_) };
+
 has 'field_src' => (
     is       => 'ro',
     isa      => 'SrcFieldStr',
@@ -77,6 +96,14 @@ has 'field_src_map' => (
 has 'field_dst' => (
     is       => 'ro',
     isa      => 'DstArrayRefOfStrs',
+    required => 1,
+    coerce   => 1,
+);
+
+has 'field_dst_map' => (
+    is       => 'ro',
+    isa      => 'DstMapHashRefs',
+    init_arg => 'field_dst',
     required => 1,
     coerce   => 1,
 );
@@ -115,6 +142,29 @@ has 'hints' => (
     isa      => 'Str',
     required => 0,
 );
+
+sub aoh2h {
+    my $rec = shift;
+    my %h;
+    foreach my $item ( @{$rec} ) {
+        if ( ref $item ) {
+            while ( my ( $k, $v ) = each %{$item} ) {
+                $h{$k} = $v;
+            }
+        }
+        else {
+            $h{$item} = $item;
+        }
+    }
+    return \%h;
+}
+
+sub str2h {
+    my $item = shift;
+    my %h;
+    $h{$item} = $item;
+    return \%h;
+}
 
 __PACKAGE__->meta->make_immutable;
 

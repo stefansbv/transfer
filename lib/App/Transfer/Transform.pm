@@ -352,9 +352,11 @@ sub type_lookupdb {
     $p{fields} = $step->fields;
     $p{where}  = { $step->where_fld => $lookup_val };
 
+    my $fld_dst_map = $step->field_dst_map;
     my $result_aref = $self->plugin->do_transform( $step->method, %p );
-    foreach my $field ( @{ $step->field_dst } ) {
-        $record->{$field} = shift @{$result_aref};
+    foreach my $dst_field ( @{ $step->field_dst } ) {
+        my $field = $fld_dst_map->{$dst_field};
+        $record->{$dst_field} = $result_aref->{$field};
     }
 
     return $record;

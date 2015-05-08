@@ -64,6 +64,7 @@ subtest 'Column transformation type' => sub {
 
 subtest 'Row transformation type' => sub {
     ok my $trafos_row = $recipe->transform->row, 'row trafos';
+
     # Expected result in the recipe order
     my $expected_lookupdb = [
         {   field_src     => 'denumire',
