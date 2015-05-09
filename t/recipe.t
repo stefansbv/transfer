@@ -4,6 +4,7 @@ use warnings;
 
 use Path::Class;
 use Test::More;
+use Test::Deep;
 
 use App::Transfer;
 use App::Transfer::Recipe;
@@ -57,7 +58,7 @@ subtest 'Column transformation type' => sub {
         ok $step->can('field'), 'the step has field';
         ok $step->can('method'), 'the step has methods';
         is $step->field, $field, qq(the field is $field');
-        is_deeply $step->method, $method, qq(the methods: "@$method");
+        cmp_deeply $step->method, $method, qq(the methods: "@$method");
         $idx++;
     }
 };
@@ -136,14 +137,14 @@ subtest 'Row transformation type' => sub {
             my $expected = shift @{$expected_lookupdb};
             is $field_src, $expected->{field_src},
                 'lookupdb src field string';
-            is_deeply $field_dst, $expected->{field_dst},
+            cmp_bag $field_dst, $expected->{field_dst},
                 'lookupdb dst fields array';
             is $step->table, $expected->{table},
                 'lookupdb datasource table';
             is $step->hints, $expected->{hints}, 'lookupdb hints';
-            is_deeply $step->field_src_map, $expected->{field_src_map},
+            cmp_deeply $step->field_src_map, $expected->{field_src_map},
                 'source field mapping';
-            is_deeply $step->fields, $expected->{fields},
+            cmp_bag $step->fields, $expected->{fields},
                 'lookup fields list';
             is $step->where_fld, $expected->{where_fld},
                 'lookupdb where field';
