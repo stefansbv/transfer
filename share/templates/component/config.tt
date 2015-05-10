@@ -1,0 +1,13 @@
+<config>
+  <source>
+    reader              = [% r.reader %]
+    target              = [% r.src_target %]
+    table               = [% r.src_table %]
+  </source>
+
+  <destination>
+    writer              = [% r.writer %]
+    target              = [% r.dst_target %]
+    table               = [% r.dst_table %]
+  </destination>
+</config>

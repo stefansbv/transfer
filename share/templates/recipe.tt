@@ -1,0 +1,6 @@
+[% PROCESS component/header.tt %]
+[% PROCESS component/config.tt %]
+[% PROCESS component/tables.tt %]
+<transform column/>
+
+<transform row/>
