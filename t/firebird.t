@@ -17,7 +17,6 @@ use DBIEngineTest;
 
 use App::Transfer;
 use App::Transfer::Target;
-use App::Transfer::Options;
 use App::Transfer::Reader;
 use App::Transfer::Writer;
 
