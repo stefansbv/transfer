@@ -130,10 +130,10 @@ has 'plugin' => (
     },
 );
 
-has 'engine' => (
-    is  => 'ro',
-    isa => 'App::Transfer::Engine',
-);
+# has 'engine' => (
+#     is  => 'ro',
+#     isa => 'App::Transfer::Engine',
+# );
 
 has 'info' => (
     traits   => ['Hash'],
@@ -347,7 +347,7 @@ sub type_lookupdb {
     my %p;
     $p{logstr} = $logstr;
     $p{table}  = $step->table;
-    $p{engine} = $self->engine;
+    $p{engine} = $self->writer->target->engine;
     $p{lookup} = $lookup_val;       # required, used only for loging
     $p{fields} = $step->fields;
     $p{where}  = { $step->where_fld => $lookup_val };
@@ -661,9 +661,8 @@ sub record_trafos {
     foreach my $step ( @{ $self->recipe->transform->row } ) {
         my $type = $step->type;
         my $p    = {};
-        if ( $type and $self->trafo->exists_in_type($type) ) {
-            $record = $self->trafo->get_type($type)
-                ->( $self, $step, $record, $logstr );
+        if ( $type and $self->exists_in_type($type) ) {
+            $record = $self->get_type($type)->( $self, $step, $record, $logstr );
         }
         else {
             hurl trafo_type =>
@@ -723,6 +722,10 @@ sub validate_destination {
 
     return unless scalar @trafo_fields; # no trafos no columns to check
 
+    unless ( $engine->table_exists($table) ) {
+        hurl table =>
+            __x( 'Destination table "{table}" not found', table => $table );
+    }
     my $table_fields = $engine->get_columns($table);
     my $lc = List::Compare->new('--unsorted', \@trafo_fields, $table_fields);
     my @error = $lc->get_Lonly;              # not in the table

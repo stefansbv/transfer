@@ -558,7 +558,6 @@ sub run {
         #   field_dst           = strada
         #   field_dst           = numarul
         # </step>
-
         subtest 'e. split' => sub {
 
         ok my $step = shift @{$trafos_row}, 'the e. step';
@@ -614,7 +613,6 @@ sub run {
         #   method              = join_field
         #   field_dst           = adresa
         # </step>
-
         subtest 'f. join' => sub {
 
         ok my $step = shift @{$trafos_row}, 'the f. step';
@@ -680,7 +678,6 @@ sub run {
         #   field_dst           = observations
         #   attributes          = MOVE | APPENDSRC
         # </step>
-
         subtest 'g. copy' => sub {
 
         ok my $step = shift @{$trafos_row}, 'the g. step';
@@ -730,7 +727,6 @@ sub run {
         #   field_dst         = suma
         #   attributes        = MOVE | REPLACENULL
         # </step>
-
         subtest 'h. batch' => sub {
 
         ok my $step = shift @{$trafos_row}, 'the h. step';
@@ -769,7 +765,6 @@ sub run {
         #   method              = lookup_in_ds
         #   field_dst           = categ_code
         # </step>
-
         subtest 'i. type_lookup_ds' => sub {
 
         ok my $step = shift @{$trafos_row}, 'the i. lookup step';
