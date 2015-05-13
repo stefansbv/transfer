@@ -165,7 +165,7 @@ sub generate_recipe {
         output_file => $recipe_fn,
         data        => { r => $data },
         output_path => $output_path,
-        templ_path  => 'share/templates',
+        templ_path  => undef,
     };
 
     App::Transfer::Render->new->render($args);
