@@ -56,18 +56,29 @@ around BUILDARGS => sub {
     my $p = @_ == 1 && ref $_[0] ? { %{ +shift } } : { @_ };
 
     # Check the type of the steps
-    foreach my $step ( @{ $p->{row}{step} } ) {
-        if ( none { $_ eq $step->{type} }
-            (qw(split join copy batch lookup lookupdb)) )
-        {
-            hurl recipe =>
-                __x( 'Row transformation step type "{type}" not known',
-                type => $step->{type} );
+    my $steps = $p->{row}{step};
+    my $types = [qw(split join copy batch lookup lookupdb)];
+
+    if ( ref $steps eq 'HASH' ) {
+        validate_type($steps, $types);
+    }
+    elsif ( ref $steps eq 'ARRAY' ) {
+        foreach my $step ( @{$steps} ) {
+            validate_type($step, $types);
         }
     }
 
     return $class->$orig( %{$p} );
 };
+
+sub validate_type {
+    my ($step, $types) = @_;
+    if ( none { $_ eq $step->{type} } @{$types} ) {
+        hurl recipe => __x(
+            'Row transformation step type "{type}" not known',
+            type => $step->{type} );
+    }
+}
 
 __PACKAGE__->meta->make_immutable;
 
