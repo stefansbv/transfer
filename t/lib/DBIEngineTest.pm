@@ -77,7 +77,6 @@ sub run {
 
         ok my $trafo = App::Transfer::Transform->new(
             transfer       => $transfer,
-            engine         => $engine,
             input_options  => $input_options,
             output_options => $output_options,
             @trafo_params,
