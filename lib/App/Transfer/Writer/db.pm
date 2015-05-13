@@ -13,8 +13,6 @@ use namespace::autoclean;
 
 extends 'App::Transfer::Writer';
 
-use App::Transfer::Target;
-
 has table => (
     is       => 'ro',
     isa      => 'Str',

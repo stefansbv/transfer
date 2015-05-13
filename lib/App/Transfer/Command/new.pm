@@ -12,12 +12,11 @@ use List::Compare;
 use Config::GitLike;
 use Locale::TextDomain qw(App-Transfer);
 use App::Transfer::X qw(hurl);
+use App::Transfer::Target;
+use App::Transfer::Render;
 use namespace::autoclean;
 
 extends qw(App::Transfer);
-
-use App::Transfer::Target;
-use App::Transfer::Render;
 
 option 'input_table' => (
     is            => 'ro',
