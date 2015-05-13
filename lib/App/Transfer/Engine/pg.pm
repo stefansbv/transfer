@@ -144,7 +144,7 @@ sub get_columns {
         $column_list = $dbh->selectcol_arrayref($sql);
     }
     catch {
-        hurl firebird => __x(
+        hurl pg => __x(
             'Transaction aborted because: {error}',
             error    => $_,
         );
