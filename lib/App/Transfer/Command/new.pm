@@ -143,7 +143,16 @@ sub generate_recipe {
     my $lc = List::Compare->new('--unsorted', $src_table_info, $dst_table_info);
     my @l_fields = $lc->get_Lonly;           # TODO: compare in/out fields
     my @r_fields = $lc->get_Ronly;
-    my @columns  = $lc->get_union;
+    my @columns  = $lc->get_intersection;
+
+    use Data::Printer;
+    say "Left:";
+    p @l_fields;
+    say "Right:";
+    p @r_fields;
+
+    say "Common:";
+    p @columns;
 
     my $data = {
         copy_author => $user_name,
