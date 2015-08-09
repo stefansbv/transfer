@@ -347,7 +347,10 @@ sub type_lookupdb {
     my %p;
     $p{logstr} = $logstr;
     $p{table}  = $step->table;
-    $p{engine} = $self->writer->target->engine;
+    $p{engine}
+        = $step->target eq 'destination'
+        ? $self->writer->target->engine
+        : $self->reader->target->engine;
     $p{lookup} = $lookup_val;       # required, used only for loging
     $p{fields} = $step->fields;
     $p{where}  = { $step->where_fld => $lookup_val };

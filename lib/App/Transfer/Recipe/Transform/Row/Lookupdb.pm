@@ -115,6 +115,13 @@ has 'table' => (
     required => 1,
 );
 
+has 'target' => (
+    is       => 'ro',
+    isa      => enum( [qw(destination source)] ),
+    required => 0,
+    default  => sub  { 'destination' },
+);
+
 has 'fields' => (
     is       => 'ro',
     isa      => 'FieldsArrayRefOfStrs',
@@ -307,6 +314,12 @@ The destination field name string.
 
 The dictionary table name string from the C<datasource> configuration
 attribute.
+
+=head3 C<target>
+
+Represents the target name, the database where is located the
+datasource (table) of the transformation.  Defaults to C<destination>.
+The other valid choice is C<source>.
 
 =head3 C<fields>
 
