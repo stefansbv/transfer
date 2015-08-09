@@ -32,6 +32,7 @@ has dbh => (
             ib_enable_utf8   => 1,
             ib_time_all      => 'ISO',
             FetchHashKeyName => 'NAME_lc',
+            LongReadLen      => 524288,
             HandleError => sub {
                 my ( $err,  $dbh )  = @_;
                 my ( $type, $error ) = $self->parse_error($err);
