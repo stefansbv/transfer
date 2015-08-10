@@ -7,7 +7,7 @@ use Moose;
 use MooseX::Types::Path::Tiny qw(File);
 use MooseX::Iterator;
 use Locale::TextDomain 1.20 qw(App-Transfer);
-use List::Util qw{any};
+use List::Util qw(any);
 use Text::CSV;
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
@@ -185,8 +185,7 @@ A L<MooseX::Iterator> object for the contents of the CSV file.
 
 =head3 C<get_data>
 
-Return an array reference of hashes, where the hash keys are the names
-of the columns and the values are the values read from the table
-columns. (XXX reformulate).
+Return an array reference of hash references with the column names as
+keys.
 
 =cut
