@@ -34,6 +34,14 @@ BEGIN {
     Log::Log4perl->init($log_fqn) if -f $log_fqn;
 }
 
+sub DEMOLISH {
+    my $log_file = App::Transfer::Config::log_file_name;
+    if ( -f $log_file && -z $log_file ) {
+        my $cnt = unlink $log_file;
+        print "Cleanup: $log_file\n" if $cnt == 1;
+    }
+}
+
 option 'dryrun' => (
     is            => 'rw',
     isa           => 'Bool',
