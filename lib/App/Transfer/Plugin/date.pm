@@ -4,45 +4,89 @@ package App::Transfer::Plugin::date;
 
 use 5.010001;
 use Moose;
-use Date::Calc qw ( Decode_Date_EU );
-use MooseX::Params::Validate;
+use Try::Tiny;
+use Time::Piece;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
+has 'format_dmy' => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => sub {
+        return '%d.%m.%Y';
+    },
+);
+
+has 'format_mdy' => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => sub {
+        return '%m/%d/%Y';
+    },
+);
+
 sub date {
-    my ( $self, %p ) = validated_hash(
-        \@_,
-        logstr      => { isa => 'Str' },
-        pos         => { isa => 'Int' },
-        is_nullable => { isa => 'Maybe[Str]' },
-        type        => { isa => 'Maybe[Str]' },
-        name        => { isa => 'Str' },
-        value       => { isa => 'Str' },
-        defa        => { isa => 'Maybe[Str]' },
-        length      => { isa => 'Maybe[Int]' },
-        prec        => { isa => 'Maybe[Int]' },
-        scale       => { isa => 'Maybe[Int]' },
-    );
-    my ($logstr, $field, $text ) = @p{qw(logstr name value)};
-    return unless defined $text;
-    return if length $text == 0;    # return undef => NULL
+    my ( $self, $p ) = @_;
+    my ( $logstr, $field, $text, $src_format, $is_nullable )
+        = @$p{qw(logstr name value src_format is_nullable)};
+    unless ($text) {
+        unless ($is_nullable) {
+            my $log_text = defined $text ? '' : 'undef';
+            $self->log->error(
+                "$logstr date: $field='$log_text' - date is not nullable!");
+            return;
+        }
+    }
     if (length $text != 10) {
-        $self->log->info("$logstr date: $field='$text' is not a date\n");
+        $self->log->info("$logstr date: $field='$text' is not a 10 character date\n");
         return;
     }
-    return $self->eu_to_iso($field, $text, $logstr);
+    my $meth = "${src_format}_to_iso";
+    if ( $self->can($meth) ) {
+        return $self->$meth($field, $text, $logstr);
+    }
+    else {
+        $self->log->error(
+            "$logstr date: $field='$text' - $meth method not implemented!");
+    }
 }
 
-sub eu_to_iso {
+sub iso_to_iso {
+    my ($self, $field, $text, $logstr) = @_;
+    # Just return the value.
+    if ( $text !~ /\d{4}-\d{2}-\d{2}/ ) {
+        $self->log->info(
+            "$logstr date: $field='$text' is not a valid ISO date");
+        return undef;
+    }
+    return $text;
+}
+
+sub dmy_to_iso {
     my ($self, $field, $text, $logstr) = @_;
     return unless $text;
-    my ( $year, $month, $day ) = Decode_Date_EU($text);
-    unless ( $year and $month and $day ) {
-        $self->log->info("$logstr date: $field='$text' is not a valid EU date");
-        return;
-    }
-    return sprintf( "%04d\-%02d\-%02d", $year, $month, $day );
+    my $dt = try { Time::Piece->strptime( $text, $self->format_dmy ) }
+    catch {
+        $self->log->info(
+            "$logstr date: $field='$text' is not a valid DMY date");
+        return undef;
+    };
+    return unless $dt;
+    return $dt->ymd;                         # iso
+}
+
+sub mdy_to_iso {
+    my ($self, $field, $text, $logstr) = @_;
+    return unless $text;
+    my $dt = try { Time::Piece->strptime( $text, $self->format_mdy ) }
+    catch {
+        $self->log->info(
+            "$logstr date: $field='$text' is not a valid DMY date");
+        return undef;
+    };
+    return unless $dt;
+    return $dt->ymd;                         # iso
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -58,6 +102,18 @@ __END__
 App::Transfer::Plugin::date - Transfer plugin for 'date' columns
 
 =head1 Interface
+
+=head2 Attributes
+
+=head3 C<format_dmy>
+
+The DMY format for parsing dates with the C<Time::Piece> module.  The
+separator is "." character.
+
+=head3 C<format_mdy>
+
+The MDY format for parsing dates with the C<Time::Piece> module.  The
+separator is "/" character.
 
 =head2 Instance Methods
 
@@ -78,7 +134,20 @@ Parameters:
 The C<date> method checks the length of the input text and returns
 C<undef> if it's different than C<10>, and also creates a log message.
 Otherwise tries to transform it to an ISO date and return it.  The
-input date format is assumed to be in European format.
+input date format can be from a source configuration option named
+C<date_format>.
+
+=head3 C<iso_to_iso>
+
+Empty method for the default date formats: ISOI 8601.
+
+=head3 C<dmy_to_iso>
+
+Convert the date string from DMY to the ISO format.
+
+=head3 C<mdy_to_iso>
+
+Convert the date string from MDY to the ISO format.
 
 =head3 C<eu_to_iso>
 
