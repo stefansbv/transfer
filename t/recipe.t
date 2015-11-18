@@ -108,7 +108,6 @@ subtest 'Row transformation type' => sub {
 
     foreach my $step ( @{$trafos_row} ) {
         ok my $type = $step->type, 'step type';
-        say "*** TYPE: $type";
         ok my $field_src = $step->field_src,  'src field(s)';
         ok my $field_dst = $step->field_dst,  'dst field(s)';
         ok my $method    = $step->method,     'method(s)';

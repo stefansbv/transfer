@@ -4,6 +4,7 @@ package App::Transfer::Recipe::Src;
 
 use 5.010001;
 use Moose;
+use Moose::Util::TypeConstraints;
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
@@ -12,6 +13,14 @@ has 'reader' => ( is => 'ro', isa => 'Str', required => 1 );
 has 'file'   => ( is => 'ro', isa => 'Str' );
 has 'target' => ( is => 'ro', isa => 'Str' );
 has 'table'  => ( is => 'ro', isa => 'Str' );
+
+has 'date_format' => (
+    is       => 'ro',
+    isa      => enum( [qw(dmy mdy iso)] ),
+    default => sub {
+        return 'iso';
+    },
+);
 
 sub BUILDARGS {
     my $class = shift;

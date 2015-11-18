@@ -8,7 +8,6 @@ use Test::More;
 use App::Transfer;
 use App::Transfer::Recipe;
 
-
 subtest 'Table section minimum config' => sub {
     ok my $recipe_file = file( 't', 'recipes', 'recipe-table-0.conf' ),
         "the recipe file";
@@ -35,7 +34,12 @@ subtest 'Table section maximum config' => sub {
     ok $recipe_table->description, 'table desc.';
     ok defined $recipe_table->skiprows, 'table skip rows';
     ok $recipe_table->logfield, 'log field name';
-    is_deeply $recipe_table->orderby,   [qw(id denumire)], 'table orderby';
+    is_deeply $recipe_table->orderby, [qw(id denumire)], 'table orderby';
+    my $expected = {
+        status => { "!" => "= completed", "-not_like" => "pending%" },
+        user   => undef,
+    };
+    is_deeply $recipe_table->filter, $expected, 'table filter';
     is ref $recipe_table->headermap, 'HASH',  'headermap';
 };
 

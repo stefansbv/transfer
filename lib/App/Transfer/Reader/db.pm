@@ -4,6 +4,7 @@ package App::Transfer::Reader::db;
 
 use 5.010001;
 use List::Compare;
+use Hash::Merge qw(merge);
 use Moose;
 use MooseX::FileAttribute;
 use MooseX::Iterator;
@@ -58,7 +59,10 @@ has '_contents' => (
         my $self    = shift;
         my $table   = $self->src_table;
         my $engine  = $self->target->engine;
-        my $where   = $self->get_header(0)->{where};
+        my $where = Hash::Merge->new->merge(
+            $self->get_header(0)->{where},
+            $self->get_header(0)->{filter},
+        );
         my $orderby = $self->get_header(0)->{orderby};
         my $header  = $self->get_header(0)->{header};
         my $fields  = $self->get_fields($table);
@@ -147,8 +151,7 @@ sub get_fields {
             list  => $not_found,
             table => $dst_table,
         ),
-        }
-        if $not_found;
+        } if $not_found;
 
     return \@fields;
 }

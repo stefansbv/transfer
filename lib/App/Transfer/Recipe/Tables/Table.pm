@@ -4,6 +4,7 @@ package App::Transfer::Recipe::Tables::Table;
 
 use 5.010001;
 use Moose;
+use Data::Leaf::Walker;
 use App::Transfer::Recipe::Transform::Types;
 use namespace::autoclean;
 
@@ -21,6 +22,31 @@ has 'orderby' => (
     isa    => 'Str|ArrayRef|HashRef',
     coerce => 0,
 );
+
+has '_filter' => (
+    is       => 'ro',
+    init_arg => 'filter',
+    isa      => 'ArrayRef|HashRef',
+    default  => sub { {} },
+);
+
+has 'filter' => (
+    is       => 'ro',
+    isa      => 'ArrayRef|HashRef',
+    init_arg => undef,
+    lazy     => 1,
+    builder  => '_build_filter',
+);
+
+sub _build_filter {
+    my $self = shift;
+    my $data = $self->_filter;
+    my $walk = Data::Leaf::Walker->new($data);
+    while ( my ( $k, $v ) = $walk->each ) {
+        $walk->store( $k, undef ) if $v eq 'NOT_NULL';
+    }
+    return $data;
+}
 
 has 'headermap' => (
     is       => 'ro',

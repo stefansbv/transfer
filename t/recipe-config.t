@@ -17,6 +17,7 @@ subtest 'Config section: from excel to db' => sub {
     is $recipe->source->file, 't/siruta.xls', 'has a file';
     is $recipe->source->target, undef, 'has no target';
     is $recipe->source->table, undef, 'has no table';
+    is $recipe->source->date_format, 'dmy', 'has date format';
     isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
     is $recipe->destination->writer, 'db', 'has writer db';
     is $recipe->destination->file, undef, 'has no file';
