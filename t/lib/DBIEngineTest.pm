@@ -283,10 +283,10 @@ sub run {
         #     'Should get an exception for nonexistent columns';
 
         ok my $fields = $trafo->reader->get_fields($table_db), 'table fields';
-        is scalar @{$fields}, 2, 'got 2 fields';
+        is scalar @{$fields}, 2, 'get 2 fields';
 
         ok my $records = $trafo->reader->get_data, 'get data for table';
-        ok scalar @{$records} > 0, 'got some records';
+        ok scalar @{$records} > 0, 'get some records';
 
         my $expected = [
             {   id       => 1,

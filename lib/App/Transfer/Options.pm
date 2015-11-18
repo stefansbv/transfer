@@ -228,7 +228,7 @@ App::Transfer::Options - Options builder for reader or writer
 =head1 Description
 
 App::Transfer::Options builds the attributes from the command line
-options provided by the user, the configurations find in the recipes
+options provided by the user, the configurations found in the recipes
 and the application configuration files, in this order.
 
 =head1 Interface

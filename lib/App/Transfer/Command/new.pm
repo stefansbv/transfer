@@ -145,14 +145,14 @@ sub generate_recipe {
     my @r_fields = $lc->get_Ronly;
     my @columns  = $lc->get_intersection;
 
-    use Data::Printer;
-    say "Left:";
-    p @l_fields;
-    say "Right:";
-    p @r_fields;
+    # use Data::Printer;
+    # say "Left:";
+    # p @l_fields;
+    # say "Right:";
+    # p @r_fields;
 
-    say "Common:";
-    p @columns;
+    # say "Common:";
+    # p @columns;
 
     my $data = {
         copy_author => $user_name,

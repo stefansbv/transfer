@@ -4,6 +4,7 @@ package App::Transfer::Recipe::Dst;
 
 use 5.010001;
 use Moose;
+use Moose::Util::TypeConstraints;
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
