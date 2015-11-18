@@ -4,23 +4,14 @@ package App::Transfer::Plugin::split_field;
 
 use 5.010001;
 use Moose;
-use MooseX::Params::Validate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 sub split_field {
-    my ( $self, %p ) = validated_hash(
-        \@_,
-        logstr    => { isa => 'Str' },
-        name      => { isa => 'Str' },
-        value     => { isa => 'Str' },
-        limit     => { isa => 'Int' },
-        separator => { isa => 'Str', default => ',' },
-    );
-
+    my ( $self, $p ) = @_;
     my ($logstr, $field, $text, $limit, $separator )
-        = @p{qw(logstr name value limit separator)};
+        = @$p{qw(logstr name value limit separator)};
     return unless $text;
     return split /\s*$separator\s*/, $text, $limit;
 }

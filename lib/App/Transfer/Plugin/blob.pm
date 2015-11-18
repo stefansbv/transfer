@@ -4,26 +4,13 @@ package App::Transfer::Plugin::blob;
 
 use 5.010001;
 use Moose;
-use MooseX::Params::Validate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 sub blob {
-    my ( $self, %p ) = validated_hash(
-        \@_,
-        logstr      => { isa => 'Str' },
-        pos         => { isa => 'Int' },
-        is_nullable => { isa => 'Maybe[Str]' },
-        type        => { isa => 'Maybe[Str]' },
-        name        => { isa => 'Str' },
-        value       => { isa => 'Any' },
-        defa        => { isa => 'Maybe[Str]' },
-        length      => { isa => 'Maybe[Int]' },
-        prec        => { isa => 'Maybe[Int]' },
-        scale       => { isa => 'Maybe[Int]' },
-    );
-    my ( $logstr, $field, $text, $len ) = @p{qw(logstr name value length)};
+    my ( $self, $p ) = @_;
+    my ( $logstr, $field, $text, $len ) = @$p{qw(logstr name value length)};
     return unless defined $text;
     return $text;
 }

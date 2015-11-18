@@ -4,20 +4,13 @@ package App::Transfer::Plugin::join_fields;
 
 use 5.010001;
 use Moose;
-use MooseX::Params::Validate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 sub join_fields {
-    my ( $self, %p ) = validated_hash(
-        \@_,
-        logstr    => { isa => 'Str' },
-        name      => { isa => 'Str' },
-        value     => { isa => 'ArrayRef' },
-        separator => { isa => 'Str', default => ' ' },
-    );
-    my ( $logstr, $text, $separator ) = @p{qw(logstr value separator)};
+    my ( $self, $p ) = @_;
+    my ( $logstr, $text, $separator ) = @$p{qw(logstr value separator)};
     return unless ref $text;
     my $new_text = join $separator, @{$text};
     return $new_text;
