@@ -183,15 +183,15 @@ has '_contents_iter' => (
 sub type_split {
     my ( $self, $step, $record, $logstr ) = @_;
 
-    my %p;
-    $p{logstr}    = $logstr;
-    $p{name}      = $step->field_src;
-    $p{value}     = $record->{ $step->field_src };
-    $p{limit}     = $step->limit;
-    $p{separator} = $step->separator;
+    my $p;
+    $p->{logstr}    = $logstr;
+    $p->{name}      = $step->field_src;
+    $p->{value}     = $record->{ $step->field_src };
+    $p->{limit}     = $step->limit;
+    $p->{separator} = $step->separator;
 
     # Assuming that the number of values matches the number of destinations
-    my @values = $self->plugin->do_transform( $step->method, %p );
+    my @values = $self->plugin->do_transform( $step->method, $p );
     my $i = 0;
     foreach my $value (@values) {
         my $field = ${ $step->field_dst }[$i];
@@ -210,13 +210,13 @@ sub type_join {
         my $value = $record->{$field};
         push @{$values}, $value if defined $value;
     }
-    my %p;
-    $p{logstr}    = $logstr;
-    $p{name}      = $step->field_dst;
-    $p{separator} = $step->separator;
-    $p{value}     = $values;
+    my $p;
+    $p->{logstr}    = $logstr;
+    $p->{name}      = $step->field_dst;
+    $p->{separator} = $step->separator;
+    $p->{value}     = $values;
     $record->{ $step->field_dst }
-        = $self->plugin->do_transform( $step->method, %p );
+        = $self->plugin->do_transform( $step->method, $p );
 
     return $record;
 }
@@ -228,15 +228,15 @@ sub type_copy {
     my $field_dst  = $step->field_dst;
     my $attributes = $step->attributes;
 
-    my %p;
-    $p{logstr}     = $logstr;
-    $p{value}      = $record->{$field_src};
-    $p{field_src}  = $field_src;
-    $p{field_dst}  = $field_dst;
-    $p{attributes} = $attributes;
-    $p{lookup_list}
+    my $p;
+    $p->{logstr}     = $logstr;
+    $p->{value}      = $record->{$field_src};
+    $p->{field_src}  = $field_src;
+    $p->{field_dst}  = $field_dst;
+    $p->{attributes} = $attributes;
+    $p->{lookup_list}
         = $self->recipe->datasource->get_valid_list( $step->datasource );
-    my $r = $self->plugin->do_transform( $step->method, %p );
+    my $r = $self->plugin->do_transform( $step->method, $p );
     if ( ref $r ) {
 
         # Write to the destination field
@@ -293,13 +293,13 @@ sub type_batch {
             if defined $record->{$field};
     }
 
-    my %p;
-    $p{logstr}     = $logstr;
-    $p{value}      = $values;
-    $p{field_src}  = $field_src;
-    $p{field_dst}  = $field_dst;
-    $p{attributes} = $attributes;
-    my $r = $self->plugin->do_transform( $step->method, %p );
+    my $p;
+    $p->{logstr}     = $logstr;
+    $p->{value}      = $values;
+    $p->{field_src}  = $field_src;
+    $p->{field_dst}  = $field_dst;
+    $p->{attributes} = $attributes;
+    my $r = $self->plugin->do_transform( $step->method, $p );
     foreach my $field ( keys %{$r} ) {
         $record->{$field} = $r->{$field};
     }
@@ -316,14 +316,14 @@ sub type_lookup {
 
     return $record unless defined $lookup_val; # skip if undef
 
-    my %p;
-    $p{logstr}     = $logstr;
-    $p{value}      = $lookup_val;
-    $p{field_src}  = $field_src;
-    $p{lookup_table} = $self->recipe->datasource->get_ds( $step->datasource );
+    my $p;
+    $p->{logstr}     = $logstr;
+    $p->{value}      = $lookup_val;
+    $p->{field_src}  = $field_src;
+    $p->{lookup_table} = $self->recipe->datasource->get_ds( $step->datasource );
 
     $record->{ $step->field_dst }
-        = $self->plugin->do_transform( $step->method, %p );
+        = $self->plugin->do_transform( $step->method, $p );
 
     return $record;
 }
@@ -344,19 +344,19 @@ sub type_lookupdb {
     }
 
     # Run-time parameters for the plugin
-    my %p;
-    $p{logstr} = $logstr;
-    $p{table}  = $step->table;
-    $p{engine}
+    my $p;
+    $p->{logstr} = $logstr;
+    $p->{table}  = $step->table;
+    $p->{engine}
         = $step->target eq 'destination'
         ? $self->writer->target->engine
         : $self->reader->target->engine;
-    $p{lookup} = $lookup_val;       # required, used only for loging
-    $p{fields} = $step->fields;
-    $p{where}  = { $step->where_fld => $lookup_val };
+    $p->{lookup} = $lookup_val;       # required, used only for loging
+    $p->{fields} = $step->fields;
+    $p->{where}  = { $step->where_fld => $lookup_val };
 
     my $fld_dst_map = $step->field_dst_map;
-    my $result_aref = $self->plugin->do_transform( $step->method, %p );
+    my $result_aref = $self->plugin->do_transform( $step->method, $p );
     foreach my $dst_field ( @{ $step->field_dst } ) {
         my $field = $fld_dst_map->{$dst_field};
         $record->{$dst_field} = $result_aref->{$field};
@@ -644,14 +644,14 @@ sub column_trafos {
     foreach my $step ( @{ $self->recipe->transform->column } ) {
         my $field = $step->field;
         # my $info  = $info->{$field};
-        my %p;
-        $p{logstr} = $logstr;
-        $p{name}   = $field;
-        $p{value}  = $record->{$field};
+        my $p;
+        $p->{logstr} = $logstr;
+        $p->{name}   = $field;
+        $p->{value}  = $record->{$field};
         foreach my $meth ( @{ $step->method } ) {
-            $p{value} = $self->plugin->do_transform( $meth, %p );
+            $p->{value} = $self->plugin->do_transform( $meth, $p );
         }
-        $record->{$field} = $p{value};
+        $record->{$field} = $p->{value};
     }
     return $record;
 }
@@ -680,17 +680,23 @@ sub column_type_trafos {
 
     #--  Transformations per field type
 
+    my $src_date_format = $self->recipe->source->date_format;
+
     while ( my ( $field, $value ) = each( %{$record} ) ) {
         hurl field_info => __x(
             "Field info for '{field}' not found!  Header map config. <--> DB schema inconsistency",
             field => $field
         ) unless exists $info->{$field} and ref $info->{$field};
+        my $p    = $info->{$field};
         my $meth = $info->{$field}{type};
-        my %p    = %{ $info->{$field} };
-        $p{logstr}        = $logstr;
-        $p{value}         = $value;
-        $p{value}         = $self->plugin->do_transform( $meth, %p );
-        $record->{$field} = $p{value};
+        if ( $meth eq 'date' ) {
+            $p->{is_nullable} = $info->{$field}{is_nullable};
+            $p->{src_format}  = $src_date_format;
+        }
+        $p->{logstr}        = $logstr;
+        $p->{value}         = $value;
+        $p->{value}         = $self->plugin->do_transform( $meth, $p );
+        $record->{$field} = $p->{value};
     }
     return $record;
 }
