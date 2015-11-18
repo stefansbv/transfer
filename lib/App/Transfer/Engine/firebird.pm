@@ -86,7 +86,10 @@ sub get_info {
     my $sql = qq(SELECT RDB\$FIELD_POSITION AS pos
                     , LOWER(r.RDB\$FIELD_NAME) AS name
                     , r.RDB\$DEFAULT_VALUE AS defa
-                    , r.RDB\$NULL_FLAG AS is_nullable
+                    , CASE
+                       WHEN r.RDB\$NULL_FLAG IS NULL THEN 1
+                       ELSE 0
+                      END AS is_nullable
                     , f.RDB\$FIELD_LENGTH AS length
                     , f.RDB\$FIELD_PRECISION AS prec
                     , CASE
@@ -196,14 +199,10 @@ sub table_exists {
         ($val_ret) = $self->dbh->selectrow_array($sql);
     }
     catch {
-        say __x( "Transaction aborted because: {error}", error => $_ );
         # XXX Wide character in die at .../Throwable.pm line 75. ???
-        # hurl firebird =>
-        #     __x( "Transaction aborted because: {error}", error => $_ );
         hurl firebird =>
             __x( "XXX Transaction aborted because: {error}", error => $_ );
     };
-
 
     return $val_ret;
 }
