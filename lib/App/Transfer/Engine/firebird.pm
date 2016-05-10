@@ -65,7 +65,7 @@ sub parse_error {
 
 
     my ( $type, $name ) = split /:/x, $message_type, 2;
-    return ('errstr', $err) if $ type eq "unknown";
+    return ('errstr', $err) if $type eq "unknown";
     $name = $name ? $name : '';
     $name =~ s{\n\-}{\ }xgsm;                  # cleanup
 
