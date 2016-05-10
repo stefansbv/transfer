@@ -153,8 +153,6 @@ __END__
 
 App::Transfer - Transfer data between files and databases using recipes
 
-=head1 Description
-
 =head1 Interface
 
 =head2 Attributes

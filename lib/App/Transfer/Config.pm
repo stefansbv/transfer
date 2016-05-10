@@ -100,9 +100,9 @@ no Moose;
 
 =head1 Description
 
-This class provides the interface to App::Transfer configuration. It inherits from
-L<Config::GitLike>, and therefore provides the complete interface of that
-module.
+This class provides the interface to App::Transfer configuration. It
+inherits from L<Config::GitLike>, and therefore provides the complete
+interface of that module.
 
 =head1 Interface
 
