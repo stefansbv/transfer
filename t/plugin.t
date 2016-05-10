@@ -30,13 +30,15 @@ my $p = {
     logstr      => 'error',
 };
 
-#-- Date
+#-- Date                                               TODO: test with different date seps
 $p->{value}        = '31.01.2014';
 $p->{src_format}   = 'dmy';
+$p->{src_sep}      = '.';
 is $ttr->do_transform('date', $p), '2014-01-31', 'date dmy to iso';
 
 $p->{value}        = '01/31/2014';
 $p->{src_format}   = 'mdy';
+$p->{src_sep}      = '/';
 is $ttr->do_transform('date', $p), '2014-01-31', 'date mdy to iso';
 
 $p->{value}        = '2014-01-31';

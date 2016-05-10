@@ -681,6 +681,7 @@ sub column_type_trafos {
     #--  Transformations per field type
 
     my $src_date_format = $self->recipe->source->date_format;
+    my $src_date_sep    = $self->recipe->source->date_sep;
 
     while ( my ( $field, $value ) = each( %{$record} ) ) {
         hurl field_info => __x(
@@ -692,6 +693,7 @@ sub column_type_trafos {
         if ( $meth eq 'date' ) {
             $p->{is_nullable} = $info->{$field}{is_nullable};
             $p->{src_format}  = $src_date_format;
+            $p->{src_sep}     = $src_date_sep;
         }
         $p->{logstr}        = $logstr;
         $p->{value}         = $value;

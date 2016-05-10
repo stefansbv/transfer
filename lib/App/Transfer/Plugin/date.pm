@@ -10,26 +10,22 @@ use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
-has 'format_dmy' => (
-    is      => 'ro',
-    isa     => 'Str',
-    default => sub {
-        return '%d.%m.%Y';
-    },
-);
+sub format_dmy {
+    my ($self, $sep) = @_;
+    die "Separator parameter required for 'format_dmy'" unless $sep;
+    return '%d' . $sep . '%m' . $sep . '%Y';
+}
 
-has 'format_mdy' => (
-    is      => 'ro',
-    isa     => 'Str',
-    default => sub {
-        return '%m/%d/%Y';
-    },
-);
+sub format_mdy {
+    my ($self, $sep) = @_;
+    die "Separator parameter required for 'format_mdy'" unless $sep;
+    return '%m' . $sep . '%d' . $sep . '%Y';
+}
 
 sub date {
     my ( $self, $p ) = @_;
-    my ( $logstr, $field, $text, $src_format, $is_nullable )
-        = @$p{qw(logstr name value src_format is_nullable)};
+    my ( $logstr, $field, $text, $src_format, $src_sep, $is_nullable )
+        = @$p{qw(logstr name value src_format src_sep is_nullable)};
     unless ($text) {
         unless ($is_nullable) {
             my $log_text = defined $text ? '' : 'undef';
@@ -44,7 +40,7 @@ sub date {
     }
     my $meth = "${src_format}_to_iso";
     if ( $self->can($meth) ) {
-        return $self->$meth($field, $text, $logstr);
+        return $self->$meth($field, $text, $logstr, $src_sep);
     }
     else {
         $self->log->error(
@@ -64,9 +60,9 @@ sub iso_to_iso {
 }
 
 sub dmy_to_iso {
-    my ($self, $field, $text, $logstr) = @_;
+    my ($self, $field, $text, $logstr, $sep) = @_;
     return unless $text;
-    my $dt = try { Time::Piece->strptime( $text, $self->format_dmy ) }
+    my $dt = try { Time::Piece->strptime( $text, $self->format_dmy($sep) ) }
     catch {
         $self->log->info(
             "$logstr date: $field='$text' is not a valid DMY date");
@@ -77,9 +73,9 @@ sub dmy_to_iso {
 }
 
 sub mdy_to_iso {
-    my ($self, $field, $text, $logstr) = @_;
+    my ($self, $field, $text, $logstr, $sep) = @_;
     return unless $text;
-    my $dt = try { Time::Piece->strptime( $text, $self->format_mdy ) }
+    my $dt = try { Time::Piece->strptime( $text, $self->format_mdy($sep) ) }
     catch {
         $self->log->info(
             "$logstr date: $field='$text' is not a valid DMY date");
@@ -108,12 +104,12 @@ App::Transfer::Plugin::date - Transfer plugin for 'date' columns
 =head3 C<format_dmy>
 
 The DMY format for parsing dates with the C<Time::Piece> module.  The
-separator is "." character.
+default separator is the "." character.
 
 =head3 C<format_mdy>
 
 The MDY format for parsing dates with the C<Time::Piece> module.  The
-separator is "/" character.
+default separator is the "/" character.
 
 =head2 Instance Methods
 

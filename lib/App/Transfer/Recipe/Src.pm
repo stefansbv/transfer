@@ -22,6 +22,20 @@ has 'date_format' => (
     },
 );
 
+has 'date_sep' => (
+    is      => 'ro',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub {
+        my $self        = shift;
+        my $date_format = $self->date_format;
+        return
+              $date_format eq 'dmy' ? '.'
+            : $date_format eq 'mdy' ? '/'
+            :                         '-';
+    },
+);
+
 sub BUILDARGS {
     my $class = shift;
 
