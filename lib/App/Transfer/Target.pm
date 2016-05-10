@@ -1,13 +1,11 @@
 package App::Transfer::Target;
 
 use 5.010001;
+use URI::db;
 use Moose;
 use Moose::Util::TypeConstraints;
 use App::Transfer::X qw(hurl);
 use Locale::TextDomain qw(App-Transfer);
-use Path::Class qw(dir file);
-use Params::Coerce ();
-use URI::db;
 use namespace::autoclean;
 
 subtype 'URIdb' => as 'URI::db';
