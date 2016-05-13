@@ -1,6 +1,6 @@
 package App::Transfer::Recipe::Tables::Table;
 
-# ABSTRACT: Recipe section: tables/table/headermap
+# ABSTRACT: Recipe section: tables/table
 
 use 5.010001;
 use Moose;
@@ -53,6 +53,12 @@ has 'headermap' => (
     isa      => 'HashRef',
     lazy     => 1,
     default  => sub { {} },
+);
+
+has 'tempfield' => (
+    is     => 'ro',
+    isa    => 'ArrayRefFromStr',
+    coerce => 1,
 );
 
 has 'plugins' => (

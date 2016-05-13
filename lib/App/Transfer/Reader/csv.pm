@@ -55,12 +55,14 @@ has '_headers' => (
         foreach my $name ( $self->recipe->tables->all_table_names ) {
             my $header    = $self->recipe->tables->get_table($name)->headermap;
             my $skip_rows = $self->recipe->tables->get_table($name)->skiprows;
+            my $tempfield = $self->recipe->tables->get_table($name)->tempfield;
             my $row_count = 0;
             push @headers, {
                 table  => $name,
                 row    => $row_count,
                 header => $header,
                 skip   => $skip_rows,
+                temp   => $tempfield,
             };
         }
         return \@headers;
@@ -84,10 +86,16 @@ sub _build_contents {
     open my $fh, "<:encoding(utf8)", $self->input_file
         or die "Error opening CSV: $!";
     my $header = $self->get_header(0)->{header};
+    my $temp   = $self->get_header(0)->{temp};
     my @cols   = @{ $csv->getline($fh) };
     my $row    = {};
     my @records;
     $csv->bind_columns( \@{$row}{@cols} );
+
+    # Add the temporary fields to the record
+    foreach my $field ( @{$temp} ) {
+        $header->{$field} = $field;
+    }
 
     while ( $csv->getline($fh) ) {
         my $record = {};

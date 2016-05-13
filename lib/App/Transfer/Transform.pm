@@ -59,6 +59,23 @@ has 'recipe' => (
     },
 );
 
+has 'tempfields' => (
+    traits   => ['Array'],
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    lazy     => 1,
+    default  => sub {
+        my $self   = shift;
+        my $table  = $self->recipe->destination->table;
+        my $fields = $self->recipe->tables->get_table($table)->tempfield;
+        return $fields;
+    },
+    handles  => {
+        all_temp_fields => 'elements',
+        find_field      => 'first',
+    },
+);
+
 has 'reader_options' => (
     is      => 'ro',
     isa     => 'App::Transfer::Options',
@@ -129,11 +146,6 @@ has 'plugin' => (
         return App::Transfer::Plugin->new;
     },
 );
-
-# has 'engine' => (
-#     is  => 'ro',
-#     isa => 'App::Transfer::Engine',
-# );
 
 has 'info' => (
     traits   => ['Hash'],
@@ -215,6 +227,7 @@ sub type_join {
     $p->{name}      = $step->field_dst;
     $p->{separator} = $step->separator;
     $p->{value}     = $values;
+
     $record->{ $step->field_dst }
         = $self->plugin->do_transform( $step->method, $p );
 
@@ -421,7 +434,7 @@ sub transfer_file2db {
         $logfld = shift @cols;  # that the first column is
     }
 
-    my $iter = $self->_contents_iter; # call before record_count
+    my $iter         = $self->_contents_iter; # call before record_count
     my $row_count    = 0;
     my $record_count = $self->reader->record_count;
 
@@ -532,7 +545,7 @@ sub transfer_db2db {
         $logfld = shift @cols;              # that the first column is
     }
 
-    my $iter = $self->_contents_iter; # call before record_count
+    my $iter         = $self->_contents_iter; # call before record_count
     my $row_count    = 0;
     my $record_count = $self->reader->record_count;
 
@@ -633,6 +646,8 @@ sub transformations {
     $record = $self->record_trafos( $record, $info, $logstr );
     $record = $self->column_type_trafos( $record, $info, $logstr );
 
+    $self->remove_temp_fields($record);
+
     return $record;
 }
 
@@ -676,7 +691,7 @@ sub record_trafos {
 }
 
 sub column_type_trafos {
-    my ($self, $record, $info, $logstr) = @_;
+    my ( $self, $record, $info, $logstr ) = @_;
 
     #--  Transformations per field type
 
@@ -684,6 +699,8 @@ sub column_type_trafos {
     my $src_date_sep    = $self->recipe->source->date_sep;
 
     while ( my ( $field, $value ) = each( %{$record} ) ) {
+        next if $self->has_temp_field($field);
+
         hurl field_info => __x(
             "Field info for '{field}' not found!  Header map config. <--> DB schema inconsistency",
             field => $field
@@ -695,9 +712,9 @@ sub column_type_trafos {
             $p->{src_format}  = $src_date_format;
             $p->{src_sep}     = $src_date_sep;
         }
-        $p->{logstr}        = $logstr;
-        $p->{value}         = $value;
-        $p->{value}         = $self->plugin->do_transform( $meth, $p );
+        $p->{logstr}      = $logstr;
+        $p->{value}       = $value;
+        $p->{value}       = $self->plugin->do_transform( $meth, $p );
         $record->{$field} = $p->{value};
     }
     return $record;
@@ -747,6 +764,20 @@ sub validate_destination {
         list  => join( ', ', @error ),
     ) unless scalar @error == 0;
 
+    return;
+}
+
+sub remove_temp_fields {
+    my ($self, $record) = @_;
+    foreach my $field ( $self->all_temp_fields ) {
+        delete $record->{$field};
+    }
+    return $record;
+}
+
+sub has_temp_field {
+    my ($self, $field) = @_;
+    return $self->find_field( sub { $_ eq $field } );
     return;
 }
 

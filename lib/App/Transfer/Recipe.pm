@@ -5,7 +5,6 @@ package App::Transfer::Recipe;
 use 5.010001;
 use Moose;
 use Locale::TextDomain 1.20 qw(App-Transfer);
-use Hash::Merge 'merge';
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 

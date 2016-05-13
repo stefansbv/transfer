@@ -1,12 +1,15 @@
+#
+# Test the 'tables' section of the recipe
+##
 use 5.010001;
 use strict;
 use warnings;
-
 use Path::Class;
 use Test::More;
 
-use App::Transfer;
 use App::Transfer::Recipe;
+
+my $hmap = { id => 'id', denumire => 'denumire' };
 
 subtest 'Table section minimum config' => sub {
     ok my $recipe_file = file( 't', 'recipes', 'recipe-table-0.conf' ),
@@ -19,7 +22,7 @@ subtest 'Table section minimum config' => sub {
     ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
     ok $recipe_table->description, 'table desc.';
     ok $recipe_table->logfield, 'log field name';
-    is ref $recipe_table->headermap, 'HASH',  'headermap';
+    is_deeply $recipe_table->headermap, $hmap,  'headermap';
 };
 
 subtest 'Table section maximum config' => sub {
@@ -40,7 +43,8 @@ subtest 'Table section maximum config' => sub {
         user   => undef,
     };
     is_deeply $recipe_table->filter, $expected, 'table filter';
-    is ref $recipe_table->headermap, 'HASH',  'headermap';
+    is_deeply $recipe_table->headermap, $hmap, 'headermap';
+    is_deeply $recipe_table->tempfield, [ 'seria', 'factura' ], 'tempfields';
 };
 
 subtest 'Table section medium config' => sub {
@@ -56,7 +60,8 @@ subtest 'Table section medium config' => sub {
     ok defined $recipe_table->skiprows, 'table skip rows';
     ok $recipe_table->logfield, 'log field name';
     is_deeply $recipe_table->orderby, { -asc => 'denumire' }, 'table orderby';
-    is ref $recipe_table->headermap, 'HASH',  'headermap';
+    is_deeply $recipe_table->headermap, $hmap,  'headermap';
+    is_deeply $recipe_table->tempfield, [ 'seria' ], 'tempfields';
 };
 
 subtest 'Table section complex orderby config' => sub {
@@ -77,7 +82,7 @@ subtest 'Table section complex orderby config' => sub {
         { -asc  => [ "colC", "colD" ] },
     ], 'table orderby';
     is $recipe_table->get_plugin('date'), 'date_german', 'plugin for date';
-    is ref $recipe_table->headermap, 'HASH', 'headermap';
+    is_deeply $recipe_table->headermap, $hmap, 'headermap';
 };
 
 done_testing;
