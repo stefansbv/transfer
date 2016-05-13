@@ -55,57 +55,62 @@ has '_contents' => (
     is      => 'ro',
     isa     => 'ArrayRef',
     lazy    => 1,
-    default => sub {
-        my $self    = shift;
-        my $table   = $self->src_table;
-        my $engine  = $self->target->engine;
-        my $where = Hash::Merge->new->merge(
-            $self->get_header(0)->{where},
-            $self->get_header(0)->{filter},
-        );
-        my $orderby = $self->get_header(0)->{orderby};
-        my $header  = $self->get_header(0)->{header};
-        my $fields  = $self->get_fields($table);
-        my $ah_ref  = $engine->records_aoh( $table, $fields, $where, $orderby );
-        my @records;
-        foreach my $row ( @{$ah_ref} ) {
-            my $record = {};
-            foreach my $col ( @{$fields} ) {
-                $record->{ $header->{$col} } = $row->{$col};
-            }
-            push @records, $record;
-        }
-        return \@records;
-    },
+    builder => '_build_contents',
 );
+
+sub _build_contents {
+    my $self    = shift;
+    my $table   = $self->src_table;
+    my $engine  = $self->target->engine;
+    my $where = Hash::Merge->new->merge(
+        $self->get_header(0)->{where},
+        $self->get_header(0)->{filter},
+    );
+    my $orderby = $self->get_header(0)->{orderby};
+    my $header  = $self->get_header(0)->{header};
+    my $fields  = $self->get_fields($table);
+    my $ah_ref  = $engine->records_aoh( $table, $fields, $where, $orderby );
+    my @records;
+    foreach my $row ( @{$ah_ref} ) {
+        my $record = {};
+        foreach my $col ( @{$fields} ) {
+            $record->{ $header->{$col} } = $row->{$col};
+        }
+        push @records, $record;
+    }
+    return \@records;
+}
 
 has '_headers' => (
     isa      => 'ArrayRef',
     traits   => ['Array'],
     init_arg => undef,
     lazy     => 1,
-    default  => sub {
-        my $self = shift;
-
-        # Header is the first row
-        my @headers = ();
-        foreach my $name ( $self->recipe->tables->all_table_names ) {
-            my $row_count = 0;
-            push @headers, {
-                table   => $name,
-                row     => $row_count,
-                header  => $self->recipe->tables->get_table($name)->headermap,
-                skip    => $self->recipe->tables->get_table($name)->skiprows,
-                orderby => $self->recipe->tables->get_table($name)->orderby,
-            };
-        }
-        return \@headers;
-    },
+    builder  => '_build_headers',
     handles  => {
         get_header  => 'get',
         all_headers => 'elements',
     },
 );
+
+sub _build_headers {
+    my $self = shift;
+
+    # Header is the first row
+    my @headers = ();
+    foreach my $name ( $self->recipe->tables->all_table_names ) {
+        my $row_count = 0;
+        push @headers,
+            {
+            table   => $name,
+            row     => $row_count,
+            header  => $self->recipe->tables->get_table($name)->headermap,
+            skip    => $self->recipe->tables->get_table($name)->skiprows,
+            orderby => $self->recipe->tables->get_table($name)->orderby,
+            };
+    }
+    return \@headers;
+}
 
 sub has_table {
     my ($self, $name) = @_;

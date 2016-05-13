@@ -47,31 +47,33 @@ has '_headers' => (
     traits   => ['Array'],
     init_arg => undef,
     lazy     => 1,
-    default  => sub {
-        my $self = shift;
-
-        # Header is the first row
-        my @headers = ();
-        foreach my $name ( $self->recipe->tables->all_table_names ) {
-            my $header    = $self->recipe->tables->get_table($name)->headermap;
-            my $skip_rows = $self->recipe->tables->get_table($name)->skiprows;
-            my $tempfield = $self->recipe->tables->get_table($name)->tempfield;
-            my $row_count = 0;
-            push @headers, {
-                table  => $name,
-                row    => $row_count,
-                header => $header,
-                skip   => $skip_rows,
-                temp   => $tempfield,
-            };
-        }
-        return \@headers;
-    },
+    builder  => '_build_headers',
     handles  => {
         get_header  => 'get',
         all_headers => 'elements',
     },
 );
+
+sub _build_headers {
+    my $self = shift;
+
+    # Header is the first row
+    my @headers = ();
+    foreach my $name ( $self->recipe->tables->all_table_names ) {
+        my $header    = $self->recipe->tables->get_table($name)->headermap;
+        my $skip_rows = $self->recipe->tables->get_table($name)->skiprows;
+        my $tempfield = $self->recipe->tables->get_table($name)->tempfield;
+        my $row_count = 0;
+        push @headers, {
+            table  => $name,
+            row    => $row_count,
+            header => $header,
+            skip   => $skip_rows,
+            temp   => $tempfield,
+        };
+    }
+    return \@headers;
+}
 
 has _contents => (
     is      => 'ro',
