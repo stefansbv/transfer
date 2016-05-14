@@ -219,8 +219,14 @@ sub type_join {
 
     my $values;
     foreach my $field ( @{ $step->field_src } ) {
-        my $value = $record->{$field};
-        push @{$values}, $value if defined $value;
+        if ( exists $record->{$field} ) {
+            my $value = $record->{$field};
+            push @{$values}, $value if defined $value;
+        }
+        else {
+            $self->log->info(
+                "$logstr: join: source field '$field' not found in record");
+        }
     }
     my $p;
     $p->{logstr}    = $logstr;

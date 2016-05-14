@@ -5,7 +5,6 @@ package App::Transfer::Writer::db;
 use 5.010;
 use List::Util qw(any);
 use Moose;
-use MooseX::FileAttribute;
 use MooseX::Iterator;
 use App::Transfer::X qw(hurl);
 use App::Transfer::Target;

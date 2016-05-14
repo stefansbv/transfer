@@ -6,11 +6,10 @@ use strict;
 use warnings;
 use 5.010;
 use Test::More;
-use Path::Class;
+use Path::Tiny;
 use Try::Tiny;
 use Test::Exception;
 use Locale::TextDomain qw(App-Transfer);
-use File::Spec::Functions;
 use File::Temp 'tempdir';
 use lib 't/lib';
 use DBIEngineTest;
@@ -45,7 +44,7 @@ BEGIN {
     delete $ENV{ISC_PASSWORD};
 }
 
-ok my $recipe_file = file( 't', 'recipes', 'recipe-db.conf' ),
+ok my $recipe_file = path( 't', 'recipes', 'recipe-db.conf' ),
     "Recipe file for db tests";
 ok my $transfer = App::Transfer->new(
     recipe_file => $recipe_file->stringify,
@@ -57,7 +56,7 @@ my $target = App::Transfer::Target->new(
 isa_ok my $fb = $CLASS->new( transfer => $transfer, target => $target ),
     $CLASS;
 
-is $fb->uri->dbname, file('foo.fdb'), 'dbname should be filled in';
+is $fb->uri->dbname, path('foo.fdb'), 'dbname should be filled in';
 
 ##############################################################################
 # Can we do live tests?
@@ -67,8 +66,8 @@ END {
     return unless $have_fb_driver;
 
     foreach my $dbname (qw{__transfertest__}) {
-        my $dbpath = catfile($tmpdir, $dbname);
-        next unless -f $dbpath;
+        my $dbpath = path($tmpdir, $dbname);
+        next unless $dbpath->is_file;
         my $dsn = qq{dbi:Firebird:dbname=$dbpath;host=localhost;port=3050};
         $dsn .= q{;ib_dialect=3;ib_charset=UTF8};
 
@@ -104,7 +103,7 @@ END {
     }
 }
 
-my $dbpath = catfile($tmpdir, '__transfertest__');
+my $dbpath = path($tmpdir, '__transfertest__');
 my $err = try {
     $fb->use_driver;
     DBD::Firebird->create_database(

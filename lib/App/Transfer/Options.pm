@@ -4,7 +4,8 @@ package App::Transfer::Options;
 
 use 5.010001;
 use Moose;
-use Path::Class;
+use Path::Tiny;
+use MooseX::Types::Path::Tiny qw(File);
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use Try::Tiny;
@@ -61,10 +62,11 @@ has uri_str => (
     builder => '_build_db_options',
 );
 
-has file => (
+has 'file' => (
     is      => 'ro',
-    isa     => 'Path::Class::File',
+    isa     => File,
     lazy    => 1,
+    coerce  => 1,
     builder => '_build_file_options',
 );
 
@@ -91,13 +93,17 @@ sub _build_file_options {
 
         # 1.1 We have an FILE
         if ( $file = $opts->{$opt_file} ) {
-            return file $file;
+            $file = path $file;
+            hurl options => __x(
+                "The file '{file}' was not found!", file => $file,
+            ) if ! $file->is_file;
+            return $file;
         }
     }
 
     # 2. Recipe config section
     if ( $file = $self->recipe->$section->file ) {
-        return file $file;
+        return path $file;
     }
 
     # 3. Configuration files

@@ -6,7 +6,6 @@ use warnings;
 use 5.010;
 use utf8;
 use Test::More;
-use Path::Class;
 use Test::Exception;
 use Locale::TextDomain qw(App-Transfer);
 use App::Transfer;

@@ -3,14 +3,15 @@ package App::Transfer::Recipe::Load;
 # ABSTRACT: Load a recipe data structure
 
 use Moose;
-use MooseX::FileAttribute;
+use MooseX::Types::Path::Tiny qw(File);
 use Config::General;
 use namespace::autoclean;
 
-has_file 'recipe_file' => (
-    is         => 'ro',
-    must_exist => 1,
-    required   => 1,
+has 'recipe_file' => (
+    is       => 'ro',
+    isa      => File,
+    required => 1,
+    coerce   => 1,
 );
 
 has 'load' => (

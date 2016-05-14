@@ -5,8 +5,7 @@ use 5.010;
 use strict;
 use warnings;
 use utf8;
-
-use Path::Class;
+use Path::Tiny;
 use Test::Most;
 use App::Transfer;
 use App::Transfer::Options;
@@ -19,7 +18,7 @@ BEGIN {
 }
 
 subtest 'CSV OK' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe-csv.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-csv.conf' ),
         "recipe file";
     my $transfer = App::Transfer->new;
     my $options_href = { input_file => 't/siruta.csv', };
@@ -44,7 +43,7 @@ subtest 'CSV OK' => sub {
 };
 
 subtest 'CSV with lc header' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe-csv.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-csv.conf' ),
         "recipe file";
     my $transfer = App::Transfer->new;
     my $options_href = { input_file => 't/siruta-lower.csv', };

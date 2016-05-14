@@ -12,7 +12,7 @@ use Locale::TextDomain 1.20 qw(App-Transfer);
 use Locale::Messages qw(bind_textdomain_filter);
 use App::Transfer::X qw(hurl);
 use File::HomeDir;
-use File::Spec::Functions;
+use Path::Tiny;
 use Log::Any::Adapter;
 use Log::Log4perl;
 
@@ -30,7 +30,7 @@ BEGIN {
 
     # Init logger
     my $home = File::HomeDir->my_home;
-    my $log_fqn = catfile($home, '.transfer', 'log.conf' );
+    my $log_fqn = path($home, '.transfer', 'log.conf' )->stringify;
     Log::Log4perl->init($log_fqn) if -f $log_fqn;
 }
 

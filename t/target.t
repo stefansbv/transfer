@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 use Test::More;
-use Path::Class qw(dir file);
+use Path::Tiny;
 use Test::Exception;
 use lib 't/lib';
 use App::Transfer;
@@ -17,7 +17,7 @@ BEGIN {
 
 ##############################################################################
 # Load a target and test the basics.
-ok my $recipe_file = file( 't', 'recipes', 'recipe.conf' ), "Recipe file";
+ok my $recipe_file = path( 't', 'recipes', 'recipe.conf' ), "Recipe file";
 ok my $transfer = App::Transfer->new(
     recipe_file => $recipe_file->stringify,
 ), 'Load a transfer object';

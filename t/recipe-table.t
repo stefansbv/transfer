@@ -4,7 +4,7 @@
 use 5.010001;
 use strict;
 use warnings;
-use Path::Class;
+use Path::Tiny;
 use Test::More;
 
 use App::Transfer::Recipe;
@@ -12,7 +12,7 @@ use App::Transfer::Recipe;
 my $hmap = { id => 'id', denumire => 'denumire' };
 
 subtest 'Table section minimum config' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe-table-0.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-table-0.conf' ),
         "the recipe file";
     ok my $recipe
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
@@ -26,7 +26,7 @@ subtest 'Table section minimum config' => sub {
 };
 
 subtest 'Table section maximum config' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe-table-1.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-table-1.conf' ),
         "the recipe file";
     ok my $recipe
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
@@ -48,7 +48,7 @@ subtest 'Table section maximum config' => sub {
 };
 
 subtest 'Table section medium config' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe-table-2.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-table-2.conf' ),
         "the recipe file";
     ok my $recipe
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
@@ -65,7 +65,7 @@ subtest 'Table section medium config' => sub {
 };
 
 subtest 'Table section complex orderby config' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe-table-3.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-table-3.conf' ),
         "the recipe file";
     ok my $recipe
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,

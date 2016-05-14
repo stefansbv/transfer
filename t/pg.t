@@ -6,11 +6,10 @@ use strict;
 use warnings;
 use 5.010;
 use Test::More;
-use Path::Class;
+use Path::Tiny;
 use Try::Tiny;
 use Test::Exception;
 use Locale::TextDomain qw(App-Transfer);
-use File::Spec::Functions;
 use lib 't/lib';
 use DBIEngineTest;
 
@@ -38,7 +37,7 @@ BEGIN {
     delete $ENV{PGPASSWORD};
 }
 
-ok my $recipe_file = file( 't', 'recipes', 'recipe-db.conf' ), "Recipe file";
+ok my $recipe_file = path( 't', 'recipes', 'recipe-db.conf' ), "Recipe file";
 ok my $transfer = App::Transfer->new(
     recipe_file => $recipe_file->stringify,
 ), 'Load a transfer object';
@@ -49,7 +48,7 @@ my $target = App::Transfer::Target->new(
 isa_ok my $pg = $CLASS->new( transfer => $transfer, target => $target ),
     $CLASS;
 
-is $pg->uri->dbname, file('foo.fdb'), 'dbname should be filled in';
+is $pg->uri->dbname, path('foo.fdb'), 'dbname should be filled in';
 
 ##############################################################################
 # Can we do live tests?

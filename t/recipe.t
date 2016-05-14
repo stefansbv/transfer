@@ -2,14 +2,14 @@ use 5.010001;
 use strict;
 use warnings;
 
-use Path::Class;
+use Path::Tiny;
 use Test::More;
 use Test::Deep;
 
 use App::Transfer;
 use App::Transfer::Recipe;
 
-ok my $recipe_file = file( 't', 'recipes', 'recipe.conf' ), "the recipe file";
+ok my $recipe_file = path( 't', 'recipes', 'recipe.conf' ), "the recipe file";
 ok my $recipe = App::Transfer::Recipe->new(
  recipe_file => $recipe_file->stringify,
 ), 'new recipe instance';

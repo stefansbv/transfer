@@ -2,8 +2,9 @@ use 5.010;
 use strict;
 use warnings;
 
-use Path::Class;
+use Path::Tiny;
 use Test::Most;
+use Test::Exception;
 
 use App::Transfer;
 use App::Transfer::Recipe;
@@ -17,8 +18,7 @@ BEGIN {
 # Reader
 
 subtest '"db" reader: no options; no config; all from recipe config' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe4options-4.conf' ),
-        "Recipe file";
+    my $recipe_file = path( 't', 'recipes', 'recipe4options-4.conf' );
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {}, 'cli options';
     ok my $recipe = App::Transfer::Recipe->new(
@@ -39,7 +39,7 @@ subtest '"db" reader: no options; no config; all from recipe config' => sub {
 
 subtest '"db" reader: no options; name, uri from config; reader, writer from recipe' => sub {
     chdir 't';
-    ok my $recipe_file = file('recipes', 'recipe4options-3.conf' ),
+    ok my $recipe_file = path('recipes', 'recipe4options-3.conf' ),
         "Recipe file with minimum config section";
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {}, 'cli options';
@@ -62,7 +62,7 @@ subtest '"db" reader: no options; name, uri from config; reader, writer from rec
 
 subtest '"db" reader: uri option; no config; reader, writer from recipe' => sub {
     chdir 't';
-    ok my $recipe_file = file('recipes', 'recipe4options-3.conf' ),
+    ok my $recipe_file = path('recipes', 'recipe4options-3.conf' ),
         "Recipe file with minimum config section";
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {
@@ -87,7 +87,7 @@ subtest '"db" reader: uri option; no config; reader, writer from recipe' => sub 
 
 subtest '"db" reader: target option; uri from config; reader, writer from recipe' => sub {
     chdir 't';
-    ok my $recipe_file = file('recipes', 'recipe4options-3.conf' ),
+    ok my $recipe_file = path('recipes', 'recipe4options-3.conf' ),
         "Recipe file with minimum config section";
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {
@@ -113,7 +113,7 @@ subtest '"db" reader: target option; uri from config; reader, writer from recipe
 # Writer
 
 subtest '"db" writer: no options; no config; all from recipe config' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe4options-4.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe4options-4.conf' ),
         "Recipe file";
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {}, 'cli options';
@@ -135,7 +135,7 @@ subtest '"db" writer: no options; no config; all from recipe config' => sub {
 
 subtest '"db" writer: no options; name, uri from config; reader, writer from recipe' => sub {
     chdir 't';
-    ok my $recipe_file = file('recipes', 'recipe4options-3.conf' ),
+    ok my $recipe_file = path('recipes', 'recipe4options-3.conf' ),
         "Recipe file with minimum config section";
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {}, 'cli options';
@@ -158,7 +158,7 @@ subtest '"db" writer: no options; name, uri from config; reader, writer from rec
 
 subtest '"db" writer: uri option; no config; reader, writer from recipe' => sub {
     chdir 't';
-    ok my $recipe_file = file('recipes', 'recipe4options-3.conf' ),
+    ok my $recipe_file = path('recipes', 'recipe4options-3.conf' ),
         "Recipe file with minimum config section";
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {
@@ -183,7 +183,7 @@ subtest '"db" writer: uri option; no config; reader, writer from recipe' => sub 
 
 subtest '"db" writer: target option; uri from config; reader, writer from recipe' => sub {
     chdir 't';
-    ok my $recipe_file = file('recipes', 'recipe4options-3.conf' ),
+    ok my $recipe_file = path('recipes', 'recipe4options-3.conf' ),
         "Recipe file with minimum config section";
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {
@@ -208,7 +208,7 @@ subtest '"db" writer: target option; uri from config; reader, writer from recipe
 };
 
 subtest '"file" reader: no options; no config; all from recipe config' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe-xls.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-xls.conf' ),
         "Recipe file";
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {}, 'cli options';
@@ -221,12 +221,12 @@ subtest '"file" reader: no options; no config; all from recipe config' => sub {
         options  => $cli_options,
         rw_type  => 'reader',
     ), 'new options instance';
-    is $options->file, file('t', 'siruta.xls'),
+    is $options->file, path('t', 'siruta.xls'),
         'should get file from the CLI options';
 };
 
 subtest '"file" reader: input_file option; no config; ignore recipe config' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe-xls.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-xls.conf' ),
         "Recipe file";
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {
@@ -241,8 +241,8 @@ subtest '"file" reader: input_file option; no config; ignore recipe config' => s
         options  => $cli_options,
         rw_type  => 'reader',
     ), 'new options instance';
-    is $options->file, file('t', 'some', 'other', 'test.xls'),
-        'should get file from the CLI options';
+    throws_ok { $options->file, path('t', 'some', 'other', 'test.xls') } qr/was not found/,
+        'should get file not found exception';
 };
 
 done_testing;

@@ -4,7 +4,7 @@ package App::Transfer::Config;
 
 use 5.010;
 use Moose;
-use Path::Class;
+use Path::Tiny;
 use File::HomeDir;
 use Cwd;
 use Locale::TextDomain qw(App-Transfer);
@@ -23,7 +23,7 @@ has 'log_file_name' => (
     lazy     => 1,
     required => 1,
     default  => sub {
-        return file(getcwd, 'transfer.log')->stringify;
+        return path(getcwd, 'transfer.log')->stringify;
     },
 );
 
@@ -35,11 +35,11 @@ sub user_dir {
     my $hd = File::HomeDir->my_home or hurl config => __(
         "Could not determine home directory"
     );
-    return dir $hd, '.transfer';
+    return path $hd, '.transfer';
 }
 
 sub system_dir {
-    dir $SYSTEM_DIR || do {
+    path $SYSTEM_DIR || do {
         require Config;
         $Config::Config{prefix}, 'etc', 'transfer';
     };
@@ -47,21 +47,21 @@ sub system_dir {
 
 sub system_file {
     my $self = shift;
-    return file $ENV{TRANSFER_SYSTEM_CONFIG}
-        || $self->system_dir->file( $self->confname );
+    return path $ENV{TRANSFER_SYSTEM_CONFIG}
+        || $self->system_dir->path( $self->confname );
 }
 
 sub global_file { shift->system_file }
 
 sub user_file {
     my $self = shift;
-    return file $ENV{TRANSFER_USER_CONFIG}
-        || $self->user_dir->file( $self->confname );
+    return path $ENV{TRANSFER_USER_CONFIG}
+        || path $self->user_dir, $self->confname;
 }
 
 sub local_file {
-    return file $ENV{TRANSFER_CONFIG} if $ENV{TRANSFER_CONFIG};
-    return file shift->confname;
+    return path $ENV{TRANSFER_CONFIG} if $ENV{TRANSFER_CONFIG};
+    return path shift->confname;
 }
 
 sub dir_file { shift->local_file }

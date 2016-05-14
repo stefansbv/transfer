@@ -2,8 +2,7 @@ use 5.010;
 use strict;
 use warnings;
 use utf8;
-
-use Path::Class;
+use Path::Tiny;
 use Test::More;
 use App::Transfer;
 use App::Transfer::Options;
@@ -15,7 +14,7 @@ BEGIN {
     use_ok $CLASS or die;
 }
 
-ok my $recipe_file = file( 't', 'recipes', 'recipe-xls.conf' ), "Recipe file";
+ok my $recipe_file = path( 't', 'recipes', 'recipe-xls.conf' ), "Recipe file";
 my $transfer = App::Transfer->new;
 my $options_href = {
     input_file => 't/siruta.xls',

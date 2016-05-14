@@ -13,7 +13,6 @@ use utf8;
 use Try::Tiny;
 use Test::Most;
 use Test::MockModule;
-use Path::Class 0.33 qw(file dir);
 use Locale::TextDomain qw(App-Transfer);
 use Log::Log4perl;
 

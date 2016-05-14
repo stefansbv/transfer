@@ -2,13 +2,13 @@ use 5.010;
 use strict;
 use warnings;
 
-use Path::Class;
+use Path::Tiny;
 use Test::Most;
 
 use App::Transfer::Recipe;
 
 subtest 'Config section: from excel to db' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe.conf' ), "the recipe file";
+    ok my $recipe_file = path( 't', 'recipes', 'recipe.conf' ), "the recipe file";
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
@@ -26,7 +26,7 @@ subtest 'Config section: from excel to db' => sub {
 };
 
 subtest 'Config section: from excel to db - no file' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe4options-2.conf' ), "the recipe file";
+    ok my $recipe_file = path( 't', 'recipes', 'recipe4options-2.conf' ), "the recipe file";
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
@@ -37,7 +37,7 @@ subtest 'Config section: from excel to db - no file' => sub {
 };
 
 subtest 'Config section: missing' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe4options-0.conf' ), "the recipe file";
+    ok my $recipe_file = path( 't', 'recipes', 'recipe4options-0.conf' ), "the recipe file";
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
@@ -56,7 +56,7 @@ subtest 'Config section: missing' => sub {
 };
 
 subtest 'Config section: from db to excel' => sub {
-    ok my $recipe_file = file( 't', 'recipes', 'recipe4options-1.conf' ), "the recipe file";
+    ok my $recipe_file = path( 't', 'recipes', 'recipe4options-1.conf' ), "the recipe file";
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';

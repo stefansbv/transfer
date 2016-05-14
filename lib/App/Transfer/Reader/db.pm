@@ -6,7 +6,6 @@ use 5.010001;
 use List::Compare;
 use Hash::Merge qw(merge);
 use Moose;
-use MooseX::FileAttribute;
 use MooseX::Iterator;
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
