@@ -5,7 +5,7 @@ package App::Transfer::Options;
 use 5.010001;
 use Moose;
 use Path::Tiny;
-use MooseX::Types::Path::Tiny qw(File);
+use MooseX::Types::Path::Tiny qw(File Path);
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use Try::Tiny;
@@ -70,18 +70,27 @@ has 'file' => (
     builder => '_build_file_options',
 );
 
-sub _build_file_options {
-    my $self = shift;
+has 'file_path' => (
+    is      => 'ro',
+    isa     => Path,
+    lazy    => 1,
+    coerce  => 1,
+    builder => '_build_file_options',
+);
 
+sub _build_file_options {
+    my $self    = shift;
     my $rw_type = $self->rw_type;
-    my ( $opt_file, $file, $section );
+    my ( $opt_file, $file, $section, $required );
     if ( $rw_type eq 'reader' ) {
         $opt_file = 'input_file';
         $section  = 'source';
+        $required = 1;
     }
     elsif ( $rw_type eq 'writer' ) {
         $opt_file = 'output_file';
         $section  = 'destination';
+        $required = 0;
     }
     else {
         hurl options => __x("Unknown reader/writer type");
@@ -91,12 +100,14 @@ sub _build_file_options {
     my $opts = $self->options;
     if ( keys %{$opts} ) {
 
-        # 1.1 We have an FILE
+        # 1.1 We have a FILE
         if ( $file = $opts->{$opt_file} ) {
             $file = path $file;
-            hurl options => __x(
-                "The file '{file}' was not found!", file => $file,
-            ) if ! $file->is_file;
+            if ($required) {
+                hurl options => __x(
+                    "The file '{file}' was not found!", file => $file,
+                ) if ! $file->is_file;
+            }
             return $file;
         }
     }
@@ -107,8 +118,7 @@ sub _build_file_options {
     }
 
     # 3. Configuration files
-    # NOT
-
+    # NOT yet
     hurl options => __x(
         "The file {rw_type} must have a valid file option or configuration.",
         rw_type => $rw_type,
