@@ -1,27 +1,71 @@
-use 5.010001;
+use 5.010;
 use strict;
 use warnings;
-
 use Path::Tiny;
-use Test::More;
-use Test::Deep;
-
-use App::Transfer;
+use Test::Most;
+use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::Recipe;
 
-ok my $recipe_file = path( 't', 'recipes', 'recipe.conf' ), "the recipe file";
-ok my $recipe = App::Transfer::Recipe->new(
- recipe_file => $recipe_file->stringify,
-), 'new recipe instance';
+#-- Invalid recipes
 
-subtest 'Header section' => sub {
+# Is hard to get an exception from Config::General, it's happy even with
+# text documents...
+subtest 'Not a conf file' => sub {
+    my $recipe_file = path( 't', 'recipes', 'not_a_recipe.ini' );
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
+    throws_ok { $recipe->recipe_data }  'App::Transfer::X',
+        'Should get an exception - not a recipe file';
+};
+
+subtest 'Not a recipe file' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe-not_a_recipe.conf' );
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
+    throws_ok { $recipe->header }  'App::Transfer::X',
+        'Should get an exception for missing recipe section';
+};
+
+subtest 'Recipe header only' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe-header.conf' );
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
+    throws_ok { $recipe->header }  'App::Transfer::X',
+        'Should get an exception for missing recipe config section';
+};
+
+subtest 'Recipe header + config' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe-config.conf' );
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
+    throws_ok { $recipe->source }  'App::Transfer::X',
+        'Should get an exception for missing recipe tables section';
+    throws_ok { $recipe->destination }  'App::Transfer::X',
+        'Should get an exception for missing recipe tables section';
+};
+
+#-- Minimum valid recipe
+
+subtest 'Recipe - minimum' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe-min.conf' );
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
+    lives_ok { $recipe->header } 'Should get the header section';
+    lives_ok { $recipe->source } 'Should get the config source section';
+    lives_ok { $recipe->destination } 'Should get the config destination section';
+
+    # Header
     is $recipe->header->version, 1, 'recipe version';
     is $recipe->header->syntaxversion, 1, 'syntax version';
     is $recipe->header->name, 'Test recipe', 'recipe name';
     is $recipe->header->description, 'Does this and that...', 'description';
-};
 
-subtest 'Config section' => sub {
+    # Config
     isa_ok $recipe->source, 'App::Transfer::Recipe::Src';
     is $recipe->source->reader, 'excel', 'has reader excel';
     is $recipe->source->file, 't/siruta.xls', 'has a file';
@@ -30,9 +74,8 @@ subtest 'Config section' => sub {
     is $recipe->destination->target, 'siruta', 'has target';
     is $recipe->destination->table, 'siruta', 'has table';
     is $recipe->get_uri('siruta'), 'db:firebird://localhost/siruta', 'target URI';
-};
 
-subtest 'Header column map' => sub {
+    # Tables
     foreach my $name ( $recipe->tables->all_table_names ) {
         ok my $table = $recipe->tables->has_table($name), 'has table name';
         is $table, $name, "got table name '$name'";
@@ -45,9 +88,134 @@ subtest 'Header column map' => sub {
     }
 };
 
+#-- Config section
+
+subtest 'Config section: from excel to db' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe.conf' );
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
+    isa_ok $recipe->source, 'App::Transfer::Recipe::Src';
+    is $recipe->source->reader, 'excel', 'has reader excel';
+    is $recipe->source->file, 't/siruta.xls', 'has a file';
+    is $recipe->source->target, undef, 'has no target';
+    is $recipe->source->table, undef, 'has no table';
+    is $recipe->source->date_format, 'dmy', 'has date format';
+    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
+    is $recipe->destination->writer, 'db', 'has writer db';
+    is $recipe->destination->file, undef, 'has no file';
+    is $recipe->destination->target, 'siruta', 'has target';
+    is $recipe->destination->table, 'siruta', 'has table';
+};
+
+subtest 'Config section: from excel to db - no file' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe4options-2.conf' );
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
+    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
+    is $recipe->destination->writer, 'db', 'has writer db';
+    is $recipe->destination->target, 'siruta', 'has target';
+    is $recipe->destination->table, 'siruta', 'has table';
+};
+
+subtest 'Config section: from db to excel' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe4options-1.conf' );
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
+    isa_ok $recipe->source, 'App::Transfer::Recipe::Src';
+    is $recipe->source->reader, 'db', 'has reader';
+    is $recipe->source->target, 'siruta', 'has target';
+    is $recipe->source->table, 'siruta', 'has table';
+    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
+    is $recipe->destination->writer, 'csv', 'has writer';
+    is $recipe->destination->file, 't/siruta.csv', 'has a file';
+};
+
+#-- Tables section
+
+my $hmap = { id => 'id', denumire => 'denumire' };
+
+subtest 'Table section minimum config' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe-table-0.conf' );
+    ok my $recipe
+        = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
+        ), 'new recipe instance';
+
+    ok my $table = $recipe->tables->has_table('test_table'), 'has table name';
+    ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
+    ok $recipe_table->description, 'table desc.';
+    ok $recipe_table->logfield, 'log field name';
+    is_deeply $recipe_table->headermap, $hmap,  'headermap';
+};
+
+subtest 'Table section maximum config' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe-table-1.conf' );
+    ok my $recipe
+        = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
+        ), 'new recipe instance';
+
+    ok my $table = $recipe->tables->has_table('test_table'), 'has table name';
+    ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
+    ok $recipe_table->description, 'table desc.';
+    ok defined $recipe_table->skiprows, 'table skip rows';
+    ok $recipe_table->logfield, 'log field name';
+    is_deeply $recipe_table->orderby, [qw(id denumire)], 'table orderby';
+    my $expected = {
+        status => { "!" => "= completed", "-not_like" => "pending%" },
+        user   => undef,
+    };
+    is_deeply $recipe_table->filter, $expected, 'table filter';
+    is_deeply $recipe_table->headermap, $hmap, 'headermap';
+    is_deeply $recipe_table->tempfield, [ 'seria', 'factura' ], 'tempfields';
+};
+
+subtest 'Table section medium config' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe-table-2.conf' );
+    ok my $recipe
+        = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
+        ), 'new recipe instance';
+
+    ok my $table = $recipe->tables->has_table('test_table'), 'has table name';
+    ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
+    ok $recipe_table->description, 'table desc.';
+    ok defined $recipe_table->skiprows, 'table skip rows';
+    ok $recipe_table->logfield, 'log field name';
+    is_deeply $recipe_table->orderby, { -asc => 'denumire' }, 'table orderby';
+    is_deeply $recipe_table->headermap, $hmap,  'headermap';
+    is_deeply $recipe_table->tempfield, [ 'seria' ], 'tempfields';
+};
+
+subtest 'Table section complex orderby config' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe-table-3.conf' );
+    ok my $recipe
+        = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
+        ), 'new recipe instance';
+
+    ok my $table = $recipe->tables->has_table('test_table'), 'has table name';
+    ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
+    ok $recipe_table->description, 'table desc.';
+    ok defined $recipe_table->skiprows, 'table skip rows';
+    ok $recipe_table->logfield, 'log field name';
+    is_deeply $recipe_table->orderby, [
+        { -asc  => "colA" },
+        { -desc => "colB" },
+        { -asc  => [ "colC", "colD" ] },
+    ], 'table orderby';
+    is $recipe_table->get_plugin('date'), 'date_german', 'plugin for date';
+    is_deeply $recipe_table->headermap, $hmap, 'headermap';
+};
+
+#-- Transform
+
 ### XXX Setting a COPY withow a REPLACENULL attribute for a row trafo
 ### makes this subtest fail instead of the following... ?!
 subtest 'Column transformation type' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe.conf' );
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
     ok my $trafos_col = $recipe->transform->column, 'column trafos';
     my $fields  = [qw(codp)];
     my $methods = [[qw(number_only null_ifzero)]];
@@ -64,6 +232,10 @@ subtest 'Column transformation type' => sub {
 };
 
 subtest 'Row transformation type' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe.conf' );
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
     ok my $trafos_row = $recipe->transform->row, 'row trafos';
 
     # Expected result in the recipe order
@@ -151,7 +323,13 @@ subtest 'Row transformation type' => sub {
     }
 };
 
+#-- Datasource
+
 subtest 'Datasources' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe.conf' );
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
     is ref $recipe->datasource->get_valid_list('two_elements'), 'ARRAY',
         'Two valid elements list';
     is ref $recipe->datasource->get_valid_list('one_element'), 'ARRAY',
@@ -163,7 +341,7 @@ subtest 'Datasources' => sub {
 
     # XXX Test thoroughly; fix module
     # Passes on wrong input, example:
-    #     <hints localitati>
+    # <hints localitati>
     #   <record>
     #     item              = Izvorul Mures
     #     hint              = Izvoru Mureșului
