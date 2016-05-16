@@ -27,8 +27,7 @@ has 'log_file_name' => (
     },
 );
 
-# Set by ./Build; see Module::Build::App::Transfer for details.
-my $SYSTEM_DIR = undef;
+my $SYSTEM_DIR = undef;                      # works ok for Linux ;)
 
 sub user_dir {
     require File::HomeDir;
