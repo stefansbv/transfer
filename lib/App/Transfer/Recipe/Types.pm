@@ -12,6 +12,30 @@ subtype 'Natural', as 'Int', where { $_ > 0 };
 subtype 'NaturalLessThanN', as 'Natural', where { $_ <= 1 },
     message { "The number ($_) is not <= 1!" };
 
+subtype 'ArrayRefColStep',
+    as 'ArrayRef[App::Transfer::Recipe::Transform::Col::Step]';
+
+subtype 'ArrayRefRowStep',
+    as 'ArrayRef[App::Transfer::Recipe::Transform::Row::Step]';
+
+coerce 'ArrayRefColStep'
+    => from 'HashRef[ArrayRef]' => via {
+        [ map { App::Transfer::Recipe::Transform::Col::Step->new($_) }
+          @{ $_->{step} } ] }
+    => from 'HashRef[HashRef]' => via {
+        [ App::Transfer::Recipe::Transform::Col::Step->new( $_->{step} ) ];
+    };
+
+coerce 'ArrayRefRowStep'
+    => from 'HashRef[ArrayRef]' => via {
+        [ map {
+            App::Transfer::Recipe::Transform::Row::Factory->create(
+                $_->{type}, $_ ) } @{ $_->{step} } ] }
+    => from 'HashRef[HashRef]' => via {
+        [ App::Transfer::Recipe::Transform::Row::Factory->create(
+            $_->{step}{type}, $_->{step} ) ];
+    };
+
 __PACKAGE__->meta->make_immutable;
 
 1;

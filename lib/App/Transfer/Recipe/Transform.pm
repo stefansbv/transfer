@@ -10,32 +10,9 @@ use Locale::TextDomain 1.20 qw(App-Transfer);
 use List::Util qw(none);
 use namespace::autoclean;
 
+use App::Transfer::Recipe::Types;
 use App::Transfer::Recipe::Transform::Col::Step;
 use App::Transfer::Recipe::Transform::Row::Factory;
-
-subtype 'ArrayRefColStep',
-    as 'ArrayRef[App::Transfer::Recipe::Transform::Col::Step]';
-
-subtype 'ArrayRefRowStep',
-    as 'ArrayRef[App::Transfer::Recipe::Transform::Row::Step]';
-
-coerce 'ArrayRefColStep'
-    => from 'HashRef[ArrayRef]' => via {
-        [ map { App::Transfer::Recipe::Transform::Col::Step->new($_) }
-          @{ $_->{step} } ] }
-    => from 'HashRef[HashRef]' => via {
-        [ App::Transfer::Recipe::Transform::Col::Step->new( $_->{step} ) ];
-    };
-
-coerce 'ArrayRefRowStep'
-    => from 'HashRef[ArrayRef]' => via {
-        [ map {
-            App::Transfer::Recipe::Transform::Row::Factory->create(
-                $_->{type}, $_ ) } @{ $_->{step} } ] }
-    => from 'HashRef[HashRef]' => via {
-        [ App::Transfer::Recipe::Transform::Row::Factory->create(
-            $_->{step}{type}, $_->{step} ) ];
-    };
 
 has 'column' => (
     is     => 'ro',
