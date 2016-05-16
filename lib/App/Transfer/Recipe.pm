@@ -37,6 +37,10 @@ has '_recipe_data' => (
     },
 );
 
+#-  Sections
+
+#-- Recipe (header)
+
 has 'header' => (
     is      => 'ro',
     isa     => 'App::Transfer::Recipe::Header',
@@ -48,6 +52,8 @@ has 'header' => (
         hurl header => __x( 'The recipe must have a recipe section.' );
     },
 );
+
+#-- Config
 
 has 'source' => (
     is       => 'ro',
@@ -95,6 +101,8 @@ has 'target' => (
     },
 );
 
+#-- Tables
+
 has 'tables' => (
     is      => 'ro',
     isa     => 'App::Transfer::Recipe::Tables',
@@ -105,6 +113,8 @@ has 'tables' => (
             $self->recipe_data->{tables} );
     },
 );
+
+#-- Transformations
 
 has 'transform' => (
     is      => 'ro',
@@ -117,6 +127,8 @@ has 'transform' => (
     },
 );
 
+#-- Data sources
+
 has 'datasource' => (
     is      => 'ro',
     isa     => 'App::Transfer::Recipe::Datasource',
@@ -127,6 +139,8 @@ has 'datasource' => (
             $self->recipe_data->{datasources} );
     },
 );
+
+#-  Sections end
 
 has 'io_trafo_type' => (
     is      => 'ro',
