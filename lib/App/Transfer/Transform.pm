@@ -68,7 +68,7 @@ has 'tempfields' => (
         my $self   = shift;
         my $table  = $self->recipe->destination->table;
         my $fields = $self->recipe->tables->get_table($table)->tempfield;
-        return $fields;
+        return $fields // [];
     },
     handles  => {
         all_temp_fields => 'elements',
@@ -734,7 +734,6 @@ sub validate_destination {
 
     my %fields_all;
 
-    # Collect all destination field names and check if ...
     foreach my $step ( @{ $self->recipe->transform->column } ) {
         my $dest = $step->field;
         $fields_all{$dest} = 1;
@@ -953,6 +952,19 @@ This is the second type of transformation to be applied.
 Transformations per field type are used to validate the data for the
 destination type of the column.  If the data is not a valid type or
 overflows than a log entry is added.
+
+=head3 C<validate_destination>
+
+Collect all destination field names and check if the destination table
+contains them, add throw an exception if not.
+
+=head3 C<remove_temp_fields>
+
+Remove the tempfields from the record.
+
+=head3 C<has_temp_field>
+
+Return true if a field is in the tempfields list.
 
 =head1 Author
 
