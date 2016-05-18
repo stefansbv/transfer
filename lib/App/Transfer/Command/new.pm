@@ -108,9 +108,7 @@ sub _build_dst_uri {
 
 sub execute {
     my ( $self ) = @_;
-
     $self->generate_recipe;
-
     return;
 }
 
@@ -239,6 +237,14 @@ The C<new> command.
 =head3 C<execute>
 
 Call the method mapped to the subcommand.
+
+=head3 C<generate_recipe>
+
+Generate a recipe file, filled with the basic data.
+
+=head3 C<get_gitconfig>
+
+Get the author name and email from the git configuration file.
 
 =head1 Author
 

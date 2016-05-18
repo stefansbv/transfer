@@ -230,6 +230,10 @@ for Transfer.  It supports Firebird 2.0 and higher XXX ???.
 
 =head1 Interface
 
+=head2 Attributes
+
+=head3 dbh
+
 =head2 Instance Methods
 
 =head3 C<parse_error>
@@ -240,9 +244,16 @@ Parse and categorize the database error strings.
 
 Return a table info hash reference data structure.
 
+=head3 get_columns
+
+Return the column list for the table name provided as parameter.
+
 =head3 C<table_exists>
 
-Return true if the table provided as parameter exists in the database.
+Return true if the table name provided as parameter exists in the
+database.
+
+=head3 table_exists
 
 =head1 Author
 

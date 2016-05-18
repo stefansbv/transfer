@@ -178,6 +178,10 @@ The L<App::Transfer::Config> object.
 
 =head2 Instance Methods
 
+=head3 C<DEMOLISH>
+
+Remove empty log files at the application shutdown.
+
 =head3 C<emit>
 
 =head3 C<emit_literal>

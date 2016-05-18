@@ -203,6 +203,10 @@ for Transfer.  It supports Pg X.X and higher XXX ???.
 
 =head1 Interface
 
+=head2 Attributes
+
+=head3 dbh
+
 =head2 Instance Methods
 
 =head3 C<parse_error>
@@ -212,6 +216,10 @@ Parse and categorize the database error strings.
 =head3 C<get_info>
 
 Return a table info hash reference data structure.
+
+=head3 get_columns
+
+Return the column list for the table name provided as parameter.
 
 =head3 C<table_exists>
 

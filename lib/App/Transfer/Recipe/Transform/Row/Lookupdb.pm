@@ -341,6 +341,14 @@ for C<THIS> actually look for C<THAT>.
 Returns a hash reference with all the attributes.  It is passed to the
 plugin method.
 
+=head3 C<aoh2h>
+
+Returns a hash from an array of hashes.
+
+=head3 C<str2h>
+
+Returns a hash from a string.
+
 =head1 Author
 
 Ștefan Suciu <stefan@s2i2.ro>

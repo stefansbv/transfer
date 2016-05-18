@@ -1,5 +1,7 @@
 package App::Transfer::Target;
 
+# ABSTRACT: Transfer reader or writer database target
+
 use 5.010001;
 use URI::db;
 use Moose;

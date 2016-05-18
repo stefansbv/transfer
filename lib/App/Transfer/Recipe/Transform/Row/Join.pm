@@ -11,14 +11,24 @@ use namespace::autoclean;
 
 extends 'App::Transfer::Recipe::Transform::Row::Step';
 
-has 'separator' => ( is => 'ro', isa => 'Str', required => 1 );
+has 'separator' => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+);
+
 has 'field_src' => (
     is       => 'ro',
     isa      => 'ArrayRefFromStr',
     coerce   => 1,
     required => 1,
 );
-has 'field_dst' => ( is => 'ro', isa => 'Str', required => 1 );
+
+has 'field_dst' => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+);
 
 __PACKAGE__->meta->make_immutable;
 
