@@ -16,15 +16,10 @@ has 'table'  => ( is => 'ro', isa => 'Str' );
 
 sub BUILDARGS {
     my $class = shift;
-
-    # Borrowed and adapted from Sqitch ;)
-
-    my $p = @_ == 1 && ref $_[0] ? { %{ +shift } } : { @_ };
-
+    my $p     = shift;
     hurl source =>
         __x( "The destination section must have a 'writer' attribute" )
         unless length( $p->{writer} // '' );
-
     return $p;
 }
 

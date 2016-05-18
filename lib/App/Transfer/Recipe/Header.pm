@@ -15,17 +15,13 @@ has 'description'   => ( is => 'ro', isa => 'Str' );
 
 sub BUILDARGS {
     my $class = shift;
-
-    # Borrowed and adapted from Sqitch ;)
-    my $p = @_ == 1 && ref $_[0] ? { %{ +shift } } : { @_ };
-
-    hurl source =>
+    my $p     = shift;
+    hurl recipe =>
         __x("The recipe must have a valid 'version' attribute")
             unless length( $p->{version} // '' );
-    hurl source =>
+    hurl recipe =>
         __x("The recipe must have a valid 'syntaxversion' attribute")
             unless length( $p->{syntaxversion} // '' );
-
     return $p;
 }
 

@@ -44,12 +44,11 @@ has '_recipe_data' => (
 has 'header' => (
     is      => 'ro',
     isa     => 'App::Transfer::Recipe::Header',
-    lazy     => 1,
+    lazy    => 1,
     default => sub {
         my $self = shift;
         return App::Transfer::Recipe::Header->new(
-            $self->recipe_data->{recipe} ) if $self->recipe_data->{recipe};
-        hurl header => __x( 'The recipe must have a recipe section.' );
+            $self->recipe_data->{recipe} );
     },
 );
 
@@ -63,10 +62,7 @@ has 'source' => (
     default  => sub {
         my $self = shift;
         return App::Transfer::Recipe::Src->new(
-            $self->recipe_data->{config}{source} )
-            if $self->recipe_data->{config}{source};
-        hurl source =>
-            __x( "The recipe must have a 'config' section with a 'source' subsection." );
+            $self->recipe_data->{config}{source} );
     },
 );
 
@@ -78,10 +74,7 @@ has 'destination' => (
     default  => sub {
         my $self = shift;
         return App::Transfer::Recipe::Dst->new(
-            $self->recipe_data->{config}{destination} )
-            if $self->recipe_data->{config}{destination};
-        hurl destination =>
-            __x( "The recipe must have a 'config' section with a 'destination' subsection." );
+            $self->recipe_data->{config}{destination} );
     },
 );
 
@@ -182,14 +175,9 @@ has 'out_type' => (
 
 sub BUILDARGS {
     my $class = shift;
-
-    # Borrowed and adapted from Sqitch ;)
-
-    my $p = @_ == 1 && ref $_[0] ? { %{ +shift } } : { @_ };
-
+    my $p     = { @_ };
     hurl "Missing 'recipe_file' attribute"
         unless length( $p->{recipe_file} // '' );
-
     return $p;
 }
 

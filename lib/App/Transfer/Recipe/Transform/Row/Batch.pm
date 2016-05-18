@@ -54,8 +54,7 @@ sub _build_params {
 around BUILDARGS => sub {
     my $orig  = shift;
     my $class = shift;
-
-    my $p = @_ == 1 && ref $_[0] ? { %{ +shift } } : { @_ };
+    my $p     = shift;
 
     # Check the 'attributes' attribute.  If the default is not used
     # REPLACENULL is not set, and the exception is thrown.  Solution:

@@ -4,7 +4,10 @@ package App::Transfer::Recipe::Load;
 
 use Moose;
 use MooseX::Types::Path::Tiny qw(File);
+use Try::Tiny;
 use Config::General;
+use Locale::TextDomain 1.20 qw(App-Transfer);
+use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
 has 'recipe_file' => (
@@ -17,30 +20,65 @@ has 'recipe_file' => (
 has 'load' => (
     is       => 'ro',
     isa      => 'HashRef',
-    required => 1,
     init_arg => undef,
+    required => 1,
     lazy     => 1,
     default  => sub {
         my $self = shift;
-        my $conf_gen = Config::General->new(
-            -UTF8       => 1,
-            -ForceArray => 1,
-            -ConfigFile => $self->recipe_file,
-            -FlagBits   => {
-                attributes => {
-                    APPEND      => 1,
-                    APPENDSRC   => 1,
-                    COPY        => 1,
-                    MOVE        => 1,
-                    REPLACE     => 1,
-                    REPLACENULL => 1,
+        my $file = $self->recipe_file;
+        my $conf = try {
+            Config::General->new(
+                -UTF8       => 1,
+                -ForceArray => 1,
+                -ConfigFile => $file,
+                -FlagBits   => {
+                    attributes => {
+                        APPEND      => 1,
+                        APPENDSRC   => 1,
+                        COPY        => 1,
+                        MOVE        => 1,
+                        REPLACE     => 1,
+                        REPLACENULL => 1,
+                    },
                 },
-            },
-        );
-        my %config = $conf_gen->getall;
+            );
+        }
+        catch {
+            hurl source => __x(
+                "Failed to load the recipe file '{file}': {error}",
+                file  => $file,
+                error => $_,
+            );
+        };
+        my %config = $conf->getall;
+        $self->validate_recipe_sections(\%config);
         return \%config;
     }
 );
+
+sub validate_recipe_sections {
+    my ( $self, $p ) = @_;
+
+    if ( !exists $p->{recipe} ) {
+        hurl header => __('The recipe must have a recipe section.');
+    }
+    if ( !exists $p->{config}{source} ) {
+        hurl source => __(
+            "The recipe must have a 'config' section with 'source' and 'destination' subsections."
+        );
+    }
+    if ( !exists $p->{config}{destination} ) {
+        hurl destination => __(
+            "The recipe must have a 'config' section with 'source' and 'destination' subsections."
+        );
+    }
+    if ( !exists $p->{tables} ) {
+        hurl destination => __(
+            "The recipe must have a 'tables' section."
+        );
+    }
+    return;
+}
 
 __PACKAGE__->meta->make_immutable;
 
@@ -84,6 +122,11 @@ The path to the recipe file.
 
 Loads and returns a data structure representing the configuration of
 the recipe.
+
+=head3 C<validate_recipe_sections>
+
+If the keys of the hash coresponding to the main sections of the
+recipe doesn't exists, throw exceptions.
 
 =head1 Author
 
