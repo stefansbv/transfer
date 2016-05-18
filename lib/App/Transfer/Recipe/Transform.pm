@@ -15,9 +15,9 @@ use App::Transfer::Recipe::Transform::Col::Step;
 use App::Transfer::Recipe::Transform::Row::Factory;
 
 has 'column' => (
-    is     => 'ro',
-    isa    => 'ArrayRefColStep',
-    coerce => 1,
+    is      => 'ro',
+    isa     => 'ArrayRefColStep',
+    coerce  => 1,
 );
 
 has 'row' => (
@@ -29,8 +29,11 @@ has 'row' => (
 around BUILDARGS => sub {
     my $orig  = shift;
     my $class = shift;
+    my $p     = shift;
 
-    my $p = @_ == 1 && ref $_[0] ? { %{ +shift } } : { @_ };
+    $p           = {} if !ref $p;
+    $p->{row}    = {} if !exists $p->{row};
+    $p->{column} = {} if !exists $p->{column};
 
     # Check the type of the steps
     my $steps = $p->{row}{step};
@@ -103,6 +106,10 @@ write to many/one destination field(s).
 Returns an object instance representing a C<column> type
 transformation.  This kind of transformation can read from a single
 source field (column) and write to a single destination field.
+
+=head3 C<validate_type>
+
+Throw an exception if the step type is not in the known types lists.
 
 =head1 Author
 
