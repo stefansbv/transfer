@@ -1,10 +1,8 @@
 use 5.010;
 use strict;
 use warnings;
-
 use Path::Tiny;
 use Test::Most;
-use Test::Exception;
 
 use App::Transfer;
 use App::Transfer::Recipe;

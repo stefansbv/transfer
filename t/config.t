@@ -20,14 +20,6 @@ delete @ENV{qw( TRANSFER_CONFIG TRANSFER_USER_CONFIG TRANSFER_SYSTEM_CONFIG )};
 isa_ok my $config = $CLASS->new, $CLASS, 'New config object';
 is $config->confname, 'transfer.conf', 'confname should be "transfer.conf"';
 
-SKIP: {
-    skip 'System dir can be modified at build time', 1
-        if $INC{'App/Transfer/Config.pm'} =~ /\bblib\b/;
-    is $config->system_dir, File::Spec->catfile(
-        $Config::Config{prefix}, 'etc', 'transfer'
-    ), 'Default system directory should be correct';
-}
-
 is $config->user_dir, File::Spec->catfile(
     File::HomeDir->my_home, '.transfer'
 ), 'Default user directory should be correct';
