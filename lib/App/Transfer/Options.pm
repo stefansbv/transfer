@@ -119,6 +119,7 @@ sub _build_file_options {
 
     # 3. Configuration files
     # NOT yet
+
     hurl options => __x(
         "The file {rw_type} must have a valid file option or configuration.",
         rw_type => $rw_type,

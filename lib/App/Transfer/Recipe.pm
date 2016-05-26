@@ -135,18 +135,6 @@ has 'datasource' => (
 
 #-  Sections end
 
-has 'io_trafo_type' => (
-    is      => 'ro',
-    isa     => 'Str',
-    lazy    => 1,
-    default => sub {
-        my $self = shift;
-        my $prefix = $self->in_type;
-        my $sufix  = $self->out_type;
-        return "${prefix}2${sufix}";
-    },
-);
-
 has 'in_type' => (
     is      => 'ro',
     isa     => 'Str',
@@ -269,11 +257,6 @@ the recipe.
 
 Returns an object instance representing the C<datasource> section of
 the recipe.
-
-=head3 C<io_trafo_type>
-
-Returns the string resulted from the concatenation of the C<in_type>
-and the C<out_type> attributes:
 
 Valid values:
 

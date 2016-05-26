@@ -2,10 +2,10 @@ use strict;
 use warnings;
 use 5.010;
 use utf8;
-use Test::More;
-use Test::Exception;
+use Test::Most;
 use Path::Tiny;
 use Locale::TextDomain qw(App-Transfer);
+
 use App::Transfer;
 use App::Transfer::Transform;
 use App::Transfer::Recipe::Transform::Row::Join;
@@ -26,7 +26,7 @@ ok my $trafo = App::Transfer::Transform->new(
     @{$trafo_params},
     ), 'new trafo instance';
 
-subtest 'join 1' => sub {
+subtest 'join - src fields included in dst' => sub {
     my $step = App::Transfer::Recipe::Transform::Row::Join->new(
         type      => 'join',
         separator => ", ",
@@ -44,17 +44,17 @@ subtest 'join 1' => sub {
         strada     => "str. Brasovului",
     };
     my $expected = {
-        adresa     => "Izvorul Mures, str. Brasovului, nr. 5",
         id         => 1,
         localitate => "Izvorul Mures",
         numarul    => "nr. 5",
         strada     => "str. Brasovului",
+        adresa     => "Izvorul Mures, str. Brasovului, nr. 5",
     };
 
-    is_deeply $trafo->type_join( $step, $record, $logstr ), $expected, 'join';
+    cmp_deeply $trafo->type_join( $step, $record, $logstr ), $expected, 'join';
 };
 
-# subtest 'join 2' => sub {
+# subtest 'join - src fields missing from dst' => sub {
 #     my $step = App::Transfer::Recipe::Transform::Row::Join->new(
 #         type      => 'join',
 #         separator => ", ",
@@ -72,11 +72,11 @@ subtest 'join 1' => sub {
 #         strada     => "str. Brasovului",
 #     };
 #     my $expected = {
-#         adresa     => "Izvorul Mures, str. Brasovului, nr. 5",
-#         id         => 1,
+#         id     => 1,
+#         adresa => "Izvorul Mures, str. Brasovului, nr. 5",
 #     };
 
-#     is_deeply $trafo->type_join( $step, $record, $logstr ), $expected, 'join';
+#     cmp_deeply $trafo->type_join( $step, $record, $logstr ), $expected, 'join';
 # };
 
 done_testing;

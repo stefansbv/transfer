@@ -412,6 +412,28 @@ sub job_intro {
     return;
 }
 
+sub job_transfer {
+    my ($self, ) = @_;
+
+    my $in_type  = $self->recipe->in_type;
+    my $out_type = $self->recipe->out_type;
+
+    # Change input/output type on CLI options
+    $in_type  = 'file' if $self->input_options->{input_file};
+    $out_type = 'file' if $self->output_options->{output_file};
+
+    my $io_type = $self->io_trafo_type($in_type, $out_type);
+    my $meth    = "transfer_$io_type";
+    if ( $self->can($meth) ) {
+        $self->$meth;                        # execute the transfer
+    }
+    else {
+        hurl run => __x( "\nUnimplemented reader-writer combo: '{type}'!",
+            type => $io_type );
+    }
+    return;
+}
+
 sub transfer_file2db {
     my $self = shift;
 
@@ -528,7 +550,6 @@ sub transfer_db2db {
     hurl run => __x( "The source table '{table}' does not exists!",
         table => $src_table )
         unless $src_engine->table_exists($src_table);
-
     hurl run => __x( "The destination table '{table}' does not exists!",
         table => $dst_table )
         unless $dst_engine->table_exists($dst_table);
@@ -652,7 +673,7 @@ sub transformations {
     $record = $self->record_trafos( $record, $info, $logstr );
     $record = $self->column_type_trafos( $record, $info, $logstr );
 
-    $self->remove_temp_fields($record);
+    $self->remove_tempfields($record);
 
     return $record;
 }
@@ -772,7 +793,7 @@ sub validate_destination {
     return;
 }
 
-sub remove_temp_fields {
+sub remove_tempfields {
     my ($self, $record) = @_;
     foreach my $field ( $self->all_temp_fields ) {
         delete $record->{$field};
@@ -958,9 +979,9 @@ overflows than a log entry is added.
 Collect all destination field names and check if the destination table
 contains them, add throw an exception if not.
 
-=head3 C<remove_temp_fields>
+=head3 C<remove_tempfields>
 
-Remove the tempfields from the record.
+Remove the temporary fields from the record.
 
 =head3 C<has_temp_field>
 

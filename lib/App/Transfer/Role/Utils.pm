@@ -31,6 +31,11 @@ sub trim {
     return wantarray ? @text : "@text";
 }
 
+sub io_trafo_type {
+    my ($self, $prefix, $sufix) = @_;
+    return "${prefix}2${sufix}";
+}
+
 no Moose::Role;
 
 1;
@@ -64,6 +69,11 @@ reference of the sorted items.
 =head2 trim
 
 Trim strings or arrays.
+
+=head3 C<io_trafo_type>
+
+Returns a string resulted from the concatenation of the C<in_type> and
+the C<out_type> attributes:
 
 =head1 Author
 

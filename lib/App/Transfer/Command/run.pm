@@ -34,7 +34,7 @@ option 'input_file' => (
 
 option 'output_file' => (
     is            => 'ro',
-    isa           => File,
+    isa           => Path,
     required      => 0,
     coerce        => 1,
     cmd_flag      => 'out-file',
@@ -130,17 +130,7 @@ sub execute {
     ) if $self->trafo->recipe->header->syntaxversion != 1; # XXX ???
 
     $self->trafo->job_intro;
-
-    my $io_type = $self->trafo->recipe->io_trafo_type;
-    my $meth    = "transfer_$io_type";
-    if ( $self->trafo->can($meth) ) {
-        $self->trafo->$meth;    # execute the transfer
-    }
-    else {
-        hurl run => __x( "Unimplemented reader-writer combo: '{type}'!",
-            type => $io_type );
-    }
-
+    $self->trafo->job_transfer;
     $self->trafo->job_summary;
 
     return;
