@@ -413,12 +413,12 @@ sub job_intro {
 }
 
 sub job_transfer {
-    my ($self, ) = @_;
+    my $self = shift;
 
     my $in_type  = $self->recipe->in_type;
     my $out_type = $self->recipe->out_type;
 
-    # Change input/output type on CLI options
+    # Change input/output type from CLI options
     $in_type  = 'file' if $self->input_options->{input_file};
     $out_type = 'file' if $self->output_options->{output_file};
 
@@ -924,6 +924,8 @@ Resulted records:
 =head3 C<type_lookupdb>
 
 =head3 C<job_intro>
+
+=head3 C<job_transfer>
 
 =head3 C<transfer_file2db>
 
