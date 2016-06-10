@@ -29,13 +29,24 @@ subtest 'Command "run" without optional options' => sub {
     is( $app->recipe, 't/recipes/recipe-xls.conf', 'Option "--recipe" is set' );
 };
 
-subtest 'Command "run" without options' => sub {
+subtest 'Command "run" with options' => sub {
     MooseX::App::ParsedArgv->new(argv => [qw(run --if t/siruta.xls t/recipes/recipe-xls.conf)]);
     my $app = App::Transfer->new_with_command();
     isa_ok($app, 'App::Transfer::Command::run');
     is( $app->dryrun, undef, 'Option "--dryrun" is not set' );
     is( $app->verbose, undef, 'Option "--verbose" is not set' );
     is( $app->input_file, 't/siruta.xls', 'Option "--if" is set' );
+    is( $app->recipe, 't/recipes/recipe-xls.conf', 'Option "--recipe" is set' );
+};
+
+subtest 'Command "run" with output file option' => sub {
+    MooseX::App::ParsedArgv->new(argv => [qw(run --if t/siruta.xls t/recipes/recipe-xls.conf --of new-file.csv)]);
+    my $app = App::Transfer->new_with_command();
+    isa_ok($app, 'App::Transfer::Command::run');
+    is( $app->dryrun, undef, 'Option "--dryrun" is not set' );
+    is( $app->verbose, undef, 'Option "--verbose" is not set' );
+    is( $app->input_file, 't/siruta.xls', 'Option "--if" is set' );
+    is( $app->output_file, 'new-file.csv', 'Option "--of" is set' );
     is( $app->recipe, 't/recipes/recipe-xls.conf', 'Option "--recipe" is set' );
 };
 
