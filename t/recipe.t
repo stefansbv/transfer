@@ -48,6 +48,22 @@ subtest 'Recipe header + config' => sub {
         'Should get an exception for missing recipe tables section';
 };
 
+subtest 'Recipe syntax version' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe-wrongversion.conf' );
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
+    throws_ok { $recipe->header }  'App::Transfer::X',
+        'Should get an exception for wrong syntax version';
+
+    $recipe_file = path( 't', 'recipes', 'recipe-noversion.conf' );
+    ok $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
+    throws_ok { $recipe->header }  'App::Transfer::X',
+        'Should get an exception for wrong syntax version';
+};
+
 #-- Minimum valid recipe
 
 subtest 'Recipe - minimum' => sub {
