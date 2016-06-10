@@ -6,7 +6,10 @@ use 5.010001;
 use Moose;
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
+use App::Transfer::Recipe::Types;
 use namespace::autoclean;
+
+use constant SYNTAX_VERSION => 1;
 
 has 'version'       => ( is => 'ro', isa => 'Natural', required => 1 );
 has 'syntaxversion' => ( is => 'ro', isa => 'NaturalLessThanN', required => 1 );
@@ -21,7 +24,7 @@ sub BUILDARGS {
             unless length( $p->{version} // '' );
     hurl recipe =>
         __x("The recipe must have a valid 'syntaxversion' attribute")
-            unless length( $p->{syntaxversion} // '' );
+            unless $p->{syntaxversion} && $p->{syntaxversion} == SYNTAX_VERSION;
     return $p;
 }
 
@@ -48,6 +51,12 @@ App::Transfer::Recipe::Header - Recipe section: recipe
 An object representing the C<recipe> header section of the recipe.
 
 =head1 Interface
+
+=head2 Constants
+
+=head3 C<SYNTAX_VERSION>
+
+Returns the current version of the recipe syntax.
 
 =head3 C<new>
 

@@ -124,11 +124,6 @@ has 'trafo' => (
 sub execute {
     my $self = shift;
 
-    hurl run => __x(
-        "Unknown recipe syntax version: {version}",
-        version => $self->trafo->recipe->header->syntaxversion
-    ) if $self->trafo->recipe->header->syntaxversion != 1; # XXX ???
-
     $self->trafo->job_intro;
     $self->trafo->job_transfer;
     $self->trafo->job_summary;
