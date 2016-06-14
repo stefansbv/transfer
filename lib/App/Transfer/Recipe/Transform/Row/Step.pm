@@ -91,23 +91,50 @@ destination field (Str).
 
 =head3 C<attributes>
 
-Attributes to alter the behavior of the transformation.
+Attributes that can be used to alter the behavior of the
+transformation.
 
-Valid attributes:
+Action attributes:
+
+=over
+
+=item C<COPY>
+
+Copy the value of the source field to the destination field.
+
+=item C<MOVE>
+
+Copy the value of the source field to the destination field and
+nullify the source field.
+
+=back
+
+Modifier attributes:
 
 =over
 
 =item C<APPEND>
 
+Append the new value to the existing (old) value.  The new string
+takes the form: old string followed by a comma and a space followed by
+the new value.  If there is no old value then only the new value is
+used, without the comma and the space.
+
+    <old_value, new_value> or <new_value>
+
 =item C<APPENDSRC>
 
-=item C<COPY>
+The new field value takes the form:
 
-=item C<MOVE>
+    <old_value, src_field_name: new_value> or <new_value>
 
 =item C<REPLACE>
 
+Replaces the current value of the field.
+
 =item C<REPLACENULL>
+
+Replaces the current value of the field only if it's NULL.
 
 =back
 
