@@ -11,6 +11,8 @@ use Role::HasMessage 0.005;
 use Role::Identifiable::HasIdent 0.005;
 use overload '""' => 'as_string';
 
+binmode STDERR, ':utf8';
+
 has message => (
     is       => 'ro',
     isa      => 'Str',
