@@ -21,6 +21,8 @@ use App::Transfer::Transform;
 
 BEGIN { Log::Log4perl->init('t/log.conf') }
 
+binmode STDOUT, ':utf8';
+
 # Just die on warnings.
 use Carp; BEGIN { $SIG{__WARN__} = \&Carp::confess }
 
@@ -85,6 +87,36 @@ sub run {
 
 
         #######################################################################
+        # Test the info methods
+
+        # Avoid:
+        # Negative repeat count does nothing at
+        # .../perls/5.24.0t/lib/site_perl/5.24.0/Perl6/Form.pm line 1209
+        {
+            require Test::NoWarnings;
+            lives_ok { $trafo->job_intro }
+                'Should not have errors';
+
+            lives_ok { $trafo->job_info_input_db }
+                'Should not have errors';
+
+            lives_ok { $trafo->job_info_output_db }
+                'Should not have errors';
+
+            throws_ok { $trafo->transfer_file2db }
+                'App::Transfer::X',
+                'Should have error for nonexistent table';
+
+            throws_ok { $trafo->transfer_db2db }
+                'App::Transfer::X',
+                'Should have error for nonexistent table';
+
+            throws_ok { $trafo->transfer_db2file }
+                'App::Transfer::X',
+                'Should have error for nonexistent table';
+        }
+
+        #######################################################################
         # Test the database connection, if appropriate.
         if ( my $code = $p{test_dbh} ) {
             $code->( $engine->dbh );
@@ -92,7 +124,6 @@ sub run {
 
 
         #######################################################################
-
         # Test begin_work() and finish_work().
         can_ok $engine, qw(begin_work finish_work);
         my $mock_dbh
@@ -120,9 +151,9 @@ sub run {
 
 
         ######################################################################
-        if ($class eq 'App::Transfer::Engine::pg') {
-            # Test someting specific for Pg
-        }
+        # if ($class eq 'App::Transfer::Engine::pg') {
+        #     # Test someting specific for Pg
+        # }
 
 
         ######################################################################
@@ -259,6 +290,10 @@ sub run {
         $ddl = qq{CREATE TABLE $table_import ( \n   $fields_import \n);};
 
         ok $engine->dbh->do($ddl), "create '$table_import' table";
+
+        throws_ok { $trafo->validate_destination }
+            'App::Transfer::X',
+            'Should have error for destination fields not found';
 
 
         ######################################################################
@@ -713,7 +748,7 @@ sub run {
 
 
         ######################################################################
-        # Test the ? plugin and type_batch trafo method
+        # Test the copy_nonzero plugin and type_batch trafo method
 
         # The step config section
         # h.
@@ -801,3 +836,41 @@ sub run {
 }
 
 1;
+
+=encoding utf8
+
+=head1 DESCRIPTION
+
+Database test module adapted an adopted from Sqitch.
+
+=head1 AUTHOR
+
+David E. Wheeler <david@justatheory.com>
+
+Stefan Suciu <stefan@s2i2.ro>
+
+=head1 LICENSE
+
+Copyright (c) 2012-2013 iovation Inc.
+
+Copyright (c) 2015-2016 Stefan Suciu.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of that software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and that permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+=cut
