@@ -11,6 +11,8 @@ use App::Transfer::Transform;
 use App::Transfer::Recipe::Transform::Row::Join;
 use lib 't/lib';
 
+binmode STDOUT, ':utf8';
+
 my $uri            = 'db:firebird://@localhost/dbpath';
 my $target_params  = [ uri => $uri ];
 my $recipe_file    = path( 't', 'recipes', 'recipe-db.conf' );
@@ -25,6 +27,14 @@ ok my $trafo = App::Transfer::Transform->new(
     output_options => $output_options,
     @{$trafo_params},
     ), 'new trafo instance';
+
+throws_ok { $trafo->job_info_input_file }
+    'App::Transfer::X',
+    'Should have error for missing file option or configuration';
+
+throws_ok { $trafo->job_info_output_file }
+    'App::Transfer::X',
+    'Should have error for missing file option or configuration';
 
 subtest 'join - src fields included in dst' => sub {
     my $step = App::Transfer::Recipe::Transform::Row::Join->new(
