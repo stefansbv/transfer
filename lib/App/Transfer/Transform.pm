@@ -389,8 +389,6 @@ sub type_lookupdb {
 sub job_intro {
     my $self = shift;
 
-    #-- Recipe
-
     my $recipe_l = __ 'Recipe:';
     my $recipe_v = $self->recipe->header->name;
     my @recipe_ldet
@@ -400,17 +398,131 @@ sub job_intro {
         $self->recipe->header->syntaxversion,
         $self->recipe->header->description,
     );
-    print form
-    " -----------------------------";
+
+    print form "-----------------------------";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-    $recipe_l,                                                     $recipe_v;
+       $recipe_l,                                                         $recipe_v;
     print form
     "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-    \@recipe_ldet,                                             \@recipe_vdet;
+       \@recipe_ldet,               \@recipe_vdet;
 
     return;
 }
+
+sub job_info_input_file {
+    my $self = shift;
+
+    my $input_l  = __ 'Input:';
+    print form " -----------------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+       $input_l;
+
+    my $worksheet = $self->reader->worksheet
+        if $self->reader->can('worksheet');
+    $worksheet //= 'n/a';
+    my @i_l = (__ 'file:', __ 'worksheet:');
+    my @i_v = ($self->reader_options->file, $worksheet);
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+       \@i_l,                       \@i_v;
+
+    return;
+}
+
+sub job_info_output_file {
+    my $self = shift;
+
+    my $output_l = __ 'Output:';
+    print form " -----------------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+       $output_l;
+
+    my $worksheet = $self->writer->worksheet
+        if $self->writer->can('worksheet');
+    $worksheet //= 'n/a';
+    my @i_l = (__ 'file:', __ 'worksheet:');
+    my @i_v = ($self->writer_options->file, $worksheet);
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+       \@i_l,                       \@i_v;
+
+    return;
+}
+
+sub job_info_input_db {
+    my ($self, $src_table, $src_db) = @_;
+
+    my $input_l  = __ 'Input:';
+    print for m" -----------------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+       $input_l;
+    my @i_l = (__ 'table:', __ 'database:');
+    my @i_v = ($src_table, $src_db);
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+       \@i_l,                       \@i_v;
+
+    return;
+}
+
+sub job_info_output_db {
+    my ($self, $dst_table, $dst_db) = @_;
+
+    my $output_l = __ 'Output:';
+    print form " -----------------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+       $output_l;
+    my @o_l = (__ 'table:', __ 'database:');
+    my @o_v = ($dst_table, $dst_db);
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+       \@o_l,                       \@o_v;
+
+    return;
+}
+
+sub job_info_work {
+    my ($self, $record_count) = @_;
+
+    my $start_l  = __ 'Working:';
+    my $record_l = __ 'records read:';
+    print form " -----------------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+       $start_l;
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+       $record_l,                   $record_count;
+
+    return;
+}
+
+sub job_summary {
+    my $self = shift;
+
+    my $summ_l = __ 'Summary:';
+
+    print form " -----------------------------";
+    print form
+    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+       $summ_l;
+    my @o_l = (__ 'records inserted:', __ 'records skipped:');
+    my @o_v = ( $self->writer->records_inserted,
+                $self->writer->records_skipped );
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+       \@o_l,                       \@o_v;
+    print form " -----------------------------";
+
+    return;
+}
+
+###
 
 sub job_transfer {
     my $self = shift;
@@ -440,11 +552,15 @@ sub transfer_file2db {
     my $table  = $self->recipe->destination->table;
     my $engine = $self->writer->target->engine;
 
+    hurl run => __x( "The table '{table}' does not exists!", table => $table )
+        unless $engine->table_exists($table);
+
     my $table_info = $engine->get_info($table);
     hurl run => __ 'No columns type info retrieved from database!'
         if keys %{$table_info} == 0;
 
-    $self->job_info_file2db($engine->database);
+    $self->job_info_input_file;
+    $self->job_info_output_db($table, $engine->database);
 
     $self->validate_destination;
 
@@ -452,30 +568,13 @@ sub transfer_file2db {
 
     hurl run => __x("Invalid input file specified; use '--if' or fix the source file in the recipe.") unless -f $self->reader_options->file->stringify;
 
-    hurl run => __x("The table '{table}' does not exists!",
-        table => $table) unless $engine->table_exists($table);
-
-    # Log field name
-    my $logfld = $self->recipe->tables->get_table($table)->logfield;
-    unless ($logfld) {
-        my @cols = $self->sort_hash_by_pos($table_info);
-        $logfld = shift @cols;  # that the first column is
-    }
+    my $logfld = $self->get_logfiled_name($table, $table_info);
 
     my $iter         = $self->_contents_iter; # call before record_count
     my $row_count    = 0;
     my $record_count = $self->reader->record_count;
 
-    my $start_l  = __ 'Working:';
-    my $record_l = __ 'records read:';
-    print form
-    " -----------------------------";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-                                    $start_l;
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-    $record_l,                                      $record_count;
+    $self->job_info_work($record_count);
 
     return unless $record_count;
 
@@ -495,44 +594,6 @@ sub transfer_file2db {
     return;
 }
 
-sub job_info_file2db {
-    my ($self, $database) = @_;
-
-    #-- Input
-
-    my $input_l  = __ 'Input:';
-    print form
-    " -----------------------------";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-                                  $input_l;
-
-    my $worksheet = $self->reader->worksheet
-        if $self->reader->can('worksheet');
-    $worksheet //= 'n/a';
-    my @i_l = (__ 'file:', __ 'worksheet:');
-    my @i_v = ($self->reader_options->file, $worksheet);
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-    \@i_l,                                                              \@i_v;
-
-    #-- Output
-
-    my $output_l = __ 'Output:';
-    print form
-    " -----------------------------";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-                                 $output_l;
-    my @o_l = (__ 'table:', __ 'database:');
-    my @o_v = ($self->recipe->destination->table, $database);
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-    \@o_l,                                                              \@o_v;
-
-    return;
-}
-
 sub transfer_db2db {
     my $self = shift;
 
@@ -543,7 +604,8 @@ sub transfer_db2db {
     my $src_db     = $src_engine->database;
     my $dst_db     = $dst_engine->database;
 
-    $self->job_info_db2db($src_db, $dst_db);
+    $self->job_info_input_db($src_table, $src_db);
+    $self->job_info_output_db($dst_table, $dst_db);
 
     $self->validate_destination;
 
@@ -566,26 +628,13 @@ sub transfer_db2db {
     # Log field name  XXX logfield can be missing from config?
     my $tables = $self->recipe->tables;
     my $tableo = $tables->get_table($dst_table);
-    my $logfld = $tableo->logfield;
-    unless ($logfld) {
-        my @cols = $self->sort_hash_by_pos($table_info);
-        $logfld = shift @cols;              # that the first column is
-    }
+    my $logfld = $self->get_logfiled_name($dst_table, $table_info);
 
     my $iter         = $self->_contents_iter; # call before record_count
     my $row_count    = 0;
     my $record_count = $self->reader->record_count;
 
-    my $start_l  = __ 'Working:';
-    my $record_l = __ 'records read:';
-    print form
-    " -----------------------------";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-                                    $start_l;
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-    $record_l,                                      $record_count;
+    $self->job_info_work($record_count);
 
     return unless $record_count;
 
@@ -606,59 +655,52 @@ sub transfer_db2db {
     return;
 }
 
-sub job_info_db2db {
-    my ($self, $src_db, $dst_db) = @_;
-
-    #-- Input
-
-    my $input_l  = __ 'Input:';
-    print form
-    " -----------------------------";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-                                  $input_l;
-    my @i_l = (__ 'table:', __ 'database:');
-    my @i_v = ($self->recipe->source->table, $src_db);
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-    \@i_l,                                                              \@i_v;
-
-    #-- Output
-
-    my $output_l = __ 'Output:';
-    print form
-    " -----------------------------";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-                                 $output_l;
-    my @o_l = (__ 'table:', __ 'database:');
-    my @o_v = ($self->recipe->destination->table, $dst_db);
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-    \@o_l,                                                              \@o_v;
-
-    return;
-}
-
-sub job_summary {
+sub transfer_db2file {
     my $self = shift;
 
-    #-- Summary
+    my $src_table  = $self->recipe->source->table;
+    my $src_engine = $self->reader->target->engine;
+    my $src_db     = $src_engine->database;
 
-    my $summ_l = __ 'Summary:';
-    print form
-    " -----------------------------";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-                                   $summ_l;
-    my @o_l = (__ 'records inserted:', __ 'records skipped:');
-    my @o_v = ( $self->writer->records_inserted,
-                $self->writer->records_skipped );
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-    \@o_l,                                                              \@o_v;
-    print form
-    " -----------------------------";
+    $self->job_info_input_db($src_table, $src_db);
+    $self->job_info_output_file;
+    $self->validate_destination;
+
+    hurl run => __x( "The source table '{table}' does not exists!",
+        table => $src_table )
+        unless $src_engine->table_exists($src_table);
+
+    my $table_info = $src_engine->get_info($src_table);
+    hurl run => __( 'No columns type info retrieved from database!' )
+        if keys %{$table_info} == 0;
+
+    # Log field name  XXX logfield can be missing from config?
+    my $tables = $self->recipe->tables;
+    my $tableo = $tables->get_table($src_table);
+    my $logfld = $self->get_logfiled_name($src_table, $table_info);
+
+    my $iter         = $self->_contents_iter; # call before record_count
+    my $row_count    = 0;
+    my $record_count = $self->reader->record_count;
+
+    $self->job_info_work($record_count);
+
+    return unless $record_count;
+
+    my $progress = Progress::Any->get_indicator(
+        target => $record_count,
+    );
+    while ( $iter->has_next ) {
+        $row_count++;
+        my $record = $iter->next;
+        $record    = $self->transformations($record, $table_info, $logfld);
+###        $self->writer->insert($dst_table, $record);
+        $progress->update( message => "Record $row_count|" );
+
+        #last;                   # DEBUG
+    }
+    $progress->finish;
+
     return;
 }
 
@@ -807,59 +849,69 @@ sub has_temp_field {
     return;
 }
 
+sub get_logfiled_name {
+    my ($self, $table, $table_info) = @_;
+    my $logfld = $self->recipe->tables->get_table($table)->logfield;
+    unless ($logfld) {
+        my @cols = $self->sort_hash_by_pos($table_info);
+        $logfld = shift @cols;              # this the first column is
+    }
+    return $logfld;
+}
+
 1;
 
 __END__
 
 =encoding utf8
 
-=head1 Name
+=head1 NAME
 
-=head1 Synopsis
+=head1 SYNOPSIS
 
-=head1 Description
+=head1 DESCRIPTION
 
-=head1 Interface
+=head1 INTERFACE
 
-=head2 Attributes
+=head2 ATTRIBUTES
 
-=head3 C<transfer>
+=head3 transfer
 
-=head3 C<recipe_file>
+=head3 recipe_file
 
-=head3 C<input_options>
+=head3 input_options
 
-=head3 C<output_options>
+=head3 output_options
 
-=head3 C<recipe>
+=head3 recipe
 
-=head3 C<reader_options>
+=head3 tempfields
 
-=head3 C<writer_options>
+=head3 reader_options
 
-=head3 C<reader>
+=head3 writer_options
 
-=head3 C<writer>
+=head3 reader
 
-=head3 C<plugin>
+=head3 writer
 
-=head3 C<engine>
+=head3 plugin
 
-=head3 C<info>
+=head3 info
 
-=head3 C<_trafo_types>
+=head3 _trafo_types
 
-=head3 C<_contents>
+=head3 _contents
 
-=head3 C<_contents_iter>
+=head3 _contents_iter
 
-=head2 Instance Methods
+=head2 INSTANCE METHODS
 
-=head3 C<type_split>
+=head3 type_split
 
-=head3 C<type_join>
+=head3 type_join
 
-=head3 C<type_copy>
+=head3 type_copy
 
 A method best used to cleanup columns about to be normalized.  Using
 the C<move_filtered> plug-in, the values not found in a data-source
@@ -915,33 +967,53 @@ Resulted records:
   ];
 
 
-=head3 C<type_batch>
+=head3 type_batch
 
-=head3 C<type_lookup>
+=head3 type_lookup
 
-=head3 C<build_lookupdb>
+=head3 type_lookupdb
 
-=head3 C<type_lookupdb>
+=head3 job_intro
 
-=head3 C<job_intro>
+=head3 job_info_input_file
 
-=head3 C<job_transfer>
+=head3 job_info_output_file
 
-=head3 C<transfer_file2db>
+=head3 job_info_input_db
 
-=head3 C<job_info_file2db>
+=head3 job_info_output_db
 
-=head3 C<transfer_db2db>
+=head3 job_info_work
 
-=head3 C<job_info_db2db>
+Print info about the curent job.
 
-=head3 C<job_summary>
+=head3 job_summary
 
-=head3 C<transformations>
+=head3 job_transfer
 
-Apply transformation to a record in order.
+=head3 transfer_file2db
 
-=head3 C<column_trafos>
+=head3 transfer_db2db
+
+=head3 transfer_db2file
+
+=head3 transformations
+
+Apply the three transformations to a record in order.
+
+=over
+
+=item 1. column_trafos
+
+=item 2. record_trafos
+
+=item 3. column_type_trafos
+
+See below a description of each transformation type.
+
+=back
+
+=head3 column_trafos
 
 Custom per field transformations.  This type of transformation works
 on a field at a time.  Each transformation step defined in the
@@ -961,7 +1033,7 @@ Example:
 
 This is the first type of transformation to be applied.
 
-=head3 C<record_trafos>
+=head3 record_trafos
 
 Transformations per record (row).  This type of transformation works
 on the entire current record of data.  It can be used to split a field
@@ -970,49 +1042,28 @@ fields.
 
 This is the second type of transformation to be applied.
 
-=head3 C<column_type_trafos>
+=head3 column_type_trafos
 
 Transformations per field type are used to validate the data for the
 destination type of the column.  If the data is not a valid type or
 overflows than a log entry is added.
 
-=head3 C<validate_destination>
+=head3 validate_destination
 
 Collect all destination field names and check if the destination table
-contains them, add throw an exception if not.
+contains them, throw an exception if not.
 
-=head3 C<remove_tempfields>
+=head3 remove_tempfields
 
 Remove the temporary fields from the record.
 
-=head3 C<has_temp_field>
+=head3 has_temp_field
 
 Return true if a field is in the tempfields list.
 
-=head1 Author
+=head3 get_logfiled_name
 
-Ștefan Suciu <stefan@s2i2.ro>
-
-=head1 License
-
-Copyright (c) 2014-2015 Ștefan Suciu
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Return the logfield value from the recipe configuration, or the first
+column name from the database table.
 
 =cut
