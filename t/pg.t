@@ -19,14 +19,11 @@ use App::Transfer::Reader;
 use App::Transfer::Writer;
 
 my $CLASS;
-my $user;
-my $pass;
-my $tmpdir;
-my $have_fb_driver = 1; # assume DBD::Pg is installed and so is Pg
+my $have_pg_driver = 1;     # assume DBD::Pg is installed and so is Pg
 my $live_testing   = 0;
 
 # Is DBD::Pg realy installed?
-try { require DBD::Pg; } catch { $have_fb_driver = 0; };
+try { require DBD::Pg; } catch { $have_pg_driver = 0; };
 
 BEGIN {
     $CLASS = 'App::Transfer::Engine::pg';
@@ -83,10 +80,10 @@ catch {
 
 my $uri = 'db:pg://@localhost/__transfertest__';
 DBIEngineTest->run(
-    class           => $CLASS,
+    class         => $CLASS,
     trafo_params  => [ recipe_file => $recipe_file, ],
-    target_params   => [ uri => $uri ],
-    skip_unless     => sub {
+    target_params => [ uri => $uri ],
+    skip_unless   => sub {
         my $self = shift;
         die $err if $err;
         1;

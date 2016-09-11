@@ -121,10 +121,10 @@ catch {
 
 my $uri = "db:firebird://$user:$pass\@localhost/$dbpath";
 DBIEngineTest->run(
-    class           => $CLASS,
+    class         => $CLASS,
     trafo_params  => [ recipe_file => $recipe_file, ],
     target_params => [ uri => $uri ],
-    skip_unless => sub {
+    skip_unless   => sub {
         my $self = shift;
         die $err if $err;
         return 0 unless $have_fb_driver;    # skip if no DBD::Firebird
