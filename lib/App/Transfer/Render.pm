@@ -8,7 +8,6 @@ use Moose;
 use Template;
 use Path::Tiny;
 use Try::Tiny;
-use File::ShareDir qw(dist_dir);
 use MooseX::Types::Path::Tiny qw(File Path);
 use App::Transfer::X qw(hurl);
 use Locale::TextDomain qw(App-Transfer);
@@ -44,15 +43,10 @@ has 'output_path' => (
 );
 
 has 'templ_path' => (
-    is      => 'ro',
-    isa     => Path,
-    coerce  => 1,
-    default => sub {
-        my $self = shift;
-        return dist_dir('App-Transfer')
-            ? path( dist_dir('App-Transfer'), 'templates' )
-            : path( 'share',                  'templates' );
-    },
+    is       => 'ro',
+    isa      => Path,
+    required => 1,
+    coerce   => 1,
 );
 
 sub render {

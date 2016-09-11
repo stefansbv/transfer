@@ -172,7 +172,7 @@ sub generate_recipe {
         output_file => $recipe_fn,
         data        => { r => $data },
         output_path => $output_path,
-        templ_path  => undef,
+        templ_path  => $self->config->templ_path,
     };
 
     App::Transfer::Render->new->render($args);

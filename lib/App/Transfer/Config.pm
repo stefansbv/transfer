@@ -3,14 +3,17 @@ package App::Transfer::Config;
 # ABSTRACT: Transfer configuration management
 
 use 5.010;
-use Moose;
+use utf8;
 use Path::Tiny;
+use Try::Tiny;
 use File::HomeDir;
 use Cwd;
+use File::ShareDir qw(dist_dir);
 use Locale::TextDomain qw(App-Transfer);
+use Moose;
+use MooseX::Types::Path::Tiny qw(Path File);
 use App::Transfer::X qw(hurl);
 use Config::GitLike 1.09;
-use utf8;
 
 extends 'Config::GitLike';
 
@@ -24,6 +27,33 @@ has 'log_file_name' => (
     required => 1,
     default  => sub {
         return path(getcwd, 'transfer.log')->stringify;
+    },
+);
+
+has 'sharedir' => (
+    is      => 'ro',
+    isa     => Path,
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        my $dir;
+        try {
+            $dir = dist_dir('App-Transfer');
+        }
+        catch {
+            $dir = 'share';
+        };
+        return path $dir;
+    },
+);
+
+has 'templ_path' => (
+    is      => 'ro',
+    isa     => Path,
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        return path( $self->sharedir, 'templates' );
     },
 );
 
@@ -86,6 +116,7 @@ sub initial_key {
     my $key = shift->original_key(shift);
     return ref $key ? $key->[0] : $key;
 }
+
 
 __PACKAGE__->meta->make_immutable;
 no Moose;

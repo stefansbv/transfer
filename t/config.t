@@ -77,4 +77,7 @@ is_deeply $config->get_section(section => 'target.name2'), {
     uri => 'db:firebird://user:@localhost/name2'
 }, 'get_section("target.name2") should work';
 
+like $config->sharedir, qr/share/, 'sharedir';
+like $config->templ_path, qr/templates/, 'templates';
+
 done_testing;
