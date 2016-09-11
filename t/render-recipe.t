@@ -3,16 +3,10 @@
 use 5.010;
 use strict;
 use warnings;
-use Test::More;
-use Test::Exception;
+use Test::Most;
 use Path::Tiny;
 
 use_ok('App::Transfer::Render');
-
-is( App::Transfer::Render->get_template_for('recipe'),
-    'recipe.tt', 'template for recipe' );
-
-dies_ok { Tpda3::Devel::Render->get_template_for('fail-test') };
 
 my $data = {
     copy_author => 'user_name',
@@ -28,14 +22,50 @@ my $data = {
     order_field => 'field',
 };
 
-my $args = {
-    type        => 'recipe',
-    output_file => 'test-render-recipe.conf',
-    data        => { r => $data },
-    output_path => path('t', 'output'),
-    templ_path  => path( 'share', 'templates' ),
+subtest 'Unknown type' => sub {
+    my $args = {
+        type        => 'unknown',
+        data        => { r => $data },
+        output_file => 'test-render-recipe.conf',
+        output_path => path( 't', 'output' ),
+        templ_path  => path( 'share', 'templates' ),
+    };
+
+    ok my $atr = App::Transfer::Render->new($args), 'render instance';
+
+    throws_ok { $atr->get_template } 'App::Transfer::X',
+        'should die on unknown template type';
 };
 
-ok( App::Transfer::Render->new->render($args), 'render recipe file' );
+subtest 'Undefined type' => sub {
+    my $args = {
+        type        => '',
+        data        => { r => $data },
+        output_file => 'test-render-recipe.conf',
+        output_path => path( 't', 'output' ),
+        templ_path  => path( 'share', 'templates' ),
+    };
+
+    ok my $atr = App::Transfer::Render->new($args), 'render instance';
+
+    throws_ok { $atr->get_template } 'App::Transfer::X',
+        'should die on unknown template type';
+};
+
+subtest 'Default type: recipe' => sub {
+    my $args = {
+        data        => { r => $data },
+        output_file => 'test-render-recipe.conf',
+        output_path => path( 't', 'output' ),
+        templ_path  => path( 'share', 'templates' ),
+    };
+
+    ok my $atr = App::Transfer::Render->new($args), 'render instance';
+
+    is $atr->get_template, 'recipe.tt', 'template for recipe';
+
+    is $atr->render, path( $args->{output_path}, $args->{output_file} )->stringify,
+        'render recipe file';
+};
 
 done_testing;
