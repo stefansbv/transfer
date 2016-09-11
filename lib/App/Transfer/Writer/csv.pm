@@ -43,6 +43,7 @@ has 'csv' => (
 
 has 'csv_fh' => (
     is       => 'ro',
+    isa      => 'FileHandle',
     lazy     => 1,
     init_arg => undef,
     default  => sub {
@@ -59,6 +60,7 @@ has 'csv_fh' => (
 );
 
 has '_headers' => (
+    is       => 'ro',
     isa      => 'ArrayRef',
     traits   => ['Array'],
     init_arg => undef,
