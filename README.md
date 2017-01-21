@@ -1,9 +1,9 @@
 App/Transfer
 ============
 Ștefan Suciu
-2015-03-02
+2016-09-11
 
-Version: 0.18
+Version: 0.30
 
 Transform and transfer data between files and databases using recipes.
 

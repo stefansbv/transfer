@@ -72,7 +72,7 @@ has 'tempfields' => (
     },
     handles  => {
         all_temp_fields => 'elements',
-        find_field      => 'first',
+        find_temp_field => 'first',
     },
 );
 
@@ -845,7 +845,7 @@ sub remove_tempfields {
 
 sub has_temp_field {
     my ($self, $field) = @_;
-    return $self->find_field( sub { $_ eq $field } );
+    return $self->find_temp_field( sub { $_ eq $field } );
     return;
 }
 
