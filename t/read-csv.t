@@ -65,7 +65,7 @@ subtest 'CSV with lc header' => sub {
     is $reader->input_file, 't/siruta-lower.csv', 'csv file name';
     throws_ok { $reader->get_data }
         qr/\QHeader map <--> CSV file header inconsistency/,
-        'Should get an exception for header map - file heder inconsistency';
+        'Should get an exception for header map - file header inconsistency';
 };
 
 done_testing;
