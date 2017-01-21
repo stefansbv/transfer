@@ -99,21 +99,23 @@ sub _build_contents {
         $header->{$field} = $field;
     }
 
+    # Validate field list
+    my @not_found = ();
+    foreach my $col ( keys % {$header} ) {
+        unless ( any { $col eq $_ } @cols ) {
+            push @not_found, $col;
+        }
+    }
+    hurl field_info => __x(
+        'Header map <--> CSV file header inconsistency. Some columns where not found :"{list}"',
+        list  => join( ', ', @not_found ),
+    ) if scalar @not_found;
+
+    # Get the data
     while ( $csv->getline($fh) ) {
         my $record = {};
         foreach my $col (@cols) {
-            if (exists $header->{$col}) {
-                $record->{ $header->{$col} } = $row->{$col};
-            }
-            else {
-                hurl {
-                    ident   => 'csv',
-                    message => __x(
-                        'Header map <--> CSV file header inconsistency. Column "{col}" not found.',
-                        col => $col,
-                    )
-                };
-            }
+            $record->{ $header->{$col} } = $row->{$col};
         }
         push @records, $record;
     }
