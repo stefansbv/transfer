@@ -94,42 +94,6 @@ has 'target' => (
     },
 );
 
-has '_column_pos' => (
-    is       => 'ro',
-    isa      => 'HashRef',
-    traits   => ['Hash'],
-    lazy     => 1,
-    init_arg => undef,
-    default => sub {
-        my $self = shift;
-        my $pos = $self->recipe_data->{config}{column_pos};
-        return $pos;
-    },
-    handles  => {
-        get_column_pos => 'get',
-    },
-);
-
-has '_ordered_cols' => (
-    is       => 'ro',
-    isa      => 'ArrayRef',
-    traits   => ['Array'],
-    lazy     => 1,
-    init_arg => undef,
-    default => sub {
-        my $self = shift;
-        my $pos = $self->recipe_data->{config}{column_pos};
-        my @ord;
-        foreach my $key ( sort { $pos->{$a} cmp $pos->{$b} } keys %{$pos} ) {
-            push @ord, $key;
-        }
-        return \@ord;
-    },
-    handles  => {
-        columns_pos => 'elements',
-    },
-);
-
 #-- Tables
 
 has 'tables' => (

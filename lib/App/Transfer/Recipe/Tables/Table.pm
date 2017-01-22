@@ -48,6 +48,13 @@ sub _build_filter {
     return $data;
 }
 
+has 'columns' => (
+    is       => 'ro',
+    isa      => 'HashRef',
+    lazy     => 1,
+    default  => sub { {} },
+);
+
 has 'headermap' => (
     is       => 'ro',
     isa      => 'HashRef',
@@ -145,6 +152,30 @@ recipe configuration.
 
 The C<headermap> subsection maps the header columns of the input
 (source) with the header columns of the output (destination).
+
+=head3 C<columns>
+
+A hash reference representing the C<columns> subsection of a table
+recipe configuration.  It is optional and is only for recipes with
+file type destinations.
+
+For example:
+
+    <table table_name>
+      <columns>
+        <col_name>
+          pos             = 1
+          name            = col_name
+          type            = integer
+          length          = 2
+          prec            =
+          scale           =
+        </col_name>
+        ...
+      </columns>
+      <headermap>
+      ...
+    </table>
 
 =head1 Author
 
