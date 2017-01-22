@@ -664,7 +664,7 @@ sub transfer_db2file {
 
     $self->job_info_input_db($src_table, $src_db);
     $self->job_info_output_file;
-    $self->validate_destination;
+###    $self->validate_destination;
 
     hurl run => __x( "The source table '{table}' does not exists!",
         table => $src_table )
@@ -704,6 +704,48 @@ sub transfer_db2file {
     return;
 }
 
+sub transfer_file2file {
+    my $self = shift;
+
+    $self->job_info_input_file;
+    $self->job_info_output_file;
+
+### $self->validate_destination;
+
+    hurl run => __x("No input file specified; use '--if' or set the source file in the recipe.") unless $self->reader_options->file;
+
+    hurl run => __x("No output file specified; use '--of' or set the destination file in the recipe.") unless $self->writer_options->file;
+
+    hurl run => __x("Invalid input file specified; use '--if' or fix the source file in the recipe.") unless -f $self->reader_options->file->stringify;
+
+    my $logfld = $self->get_logfiled_name();
+
+    my $iter         = $self->_contents_iter; # call before record_count
+    my $row_count    = 0;
+    my $record_count = $self->reader->record_count;
+
+    $self->job_info_work($record_count);
+
+    return unless $record_count;
+
+    my $table_info = {};
+
+    my $progress = Progress::Any->get_indicator(
+        target => $record_count,
+    );
+    while ( $iter->has_next ) {
+        $row_count++;
+        my $record = $iter->next;
+        $record    = $self->transformations($record, $table_info, $logfld);
+        $self->writer->insert(undef, $record);
+        $progress->update( message => "Record $row_count|" );
+
+        #last;                                # DEBUG
+    }
+    $progress->finish;
+    return;
+}
+
 sub transformations {
     my ($self, $record, $info, $logfld) = @_;
 
@@ -713,7 +755,7 @@ sub transformations {
 
     $record = $self->column_trafos( $record, $info, $logstr );
     $record = $self->record_trafos( $record, $info, $logstr );
-    $record = $self->column_type_trafos( $record, $info, $logstr );
+###    $record = $self->column_type_trafos( $record, $info, $logstr );
 
     $self->remove_tempfields($record);
 
@@ -851,6 +893,7 @@ sub has_temp_field {
 
 sub get_logfiled_name {
     my ($self, $table, $table_info) = @_;
+    return "unknown" unless $table_info;
     my $logfld = $self->recipe->tables->get_table($table)->logfield;
     unless ($logfld) {
         my @cols = $self->sort_hash_by_pos($table_info);
@@ -996,6 +1039,8 @@ Print info about the curent job.
 =head3 transfer_db2db
 
 =head3 transfer_db2file
+
+=head3 transfer_file2file
 
 =head3 transformations
 

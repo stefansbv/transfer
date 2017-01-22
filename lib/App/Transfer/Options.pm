@@ -64,7 +64,7 @@ has uri_str => (
 
 has 'file' => (
     is      => 'ro',
-    isa     => File,
+    isa     => Path,
     lazy    => 1,
     coerce  => 1,
     builder => '_build_file_options',

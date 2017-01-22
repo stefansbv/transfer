@@ -78,14 +78,14 @@ sub _build_headers {
     # Header is the first row
     my @headers = ();
     foreach my $name ( $self->recipe->tables->all_table_names ) {
-        my $header    = $self->recipe->tables->get_table($name)->headermap;
+        my @header    = $self->recipe->columns_pos;
         my $skip_rows = $self->recipe->tables->get_table($name)->skiprows;
         my $tempfield = $self->recipe->tables->get_table($name)->tempfield;
         my $row_count = 0;
         push @headers, {
             table  => $name,
             row    => $row_count,
-            header => $header,
+            header => \@header,
             skip   => $skip_rows,
             temp   => $tempfield,
         };
@@ -97,8 +97,9 @@ sub insert_header {
     my $self   = shift;
     my $csv_o  = $self->csv;
     my $out_fh = $self->csv_fh;
-    my @header = values %{ $self->get_header(0)->{header} };
-    my $status = $csv_o->print( $out_fh, \@header );
+    my $header = $self->get_header(0)->{header};
+    $csv_o->column_names($header);
+    my $status = $csv_o->print( $out_fh, $header );
     $self->emit_error if !$status;
     return;
 }
@@ -107,7 +108,7 @@ sub insert {
     my ( $self, $table, $row ) = @_;
     my $csv_o  = $self->csv;
     my $out_fh = $self->csv_fh;
-    my $status = $csv_o->print( $out_fh, $row );
+    my $status = $csv_o->print_hr( $out_fh, $row );
     if (!$status) {
         $self->emit_error;
         $self->inc_skipped;

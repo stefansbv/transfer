@@ -149,6 +149,23 @@ subtest 'Config section: from db to excel' => sub {
     is $recipe->destination->file, 't/siruta.csv', 'has a file';
 };
 
+subtest 'Config section: from db to csv' => sub {
+    my $recipe_file = path( 't', 'recipes', 'recipe4options-1.conf' );
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
+    isa_ok $recipe->source, 'App::Transfer::Recipe::Src';
+    is $recipe->source->reader, 'db', 'has reader';
+    is $recipe->source->target, 'siruta', 'has target';
+    is $recipe->source->table, 'siruta', 'has table';
+    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
+    is $recipe->destination->writer, 'csv', 'has writer';
+    is $recipe->destination->file, 't/siruta.csv', 'has a file';
+    ok my @cols = $recipe->columns_pos, 'get columns list';
+    cmp_deeply \@cols, [qw(cod_jud denj fsj mnemonic zona)], 'columns list';
+    is $recipe->get_column_pos('mnemonic'), 4, '"mnemonic" column position';
+};
+
 #-- Tables section
 
 my $hmap = { id => 'id', denumire => 'denumire' };

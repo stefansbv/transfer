@@ -94,6 +94,42 @@ has 'target' => (
     },
 );
 
+has '_column_pos' => (
+    is       => 'ro',
+    isa      => 'HashRef',
+    traits   => ['Hash'],
+    lazy     => 1,
+    init_arg => undef,
+    default => sub {
+        my $self = shift;
+        my $pos = $self->recipe_data->{config}{column_pos};
+        return $pos;
+    },
+    handles  => {
+        get_column_pos => 'get',
+    },
+);
+
+has '_ordered_cols' => (
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    traits   => ['Array'],
+    lazy     => 1,
+    init_arg => undef,
+    default => sub {
+        my $self = shift;
+        my $pos = $self->recipe_data->{config}{column_pos};
+        my @ord;
+        foreach my $key ( sort { $pos->{$a} cmp $pos->{$b} } keys %{$pos} ) {
+            push @ord, $key;
+        }
+        return \@ord;
+    },
+    handles  => {
+        columns_pos => 'elements',
+    },
+);
+
 #-- Tables
 
 has 'tables' => (
@@ -143,7 +179,7 @@ has 'in_type' => (
         my $self = shift;
         my $reader = $self->source->reader;
         my $prefix = $reader;
-        $prefix = 'file' if $reader eq 'excel' or $reader eq 'csv';
+        $prefix = 'file' if $reader eq 'excel' or $reader eq 'csv' or $reader eq 'dbf';
         return $prefix;
     },
 );
@@ -156,7 +192,7 @@ has 'out_type' => (
         my $self = shift;
         my $writer = $self->destination->writer;
         my $sufix  = $writer;
-        $sufix  = 'file' if $writer eq 'excel' or $writer eq 'csv';
+        $sufix  = 'file' if $writer eq 'excel' or $writer eq 'csv' or $writer eq 'dbf';
         return $sufix;
     },
 );

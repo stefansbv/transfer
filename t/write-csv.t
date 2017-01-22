@@ -20,7 +20,7 @@ BEGIN {
 my $output_file = 't/output.csv';
 
 subtest 'CSV OK' => sub {
-    ok my $recipe_file = path( 't', 'recipes', 'recipe-csv.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-csv-write.conf' ),
         "recipe file";
     my $transfer = App::Transfer->new;
     my $options_href = { output_file => $output_file, };
@@ -41,8 +41,21 @@ subtest 'CSV OK' => sub {
         } ), 'new writer csv object';
     is $writer->output_file, $output_file, 'csv file name';
     lives_ok { $writer->insert_header } 'insert header';
+    my $row = {
+        codp   => 0,
+        denloc => "JUDETUL ALBA",
+        fsj    => 1,
+        fsl    => 100000000000,
+        jud    => 1,
+        med    => 0,
+        niv    => 1,
+        rang   => "",
+        sirsup => 1,
+        siruta => 10,
+        tip    => 40,
+    };
     lives_ok {
-        $writer->insert( 'table', [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ] )
+        $writer->insert( 'table', $row )
     } 'insert row';
     lives_ok { $writer->finish } 'finish';
     is $writer->records_inserted, 1, 'records inserted: 1';
@@ -50,6 +63,6 @@ subtest 'CSV OK' => sub {
 
 };
 
-unlink $output_file;
+#unlink $output_file;
 
 done_testing;
