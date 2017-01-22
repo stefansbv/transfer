@@ -63,6 +63,6 @@ subtest 'CSV OK' => sub {
 
 };
 
-#unlink $output_file;
+unlink $output_file;
 
 done_testing;

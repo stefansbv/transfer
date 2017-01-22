@@ -82,10 +82,10 @@ subtest 'Recipe - minimum' => sub {
     is $recipe->header->description, 'Does this and that...', 'description';
 
     # Config
-    isa_ok $recipe->source, 'App::Transfer::Recipe::Src';
+    isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipe source';
     is $recipe->source->reader, 'excel', 'has reader excel';
     is $recipe->source->file, 't/siruta.xls', 'has a file';
-    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
+    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
     is $recipe->destination->writer, 'db', 'has writer db';
     is $recipe->destination->target, 'siruta', 'has target';
     is $recipe->destination->table, 'siruta', 'has table';
@@ -93,9 +93,8 @@ subtest 'Recipe - minimum' => sub {
 
     # Tables
     foreach my $name ( $recipe->tables->all_table_names ) {
-        ok my $table = $recipe->tables->has_table($name), 'has table name';
-        is $table, $name, "got table name '$name'";
-        ok my $recipe_table = $recipe->tables->get_table($table), 'table.';
+        is $recipe->tables->has_table($name), $name, "has table name '$name'";
+        ok my $recipe_table = $recipe->tables->get_table($name), 'table.';
         ok $recipe_table->description, 'table desc.';
         ok defined $recipe_table->skiprows, 'table skip rows';
         ok $recipe_table->logfield, 'log field name';
@@ -111,13 +110,13 @@ subtest 'Config section: from excel to db' => sub {
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
-    isa_ok $recipe->source, 'App::Transfer::Recipe::Src';
+    isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipe source';
     is $recipe->source->reader, 'excel', 'has reader excel';
     is $recipe->source->file, 't/siruta.xls', 'has a file';
     is $recipe->source->target, undef, 'has no target';
     is $recipe->source->table, undef, 'has no table';
     is $recipe->source->date_format, 'dmy', 'has date format';
-    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
+    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
     is $recipe->destination->writer, 'db', 'has writer db';
     is $recipe->destination->file, undef, 'has no file';
     is $recipe->destination->target, 'siruta', 'has target';
@@ -129,7 +128,7 @@ subtest 'Config section: from excel to db - no file' => sub {
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
-    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
+    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
     is $recipe->destination->writer, 'db', 'has writer db';
     is $recipe->destination->target, 'siruta', 'has target';
     is $recipe->destination->table, 'siruta', 'has table';
@@ -140,11 +139,11 @@ subtest 'Config section: from db to excel' => sub {
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
-    isa_ok $recipe->source, 'App::Transfer::Recipe::Src';
+    isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipe source';
     is $recipe->source->reader, 'db', 'has reader';
     is $recipe->source->target, 'siruta', 'has target';
     is $recipe->source->table, 'siruta', 'has table';
-    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
+    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
     is $recipe->destination->writer, 'csv', 'has writer';
     is $recipe->destination->file, 't/siruta.csv', 'has a file';
 };
@@ -154,16 +153,13 @@ subtest 'Config section: from db to csv' => sub {
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
-    isa_ok $recipe->source, 'App::Transfer::Recipe::Src';
+    isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipesource';
     is $recipe->source->reader, 'db', 'has reader';
     is $recipe->source->target, 'siruta', 'has target';
     is $recipe->source->table, 'siruta', 'has table';
-    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst';
+    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
     is $recipe->destination->writer, 'csv', 'has writer';
     is $recipe->destination->file, 't/siruta.csv', 'has a file';
-    ok my @cols = $recipe->columns_pos, 'get columns list';
-    cmp_deeply \@cols, [qw(cod_jud denj fsj mnemonic zona)], 'columns list';
-    is $recipe->get_column_pos('mnemonic'), 4, '"mnemonic" column position';
 };
 
 #-- Tables section
@@ -189,7 +185,7 @@ subtest 'Table section maximum config' => sub {
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
 
-    ok my $table = $recipe->tables->has_table('test_table'), 'has table name';
+    is $recipe->tables->has_table('test_table'), 'test_table', 'has table name';
     ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
     ok $recipe_table->description, 'table desc.';
     ok defined $recipe_table->skiprows, 'table skip rows';
@@ -202,6 +198,28 @@ subtest 'Table section maximum config' => sub {
     is_deeply $recipe_table->filter, $expected, 'table filter';
     is_deeply $recipe_table->headermap, $hmap, 'headermap';
     is_deeply $recipe_table->tempfield, [ 'seria', 'factura' ], 'tempfields';
+
+    # Columns
+    my $info = {
+        denumire => {
+            length => 10,
+            name   => "denumire",
+            pos    => 2,
+            prec   => "",
+            scale  => "",
+            type   => "varchar",
+        },
+        id => {
+            length => 2,
+            name   => "id",
+            pos    => 1,
+            prec   => "",
+            scale  => "",
+            type   => "integer"
+        },
+    };
+    ok my $cols = $recipe_table->columns, 'get columns list';
+    cmp_deeply $cols, $info, 'columns info';
 };
 
 subtest 'Table section medium config' => sub {
