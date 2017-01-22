@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: App-Transfer 0.001\n"
 "Report-Msgid-Bugs-To: stefan@s2i2.ro\n"
 "POT-Creation-Date: 2015-02-27 10:57+0200\n"
-"PO-Revision-Date: 2015-02-27 11:02+0200\n"
+"PO-Revision-Date: 2017-01-22 16:23+0200\n"
 "Last-Translator: Ștefan Suciu <stefan@s2i2.ro>\n"
 "Language-Team: none\n"
 "Language: ro\n"
@@ -17,11 +17,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Poedit 1.7.3\n"
+"X-Generator: Poedit 1.8.11\n"
 
 #: lib/App/Transfer/Config.pm:36
 msgid "Could not determine home directory"
-msgstr ""
+msgstr "Nu am putut determina locația directorului acasă"
 
 #: lib/App/Transfer/Reader.pm:62
 #, perl-brace-format
@@ -112,13 +112,12 @@ msgstr ""
 "rețetă"
 
 #: lib/App/Transfer/Transform.pm:391
-#, fuzzy
 msgid ""
 "Invalid input file specified; use '--if' or fix the source file in the "
 "recipe."
 msgstr ""
 "Fișier de intrare nespecificat; folosiți '--if' sau setați fișierul sursă în "
-"rețetă"
+"rețetă."
 
 #: lib/App/Transfer/Transform.pm:393
 #, perl-brace-format
