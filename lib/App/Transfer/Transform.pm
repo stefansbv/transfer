@@ -659,25 +659,25 @@ sub transfer_db2file {
     my $self = shift;
 
     my $src_table  = $self->recipe->source->table;
+    my $dst_table  = $self->recipe->destination->table;
     my $src_engine = $self->reader->target->engine;
     my $src_db     = $src_engine->database;
 
     $self->job_info_input_db($src_table, $src_db);
     $self->job_info_output_file;
-###    $self->validate_destination;
 
     hurl run => __x( "The source table '{table}' does not exists!",
         table => $src_table )
         unless $src_engine->table_exists($src_table);
 
-    my $table_info = $src_engine->get_info($src_table);
+    my $src_table_info = $src_engine->get_info($src_table);
+    my $dst_table_info = $self->recipe->tables->get_table($dst_table)->columns;
+
     hurl run => __( 'No columns type info retrieved from database!' )
-        if keys %{$table_info} == 0;
+        if keys %{$src_table_info} == 0;
 
     # Log field name  XXX logfield can be missing from config?
-    my $tables = $self->recipe->tables;
-    my $tableo = $tables->get_table($src_table);
-    my $logfld = $self->get_logfiled_name($src_table, $table_info);
+    my $logfld = $self->get_logfiled_name($src_table, $src_table_info);
 
     my $iter         = $self->_contents_iter; # call before record_count
     my $row_count    = 0;
@@ -687,13 +687,15 @@ sub transfer_db2file {
 
     return unless $record_count;
 
+    $self->writer->insert_header;
+
     my $progress = Progress::Any->get_indicator(
         target => $record_count,
     );
     while ( $iter->has_next ) {
         $row_count++;
         my $record = $iter->next;
-        $record    = $self->transformations($record, $table_info, $logfld);
+        $record    = $self->transformations($record, $dst_table_info, $logfld);
         $self->writer->insert(undef, $record);
         $progress->update( message => "Record $row_count|" );
 
@@ -707,10 +709,10 @@ sub transfer_db2file {
 sub transfer_file2file {
     my $self = shift;
 
+    my $dst_table = $self->recipe->destination->table;
+
     $self->job_info_input_file;
     $self->job_info_output_file;
-
-### $self->validate_destination;
 
     hurl run => __x("No input file specified; use '--if' or set the source file in the recipe.") unless $self->reader_options->file;
 
@@ -728,7 +730,9 @@ sub transfer_file2file {
 
     return unless $record_count;
 
-    my $table_info = {};
+    my $dst_table_info = $self->recipe->tables->get_table($dst_table)->columns;
+
+    $self->writer->insert_header;
 
     my $progress = Progress::Any->get_indicator(
         target => $record_count,
@@ -736,7 +740,7 @@ sub transfer_file2file {
     while ( $iter->has_next ) {
         $row_count++;
         my $record = $iter->next;
-        $record    = $self->transformations($record, $table_info, $logfld);
+        $record    = $self->transformations($record, $dst_table_info, $logfld);
         $self->writer->insert(undef, $record);
         $progress->update( message => "Record $row_count|" );
 
