@@ -12,6 +12,7 @@ use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
 extends 'App::Transfer::Writer';
+with    'App::Transfer::Role::Utils';
 
 has 'output_file' => (
     is       => 'ro',
@@ -78,14 +79,15 @@ sub _build_headers {
     # Header is the first row
     my @headers = ();
     foreach my $name ( $self->recipe->tables->all_table_names ) {
-        my @header    = $self->recipe->columns_pos;
         my $skip_rows = $self->recipe->tables->get_table($name)->skiprows;
         my $tempfield = $self->recipe->tables->get_table($name)->tempfield;
         my $row_count = 0;
+        my $columns = $self->recipe->tables->get_table($name)->columns;
+        my @cols    = $self->sort_hash_by_pos($columns);
         push @headers, {
             table  => $name,
             row    => $row_count,
-            header => \@header,
+            header => \@cols,
             skip   => $skip_rows,
             temp   => $tempfield,
         };
