@@ -456,7 +456,7 @@ sub job_info_input_db {
     my ($self, $src_table, $src_db) = @_;
 
     my $input_l  = __ 'Input:';
-    print for m" -----------------------------";
+    print form " -----------------------------";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
        $input_l;
@@ -694,7 +694,7 @@ sub transfer_db2file {
         $row_count++;
         my $record = $iter->next;
         $record    = $self->transformations($record, $table_info, $logfld);
-###        $self->writer->insert($dst_table, $record);
+        $self->writer->insert(undef, $record);
         $progress->update( message => "Record $row_count|" );
 
         #last;                   # DEBUG
@@ -755,7 +755,7 @@ sub transformations {
 
     $record = $self->column_trafos( $record, $info, $logstr );
     $record = $self->record_trafos( $record, $info, $logstr );
-###    $record = $self->column_type_trafos( $record, $info, $logstr );
+    $record = $self->column_type_trafos( $record, $info, $logstr );
 
     $self->remove_tempfields($record);
 
@@ -892,13 +892,16 @@ sub has_temp_field {
 }
 
 sub get_logfiled_name {
-    my ($self, $table, $table_info) = @_;
-    return "unknown" unless $table_info;
-    my $logfld = $self->recipe->tables->get_table($table)->logfield;
-    unless ($logfld) {
-        my @cols = $self->sort_hash_by_pos($table_info);
-        $logfld = shift @cols;              # this the first column is
+    my ( $self, $table, $table_info ) = @_;
+    my $logfld;
+    if ($table) {
+        $logfld = $self->recipe->tables->get_table($table)->logfield;
     }
+    if ( !$logfld and $table_info ) {
+        my @cols = $self->sort_hash_by_pos($table_info);
+        $logfld = shift @cols;    # this the first column is
+    }
+    $logfld //= '?';
     return $logfld;
 }
 
