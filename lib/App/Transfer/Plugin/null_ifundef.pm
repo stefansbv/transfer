@@ -26,13 +26,13 @@ __END__
 
 =head1 Name
 
-App::Transfer::Plugin::null_ifzero - Transfer plugin: 'null_ifzero'
+App::Transfer::Plugin::null_ifundef - Transfer plugin: 'null_ifundef'
 
 =head1 Interface
 
 =head2 Instance Methods
 
-=head3 C<null_ifzero>
+=head3 C<null_ifundef>
 
 Parameters:
 
@@ -40,13 +40,11 @@ Parameters:
 
 =item C<$logstr> log string
 
-=item C<$field>  field name
-
 =item C<$text>   field value
 
 =back
 
-The C<null_ifzero> method return undef for a value == 0 (zero).
+The C<null_ifundef> method return undef for a value == 0 (zero).
 Otherwise returns C<$text>.
 
 =cut

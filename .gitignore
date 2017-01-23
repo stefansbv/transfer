@@ -20,3 +20,4 @@ t/output.csv
 *.html
 *.sql
 LocaleData/
+examples/bipolar-new.csv

@@ -43,6 +43,8 @@ Parameters:
 
 =item C<$text>   field value
 
+=item C<$len>    field length
+
 =back
 
 The C<no_space> method remove all space chars (regex: \s+) and returns

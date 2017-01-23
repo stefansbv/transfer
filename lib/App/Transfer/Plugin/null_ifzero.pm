@@ -40,8 +40,6 @@ Parameters:
 
 =item C<$logstr> log string
 
-=item C<$field>  field name
-
 =item C<$text>   field value
 
 =back

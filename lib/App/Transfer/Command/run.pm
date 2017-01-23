@@ -29,7 +29,7 @@ option 'input_file' => (
     coerce        => 1,
     cmd_flag      => 'in-file',
     cmd_aliases   => [qw(if)],
-    documentation => q[The input file (xls | csv).],
+    documentation => q[The input file (xls|csv|dbf).],
 );
 
 option 'output_file' => (
@@ -39,7 +39,7 @@ option 'output_file' => (
     coerce        => 1,
     cmd_flag      => 'out-file',
     cmd_aliases   => [qw(of)],
-    documentation => q[The output file (xls | csv).],
+    documentation => q[The output file (xls|csv|dbf).],
 );
 
 option 'input_target' => (
