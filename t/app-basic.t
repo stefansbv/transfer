@@ -65,4 +65,20 @@ subtest 'Command "run" without options' => sub {
     );
 };
 
+# Command: new
+
+subtest 'Command "new" with full options' => sub {
+    MooseX::App::ParsedArgv->new( argv => [qw(new --verbose t/output/recipe-new.conf --itb siruta --otb siruta --itg name1 --otg name2)] );
+    my $app = App::Transfer->new_with_command();
+    isa_ok( $app, 'App::Transfer::Command::new' );
+    is( $app->dryrun, undef, 'Option "--dryrun" is not set' );
+    is( $app->verbose, 1, 'Option "--verbose" is set' );
+    is( $app->recipe, 't/output/recipe-new.conf', 'Parameter "recipe" is set' );
+    is( $app->input_table, 'siruta', 'Option "--itb" is set');
+    is( $app->output_table, 'siruta', 'Option "--otb" is set');
+    is( $app->input_target, 'name1', 'Option "--itg" is set');
+    is( $app->output_target, 'name2', 'Option "--otg" is set');
+};
+
+
 done_testing;
