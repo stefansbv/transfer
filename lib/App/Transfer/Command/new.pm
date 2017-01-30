@@ -5,6 +5,7 @@ package App::Transfer::Command::new;
 use 5.010001;
 use utf8;
 use MooseX::App::Command;
+use MooseX::Types::Path::Tiny qw(Path File);
 use Moose::Util::TypeConstraints;
 use Path::Tiny qw[cwd path];
 use File::HomeDir;
@@ -17,6 +18,14 @@ use App::Transfer::Render;
 use namespace::autoclean;
 
 extends qw(App::Transfer);
+
+parameter 'recipe' => (
+    is            => 'ro',
+    isa           => Path,
+    required      => 0,
+    coerce        => 1,
+    documentation => q[The new recipe file.],
+);
 
 option 'input_table' => (
     is            => 'ro',
@@ -115,20 +124,18 @@ sub execute {
 sub generate_recipe {
     my ($self, $opts) = @_;
 
-    print "Generating recipe...\r";
+    print "\nGenerating recipe...\r";
 
     my ($user_name, $user_email) = $self->get_gitconfig;
 
     my $table       = $self->input_table;
-    my $recipe_fn   = "${table}.recipe";
+    my $recipe_fn   = $self->recipe->stringify || "recipe-${table}.conf";
     my $output_path = cwd;
 
     if ( -f path($output_path, $recipe_fn) ) {
-        print "Creating recipe...skipped\n";
+        print "Generating recipe... skipped\n";
         return;
     }
-
-    # use Data::Dump; dd $args;
 
     my $src_engine = $self->src_target->engine;
     my $dst_engine = $self->dst_target->engine;
@@ -143,15 +150,6 @@ sub generate_recipe {
     my @l_fields = $lc->get_Lonly;           # TODO: compare in/out fields
     my @r_fields = $lc->get_Ronly;
     my @columns  = $lc->get_intersection;
-
-    # use Data::Printer;
-    # say "Left:";
-    # p @l_fields;
-    # say "Right:";
-    # p @r_fields;
-
-    # say "Common:";
-    # p @columns;
 
     my $data = {
         copy_author => $user_name,
@@ -170,14 +168,14 @@ sub generate_recipe {
     my $args = {
         type        => 'recipe',
         output_file => $recipe_fn,
-        data        => { r => $data },
+        recipe_data => { r => $data },
         output_path => $output_path,
         templ_path  => $self->config->templ_path,
     };
 
-    App::Transfer::Render->new->render($args);
+    App::Transfer::Render->new($args)->render;
 
-    print "Generating recipe...done\n";
+    print "Generating recipe... done\n";
 
     return;
 }

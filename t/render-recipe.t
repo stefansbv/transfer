@@ -25,7 +25,7 @@ my $data = {
 subtest 'Unknown type' => sub {
     my $args = {
         type        => 'unknown',
-        data        => { r => $data },
+        recipe_data => { r => $data },
         output_file => 'test-render-recipe.conf',
         output_path => path( 't', 'output' ),
         templ_path  => path( 'share', 'templates' ),
@@ -40,7 +40,7 @@ subtest 'Unknown type' => sub {
 subtest 'Undefined type' => sub {
     my $args = {
         type        => '',
-        data        => { r => $data },
+        recipe_data => { r => $data },
         output_file => 'test-render-recipe.conf',
         output_path => path( 't', 'output' ),
         templ_path  => path( 'share', 'templates' ),
@@ -54,7 +54,7 @@ subtest 'Undefined type' => sub {
 
 subtest 'Default type: recipe' => sub {
     my $args = {
-        data        => { r => $data },
+        recipe_data => { r => $data },
         output_file => 'test-render-recipe.conf',
         output_path => path( 't', 'output' ),
         templ_path  => path( 'share', 'templates' ),

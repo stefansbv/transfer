@@ -21,7 +21,7 @@ has 'type' => (
     },
 );
 
-has 'data' => (
+has 'recipe_data' => (
     is       => 'ro',
     isa      => 'HashRef',
     required => 1,
@@ -64,11 +64,11 @@ sub render {
     };
 
     my $tt = Template->new(
-        INCLUDE_PATH => $self->templ_path,
+        INCLUDE_PATH => $self->templ_path->stringify,
         OUTPUT_PATH  => $self->output_path->stringify,
     );
 
-    $tt->process( $template, $self->data, $output_file, binmode => ':utf8' )
+    $tt->process( $template, $self->recipe_data, $output_file, binmode => ':utf8' )
         || hurl {
             ident => 'render',
                 exitval => 1,
@@ -97,6 +97,8 @@ sub template_type_error {
             message => __x "Template error, unknown type: '{type}'", type => $type,
         };
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;
 
