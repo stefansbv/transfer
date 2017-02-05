@@ -78,6 +78,14 @@ sub get_info {
 
     hurl "The 'table' parameter is required for 'get_info'" unless $table;
 
+    my ($schema_name, $table_name);
+    if ( $table =~ m{\.} ) {
+        ($schema_name, $table_name) = split /[.]/, $table;
+    }
+    else {
+        $table_name = $table;
+    }
+
     my $sql = qq( SELECT ordinal_position  AS pos
                     , column_name       AS name
                     , data_type         AS type
@@ -87,9 +95,10 @@ sub get_info {
                     , numeric_precision AS prec
                     , numeric_scale     AS scale
                FROM information_schema.columns
-               WHERE table_name = '$table'
-               ORDER BY ordinal_position;
+               WHERE table_name = '$table_name'
     );
+    $sql .= qq{AND table_schema = '$schema_name'} if $schema_name;
+    $sql .=  q{ORDER BY ordinal_position;};
 
     my $dbh = $self->dbh;
 
@@ -129,11 +138,20 @@ sub get_columns {
 
     hurl "The 'table' parameter is required for 'get_columns'" unless $table;
 
+    my ($schema_name, $table_name);
+    if ( $table =~ m{\.} ) {
+        ($schema_name, $table_name) = split /[.]/, $table;
+    }
+    else {
+        $table_name = $table;
+    }
+
     my $sql = qq( SELECT column_name AS name
                FROM information_schema.columns
-               WHERE table_name = '$table'
-               ORDER BY ordinal_position;
+               WHERE table_name = '$table_name'
     );
+    $sql .= qq{AND table_schema = '$schema_name'} if $schema_name;
+    $sql .=  q{ORDER BY ordinal_position;};
 
     my $dbh = $self->dbh;
 
@@ -158,13 +176,23 @@ sub table_exists {
 
     hurl "The 'table' parameter is required for 'table_exists'" unless $table;
 
+    my ($schema_name, $table_name);
+    if ( $table =~ m{\.} ) {
+        ($schema_name, $table_name) = split /[.]/, $table;
+    }
+    else {
+        $table_name = $table;
+    }
+
     my $sql = qq( SELECT COUNT(table_name)
                 FROM information_schema.tables
                 WHERE table_type = 'BASE TABLE'
                     AND table_schema NOT IN
                     ('pg_catalog', 'information_schema')
-                    AND table_name = '$table';
+                    AND table_name = '$table_name'
     );
+    $sql .= qq{AND table_schema = '$schema_name'} if $schema_name;
+    $sql .= ';';
 
     my $val_ret;
     try {
