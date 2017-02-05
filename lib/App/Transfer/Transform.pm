@@ -607,14 +607,14 @@ sub transfer_db2db {
     $self->job_info_input_db($src_table, $src_db);
     $self->job_info_output_db($dst_table, $dst_db);
 
-    $self->validate_destination;
-
     hurl run => __x( "The source table '{table}' does not exists!",
         table => $src_table )
         unless $src_engine->table_exists($src_table);
     hurl run => __x( "The destination table '{table}' does not exists!",
         table => $dst_table )
         unless $dst_engine->table_exists($dst_table);
+
+    $self->validate_destination;
 
     # XXX Have to also check the host
     hurl run =>
