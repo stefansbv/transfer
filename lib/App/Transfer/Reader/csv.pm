@@ -115,9 +115,13 @@ sub _build_contents {
     while ( $csv->getline($fh) ) {
         my $record = {};
         foreach my $col (@cols) {
-            $record->{ $header->{$col} } = $row->{$col};
+            if ( my $field = $header->{$col} ) {
+                $record->{$field} = $row->{$col};
+            }
         }
-        push @records, $record;
+        push @records, $record
+            if any { defined($_) } values %{$record};
+
     }
     close $fh;
     return \@records;
