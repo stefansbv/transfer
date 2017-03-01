@@ -754,7 +754,7 @@ sub transformations {
     my ($self, $record, $info, $logfld) = @_;
 
     #--  Logging settings
-    my $logidx = exists $record->{$logfld} ? $record->{$logfld} : '?';
+    my $logidx = $record->{$logfld} ? $record->{$logfld} : '?';
     my $logstr = qq{[$logfld=$logidx]};
 
     $record = $self->column_trafos( $record, $info, $logstr );
