@@ -10,10 +10,10 @@ use 5.010;
 use strict;
 use warnings;
 use utf8;
+use Locale::TextDomain 1.20 qw(App-Transfer);
 use Try::Tiny;
 use Test::Most;
 use Test::MockModule;
-use Locale::TextDomain qw(App-Transfer);
 use Log::Log4perl;
 
 use App::Transfer::Config;
@@ -174,6 +174,10 @@ sub run {
         my $ddl = qq{CREATE TABLE $table_info ( \n   $fields_list \n);};
 
         ok $engine->dbh->do($ddl), "create '$table_info' table";
+
+        is $engine->table_exists($table_info), 1, 'table exists';
+        is $engine->table_exists('nonexistenttable'), 0,
+            'nonexistenttable not exists';
 
         ok my $info = $engine->get_info($table_info), 'get info for table';
         foreach my $rec (@fields_info) {

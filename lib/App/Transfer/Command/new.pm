@@ -129,7 +129,7 @@ sub generate_recipe {
     my ($user_name, $user_email) = $self->get_gitconfig;
 
     my $table       = $self->input_table;
-    my $recipe_fn   = $self->recipe->stringify || "recipe-${table}.conf";
+    my $recipe_fn   = path($self->recipe->stringify) || "recipe-${table}.conf";
     my $output_path = cwd;
 
     if ( -f path($output_path, $recipe_fn) ) {

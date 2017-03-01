@@ -52,7 +52,7 @@ has 'csv_fh' => (
         my $file = $self->output_file;
         my $fh   = $file->openw_utf8( { locked => 1 } )
             or hurl io => __x(
-                'Cannot open {file}: {error}',
+                "Cannot open '{file}': {error}",
                 file  => $file,
                 error => $!
             );
@@ -125,7 +125,7 @@ sub finish {
     my $self = shift;
     my $file = $self->csv_fh;
     $file->close or hurl io => __x(
-        'Cannot close {file}: {error}',
+        "Cannot close '{file}': {error}",
         file  => $file,
         error => $!
     );
@@ -136,7 +136,7 @@ sub emit_error {
     my ($self, $csv_o) = @_;
     my $error = $csv_o->error_input();
     hurl io => __x(
-        'CSV error: {error}',
+        "CSV error: {error}",
         error => $error,
     );
     return;
