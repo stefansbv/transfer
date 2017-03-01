@@ -20,26 +20,26 @@ delete @ENV{qw( TRANSFER_CONFIG TRANSFER_USER_CONFIG TRANSFER_SYSTEM_CONFIG )};
 isa_ok my $config = $CLASS->new, $CLASS, 'New config object';
 is $config->confname, 'transfer.conf', 'confname should be "transfer.conf"';
 
-is $config->user_dir, File::Spec->catfile(
+is $config->user_dir->canonpath, File::Spec->catfile(
     File::HomeDir->my_home, '.transfer'
 ), 'Default user directory should be correct';
 
-is $config->global_file, File::Spec->catfile(
+is $config->global_file->canonpath, File::Spec->catfile(
     $config->system_dir, 'transfer.conf'
 ), 'Default global file name should be correct';
 
 my $file = File::Spec->catfile(qw(FOO BAR));
 $ENV{TRANSFER_SYSTEM_CONFIG} = $file;
-is $config->global_file, $file,
+is $config->global_file->canonpath, $file,
     'Should preferably get TRANSFER_SYSTEM_CONFIG file from global_file';
 is $config->system_file, $config->global_file, 'system_file should alias global_file';
 
-is $config->user_file, File::Spec->catfile(
+is $config->user_file->canonpath, File::Spec->catfile(
     File::HomeDir->my_home, '.transfer', 'transfer.conf'
 ), 'Default user file name should be correct';
 
 $ENV{TRANSFER_USER_CONFIG} = $file,
-is $config->user_file, $file,
+is $config->user_file->canonpath, $file,
     'Should preferably get TRANSFER_USER_CONFIG file from user_file';
 
 is $config->local_file, 'transfer.conf',
