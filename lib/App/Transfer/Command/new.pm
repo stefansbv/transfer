@@ -129,7 +129,9 @@ sub generate_recipe {
     my ($user_name, $user_email) = $self->get_gitconfig;
 
     my $table       = $self->input_table;
-    my $recipe_fn   = path($self->recipe->stringify) || "recipe-${table}.conf";
+    my $recipe_fn   = $self->recipe
+        ? $self->recipe->stringify
+        : "recipe-${table}.conf";
     my $output_path = cwd;
 
     if ( -f path($output_path, $recipe_fn) ) {
@@ -150,6 +152,14 @@ sub generate_recipe {
     my @l_fields = $lc->get_Lonly;           # TODO: compare in/out fields
     my @r_fields = $lc->get_Ronly;
     my @columns  = $lc->get_intersection;
+    if (@columns <= 0) {
+        say "No common fields between the input and output tables.";
+        say " Input fields:";
+        say " ", join ', ', @l_fields;
+        say " ---";
+        say " Output fields:";
+        say " ", join ', ', @r_fields;
+    }
 
     my $data = {
         copy_author => $user_name,
