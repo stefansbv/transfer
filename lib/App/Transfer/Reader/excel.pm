@@ -75,46 +75,6 @@ has '_headers' => (
     },
 );
 
-has '_record_set' => (
-    is       => 'ro',
-    isa      => 'HashRef',
-    traits   => ['Hash'],
-    init_arg => undef,
-    lazy     => 1,
-    builder  => '_build_record_set',
-    handles  => {
-        get_recordset     => 'get',
-        has_no_recordsets => 'is_empty',
-        num_recordsets    => 'count',
-    },
-);
-
-has _contents => (
-    is      => 'ro',
-    isa     => 'ArrayRef',
-    lazy    => 1,
-    builder => '_build_contents',
-);
-
-has 'contents_iter' => (
-    metaclass    => 'Iterable',
-    iterate_over => '_contents',
-);
-
-has 'workbook' => (
-    is       => 'ro',
-    isa      => 'Spreadsheet::ParseExcel::Workbook',
-    lazy     => 1,
-    init_arg => undef,
-    default  => sub {
-        my $self     = shift;
-        my $parser   = Spreadsheet::ParseExcel->new;
-        my $workbook = $parser->parse( $self->input_file->stringify );
-        die "Error:", $parser->error(), ".\n" if !defined $workbook;
-        return $workbook;
-    },
-);
-
 sub _build_headers {
     my $self = shift;
 
@@ -170,22 +130,19 @@ sub _build_headers {
     return \@headers;
 }
 
-sub _debug_config_map {
-    my ($self, $name, $record) = @_;
-    my $header = $self->recipe->tables->get_table($name)->headermap;
-
-    my @header = values %{$header};
-    my $lc = List::Compare->new( \@header, $record );
-    my @fields = $lc->get_unique;
-
-    my %revers = reverse %{$header};
-    my @errors = map { $revers{$_} } @fields;
-
-    say "\nCheck header text for:";
-    say "  * '$_'" for @errors;
-
-    die "Configuration error(s) detected, aborting.\n";
-}
+has '_record_set' => (
+    is       => 'ro',
+    isa      => 'HashRef',
+    traits   => ['Hash'],
+    init_arg => undef,
+    lazy     => 1,
+    builder  => '_build_record_set',
+    handles  => {
+        get_recordset     => 'get',
+        has_no_recordsets => 'is_empty',
+        num_recordsets    => 'count',
+    },
+);
 
 sub _build_record_set {
     my $self = shift;
@@ -215,6 +172,13 @@ sub _build_record_set {
 
     return \%range;
 }
+
+has _contents => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    lazy    => 1,
+    builder => '_build_contents',
+);
 
 sub _build_contents {
     my $self = shift;
@@ -249,6 +213,42 @@ sub _build_contents {
     }
 
     return \@aoa;
+}
+
+has 'contents_iter' => (
+    metaclass    => 'Iterable',
+    iterate_over => '_contents',
+);
+
+has 'workbook' => (
+    is       => 'ro',
+    isa      => 'Spreadsheet::ParseExcel::Workbook',
+    lazy     => 1,
+    init_arg => undef,
+    default  => sub {
+        my $self     = shift;
+        my $parser   = Spreadsheet::ParseExcel->new;
+        my $workbook = $parser->parse( $self->input_file->stringify );
+        die "Error:", $parser->error(), ".\n" if !defined $workbook;
+        return $workbook;
+    },
+);
+
+sub _debug_config_map {
+    my ($self, $name, $record) = @_;
+    my $header = $self->recipe->tables->get_table($name)->headermap;
+
+    my @header = values %{$header};
+    my $lc = List::Compare->new( \@header, $record );
+    my @fields = $lc->get_unique;
+
+    my %revers = reverse %{$header};
+    my @errors = map { $revers{$_} } @fields;
+
+    say "\nCheck header text for:";
+    say "  * '$_'" for @errors;
+
+    die "Configuration error(s) detected, aborting.\n";
 }
 
 sub has_table {
