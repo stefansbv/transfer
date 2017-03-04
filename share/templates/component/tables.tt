@@ -7,7 +7,7 @@
     #</orderby>
     <headermap>
     [%- FOREACH field = r.columns %]
-      [% field %] = [% field -%]
+    [% field %]          = [% field -%]
     [%- END %]
     </headermap>
   </table>

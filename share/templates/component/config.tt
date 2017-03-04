@@ -1,13 +1,21 @@
 <config>
   <source>
     reader              = [% r.reader %]
+    [%- IF r.reader == 'db' %]
     target              = [% r.src_target %]
     table               = [% r.src_table %]
+    [%- ELSE %]
+    file                = [% r.src_file %]
+    [%- END %]
   </source>
 
   <destination>
     writer              = [% r.writer %]
+    [%- IF r.writer == 'db' %]
     target              = [% r.dst_target %]
     table               = [% r.dst_table %]
+    [%- ELSE %]
+    file                = [% r.dst_file %]
+    [%- END %]
   </destination>
 </config>
