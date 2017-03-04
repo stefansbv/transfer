@@ -94,7 +94,7 @@ Instantiates and returns an L<App::Transfer::Recipe::Tables> object.
 
 =head3 C<worksheet>
 
-The name of the worksheet.  Used only by the C<excel> reader.  Is
+The name of the worksheet.  Used only by the C<xls> reader.  Is
 optional, if not provided, the first sheet is used.
 
 =head3 C<lastrow>

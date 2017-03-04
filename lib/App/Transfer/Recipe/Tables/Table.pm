@@ -136,7 +136,7 @@ Example log record:
 =head3 C<skiprows>
 
 The number of rows to skip between the header and the table data.
-Used for the C<excel> reader, when there are empty or unwanted rows
+Used for the C<xls> reader, when there are empty or unwanted rows
 after the header or there is a sub-header.
 
 =head3 C<orderby>

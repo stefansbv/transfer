@@ -30,7 +30,7 @@ use_ok( 'App::Transfer::Command::run' );
 use_ok( 'App::Transfer::Engine' );
 use_ok( 'App::Transfer::Reader' );
 use_ok( 'App::Transfer::Reader::db' );
-use_ok( 'App::Transfer::Reader::excel' );
+use_ok( 'App::Transfer::Reader::xls' );
 use_ok( 'App::Transfer::Reader::csv' );
 use_ok( 'App::Transfer::Writer' );
 use_ok( 'App::Transfer::Writer::db' );

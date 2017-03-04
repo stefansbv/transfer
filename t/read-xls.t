@@ -10,7 +10,7 @@ use App::Transfer::Recipe;
 
 my $CLASS;
 BEGIN {
-    $CLASS = 'App::Transfer::Reader::excel';
+    $CLASS = 'App::Transfer::Reader::xls';
     use_ok $CLASS or die;
 }
 
@@ -31,10 +31,10 @@ my $options = App::Transfer::Options->new(
 ok my $reader = App::Transfer::Reader->load({
     transfer => $transfer,
     recipe   => $recipe,
-    reader   => 'excel',
+    reader   => 'xls',
     options  => $options,
-}), 'new reader excel object';
-is $reader->input_file, 't/siruta.xls', 'excel file name';
+}), 'new reader xls object';
+is $reader->input_file, 't/siruta.xls', 'xls file name';
 is $reader->dst_table, 'siruta', 'table name';
 is $reader->worksheet, 'Foaie1', 'worksheet name';
 is $reader->lastrow, 70, 'last row';

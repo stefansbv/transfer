@@ -143,7 +143,7 @@ has 'in_type' => (
         my $self = shift;
         my $reader = $self->source->reader;
         my $prefix = $reader;
-        $prefix = 'file' if $reader eq 'excel' or $reader eq 'csv' or $reader eq 'dbf';
+        $prefix = 'file' if $reader eq 'xls' or $reader eq 'csv' or $reader eq 'dbf';
         return $prefix;
     },
 );
@@ -156,7 +156,7 @@ has 'out_type' => (
         my $self = shift;
         my $writer = $self->destination->writer;
         my $sufix  = $writer;
-        $sufix  = 'file' if $writer eq 'excel' or $writer eq 'csv' or $writer eq 'dbf';
+        $sufix  = 'file' if $writer eq 'xls' or $writer eq 'csv' or $writer eq 'dbf';
         return $sufix;
     },
 );
@@ -277,12 +277,12 @@ transformation method.
 
 =head3 C<in_type>
 
-Returns the string C<file> if the reader is set to C<excel> or <csv>,
+Returns the string C<file> if the reader is set to C<xls> or <csv>,
 or the value of the reader, C<db> is the only valid value..
 
 =head3 C<out_type>
 
-Returns the string C<file> if the writer is set to C<excel> or <csv>,
+Returns the string C<file> if the writer is set to C<xls> or <csv>,
 or the value of the writer, C<db> is the only valid value..
 
 =head1 Author

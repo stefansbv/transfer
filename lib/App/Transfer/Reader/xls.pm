@@ -1,4 +1,4 @@
-package App::Transfer::Reader::excel;
+package App::Transfer::Reader::xls;
 
 # ABSTRACT: Reader for MSExcel files
 
@@ -186,7 +186,7 @@ sub _build_contents {
     my $worksheet;
     if ( $self->worksheet ) {
         $worksheet = $self->workbook->worksheet( $self->worksheet );
-        hurl excel =>
+        hurl xls =>
             __x( 'Worksheet "{worksheet}" not found in the XSL file',
                  worksheet => $self->worksheet )
             unless defined $worksheet;
@@ -300,15 +300,15 @@ __END__
 
 =head1 Name
 
-App::Transfer::Reader::excel - Reader for MSExcel files
+App::Transfer::Reader::xls - Reader for MSExcel files
 
 =head1 Synopsis
 
-  my $reader = App::Transfer::Reader->load( { reader => 'excel' } );
+  my $reader = App::Transfer::Reader->load( { reader => 'xls' } );
 
 =head1 Description
 
-App::Transfer::Reader::excel reads an MSExcel file worksheet and
+App::Transfer::Reader::xls reads an MSExcel file worksheet and
 builds a AoH data structure for the entire contents.
 
 =head1 Interface
@@ -317,7 +317,7 @@ builds a AoH data structure for the entire contents.
 
 =head3 C<input_file>
 
-A L<Path::Tiny::File> object representing the Excel input file.
+A L<Path::Tiny::File> object representing the xls input file.
 
 =head3 C<dst_table>
 
@@ -325,7 +325,7 @@ The name of the destination table.
 
 =head3 C<worksheet>
 
-The name of the Excel worksheet to read from.  It is a C<tables>
+The name of the xls worksheet to read from.  It is a C<tables>
 section attribute in the recipe.
 
 =head3 C<maxrow>
@@ -334,7 +334,7 @@ An integer value with the maximum row number.
 
 =head3 C<lastrow>
 
-The last row number (counting from 0) with data on the Excel
+The last row number (counting from 0) with data on the xls
 worksheet.  It is a C<tables> section attribute in the recipe.
 
 =head3 C<_headers>
@@ -354,7 +354,7 @@ An array reference holding the contents of the spreadsheet.
 
 =head3 C<contents_iter>
 
-A L<MooseX::Iterator> object for the contents of the Excel file.
+A L<MooseX::Iterator> object for the contents of the xls file.
 
 =head3 C<workbook>
 

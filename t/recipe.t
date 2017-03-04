@@ -83,7 +83,7 @@ subtest 'Recipe - minimum' => sub {
 
     # Config
     isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipe source';
-    is $recipe->source->reader, 'excel', 'has reader excel';
+    is $recipe->source->reader, 'xls', 'has reader xls';
     is $recipe->source->file, 't/siruta.xls', 'has a file';
     isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
     is $recipe->destination->writer, 'db', 'has writer db';
@@ -105,13 +105,13 @@ subtest 'Recipe - minimum' => sub {
 
 #-- Config section
 
-subtest 'Config section: from excel to db' => sub {
+subtest 'Config section: from xls to db' => sub {
     my $recipe_file = path( 't', 'recipes', 'recipe.conf' );
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
     isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipe source';
-    is $recipe->source->reader, 'excel', 'has reader excel';
+    is $recipe->source->reader, 'xls', 'has reader xls';
     is $recipe->source->file, 't/siruta.xls', 'has a file';
     is $recipe->source->target, undef, 'has no target';
     is $recipe->source->table, undef, 'has no table';
@@ -123,7 +123,7 @@ subtest 'Config section: from excel to db' => sub {
     is $recipe->destination->table, 'siruta', 'has table';
 };
 
-subtest 'Config section: from excel to db - no file' => sub {
+subtest 'Config section: from xls to db - no file' => sub {
     my $recipe_file = path( 't', 'recipes', 'recipe4options-2.conf' );
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
@@ -134,7 +134,7 @@ subtest 'Config section: from excel to db - no file' => sub {
     is $recipe->destination->table, 'siruta', 'has table';
 };
 
-subtest 'Config section: from db to excel' => sub {
+subtest 'Config section: from db to xls' => sub {
     my $recipe_file = path( 't', 'recipes', 'recipe4options-1.conf' );
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,

@@ -88,9 +88,9 @@ The name of the reader.  Currently implemented readers:
 
 Read from a database (Firebird or PostgreSQL).
 
-=item C<excel>
+=item C<xls>
 
-Read from a Microsoft Excel file.
+Read from a Microsoft xls file.
 
 =item C<csv>
 
@@ -100,7 +100,7 @@ Read from a CSV file.
 
 =head3 C<file>
 
-Relevant only for file type readers: C<excel> and C<csv>.
+Relevant only for file type readers: C<xls> and C<csv>.
 
 =head3 C<target>
 
