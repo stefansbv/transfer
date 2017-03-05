@@ -44,9 +44,12 @@ has dbh => (
 sub parse_error {
     my ($self, $err) = @_;
 
+    # say "Error: $err" if $self->debug;
+
     my $message_type =
          $err eq q{}                                          ? "nomessage"
        : $err =~ m/database ($RE{quoted}) does not exist/smi  ? "dbnotfound:$1"
+       : $err =~ m/column ($RE{quoted}) does not exist/smi    ? "colnotfound:$1"
        : $err =~ m/column ($RE{quoted}) of relation ($RE{quoted}) does not exist/smi
                                                               ? "colnotfound:$2.$1"
        : $err =~ m/null value in column ($RE{quoted})/smi     ? "nullvalue:$1"
