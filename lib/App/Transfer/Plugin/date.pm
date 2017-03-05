@@ -33,6 +33,7 @@ sub date {
                 "$logstr date: $field='$log_text' - date is not nullable!");
             return;
         }
+        return;
     }
     if (length $text != 10) {
         $self->log->info("$logstr date: $field='$text' is not a 10 character date\n");
