@@ -13,6 +13,8 @@ use Spreadsheet::ParseExcel;
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
+use Data::Dump;
+
 extends 'App::Transfer::Reader';
 
 has 'input_file' => (
@@ -83,6 +85,7 @@ sub _build_headers {
     my $iter      = $self->contents_iter;
     my $found_tables    = 0;
     my $expected_tables = $self->recipe->tables->count_tables; # XXX stop when all found
+    say "expected_tables = $expected_tables";
     while ( $iter->has_next ) {
         my $row  = $iter->next;
 
@@ -94,20 +97,31 @@ sub _build_headers {
             push @{$cols}, $text;
         }
 
+        # push @records, $record
+        #     if any { defined($_) } values %{$record};
+
+        say "cols:";
+        dd $cols;
+
         # Search for headers
       HEADER:
         foreach my $name ( $self->recipe->tables->all_table_names ) {
             my $headermap = $self->recipe->tables->get_table($name)->headermap;
             my $skip_rows = $self->recipe->tables->get_table($name)->skiprows;
-            my $header_cols = [ keys %{$headermap} ];
+            my $head_cols = [ keys %{$headermap} ];
 
-            my $lc = List::Compare->new( $header_cols, $cols );
-            next HEADER unless $lc->is_LequivalentR;
+            # say "headermap";
+            # dd $headermap;
+            # say "header_cols";
+            # dd $head_cols;
 
-            #say "Found header at row $row_count"; # if $self->verbose;
+            my $lc = List::Compare->new( $head_cols, $cols );
+            next HEADER unless $lc->get_intersection;
+
+            say "Header at row ", ($row_count + 1); # if $self->verbose;
             my $record = [];
             foreach my $col ( @{$cols} ) {
-                push @{$record}, $headermap->{$col};
+                push @{$record}, $headermap->{$col} if defined $col;
             }
 
             # Check header record
@@ -197,6 +211,9 @@ sub _build_contents {
 
     my ( $row_min, $row_max ) = $worksheet->row_range();
     my ( $col_min, $col_max ) = $worksheet->col_range();
+
+    say "row_min = $row_min   row_max = $row_max";
+    say "col_min = $col_min   col_max = $col_max";
 
     $row_max = $self->lastrow if defined $self->lastrow;
 
