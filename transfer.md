@@ -124,6 +124,9 @@ Alternatively, in the *App::Transfer* configuration files (transfer.conf):
 The main purpose of this section is to configure the mappings between
 the source and the destination fields.
 
+There is a specific and required configuration for the *xls* reader:
+worksheet.
+
 
 ```
 <tables>
@@ -201,3 +204,14 @@ orderby   colA
 
 Plugins for column type can clean-up, transform and validate all
 fields of the respective type.
+
+
+
+
+*** Plugins
+
+  <source>
+    reader              = csv
+    file                = lista-facturi-salubritate.csv
+    date_format         = dmy
+  </source>
