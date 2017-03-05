@@ -356,9 +356,9 @@ sub run {
 
         ###
 
-        # ######################################################################
-        # # Test the lookup_in_dbtable plugin and type_lookupdb trafo method
-        # # With field_dst as array ref
+        ######################################################################
+        # Test the lookup_in_dbtable plugin and type_lookupdb trafo method
+        # With field_dst as array ref
 
         # The step config section
         # <step>
