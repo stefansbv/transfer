@@ -13,6 +13,10 @@ has transfer => (
     is       => 'ro',
     isa      => 'App::Transfer',
     required => 1,
+    handles  => [qw(
+        debug
+        verbose
+    )],
 );
 
 has target => (

@@ -15,6 +15,8 @@ has transfer => (
     required => 1,
     handles  => [qw(
         debug
+        debug_
+        verbose
     )],
 );
 
@@ -52,7 +54,7 @@ sub load {
     }
     catch {
         # Emit the original error for debugging.
-        $transfer->debug($_);
+        $transfer->debug_($_);
 
         # Suggest help if it's not a valid reader.
         hurl {

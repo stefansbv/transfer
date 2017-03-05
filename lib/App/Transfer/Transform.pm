@@ -24,10 +24,14 @@ use App::Transfer::Plugin;
 with qw(App::Transfer::Role::Utils
         MooX::Log::Any);
 
-has 'transfer' => (
+has transfer => (
     is       => 'ro',
     isa      => 'App::Transfer',
     required => 1,
+    handles  => [qw(
+        debug
+        verbose
+    )],
 );
 
 has 'recipe_file' => (
@@ -353,6 +357,8 @@ sub type_lookupdb {
     # Lookup value
     my $lookup_val = $record->{ $step->field_src };
     return $record unless defined $lookup_val; # skip if undef
+
+    say "Looking for '$lookup_val'" if $self->debug;
 
     # Hints
     if ( my $hint = $step->hints ) {
