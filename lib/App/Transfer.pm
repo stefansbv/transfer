@@ -209,7 +209,7 @@ Send comments to C<STDOUT>, without regard to the verbosity.  Comments
 have C<# > prefixed to every line.  C<comment> appends a newline to
 the end of the message while C<comment_literal> does not.
 
-=head3 C<_debug>
+=head3 C<debug_>
 
 =head3 C<debug_literal>
 
