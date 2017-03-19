@@ -159,14 +159,14 @@ sub _build_db_options {
             $self->warn(
                 __x( 'The URI option supersede the target option', ) )
                 if $opts->{$opt_target};
-            return $uri;
+            return ref($uri) ? $uri->as_string : $uri;
         }
         elsif ( $name = $opts->{$opt_target} ) {
 
             # 1.2 We have a target name, get the URI
             if ( $uri = $self->config->get( key => "target.$name.uri" ) ) {
                 $self->target($name);
-                return $uri;
+                return ref($uri) ? $uri->as_string : $uri;
             }
         }
     }
@@ -177,7 +177,7 @@ sub _build_db_options {
         # We already have a name from CLI
         $self->target($name);
         if ( $uri = $self->recipe->get_uri($name) ) {
-            return $uri;
+            return ref($uri) ? $uri->as_string : $uri;
         }
     }
     else {
@@ -185,7 +185,7 @@ sub _build_db_options {
         if ( $name = $self->recipe->$section->target ) {
             $self->target($name);
             if ( $uri = $self->recipe->get_uri($name) ) {
-                return $uri;
+                return ref($uri) ? $uri->as_string : $uri;
             }
         }
     }
@@ -196,14 +196,14 @@ sub _build_db_options {
         # We already have a target name from CLI or recipe
         $self->target($name);
         if ( $uri = $self->config->get( key => "target.$name.uri" ) ) {
-            return $uri;
+            return ref($uri) ? $uri->as_string : $uri;
         }
     }
     else {
         if ( $name = $self->config->get( key => "$section.target" ) ) {
             $self->target($name);
             if ( $uri = $self->config->get( key => "target.$name.uri" ) ) {
-                return $uri;
+                return ref($uri) ? $uri->as_string : $uri;
             }
         }
     }
