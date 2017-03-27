@@ -24,7 +24,45 @@ The Readers
 -----------
 
 The readers are Perl modules designed to read the data from the source
-and store it to a array of hash references data-structure.
+tables and store it into an array of hash references (AoH) using the
+destination table's field names as keys.
+
+Note: This is not elegant and probably not as eficient as posible.
+Maybe a more elegant solution would be if the reader doesn't need to
+know about the recipe and the headermap and would pass the data as AoH
+using the source table field names as keys.
+
+A headermap example:
+
+    <headermap>
+      Codjudeţ                = cod_jud
+      Denumirejudeț           = denj
+      FactorDeSortarePeJudețe = fsj
+      MNEMONIC                = mnemonic
+      ZONA                    = zona
+    </headermap>
+
+A resulting data structure example:
+
+    [
+      {
+        cod_jud  => 1,
+        denj     => 'ALBA',
+        fsj      => 1,
+        mnemonic => 'AB',
+        zona     => '7',
+      },
+      ...
+      {
+        cod_jud  => 42,
+        denj     => 'GIURGIU',
+        fsj      => 19,
+        mnemonic => 'GR',
+        zona     => '3',
+      },
+    ]
+
+Note: This would be nice to be a lazy data structure...
 
 
 The Writers
