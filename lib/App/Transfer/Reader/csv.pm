@@ -42,37 +42,34 @@ has 'csv' => (
     },
 );
 
-has '_headers' => (
+has '_headermap' => (
     isa      => 'ArrayRef',
     traits   => ['Array'],
     init_arg => undef,
     lazy     => 1,
-    builder  => '_build_headers',
+    builder  => '_build_headermap',
     handles  => {
         get_header  => 'get',
-        all_headers => 'elements',
     },
 );
 
-sub _build_headers {
+sub _build_headermap {
     my $self = shift;
-
-    # Header is the first row
-    my @headers = ();
+    my @metadata = ();
     foreach my $name ( $self->recipe->tables->all_table_names ) {
-        my $header    = $self->recipe->tables->get_table($name)->headermap;
+        my $headermap = $self->recipe->tables->get_table($name)->headermap;
         my $skip_rows = $self->recipe->tables->get_table($name)->skiprows;
         my $tempfield = $self->recipe->tables->get_table($name)->tempfield;
         my $row_count = 0;
-        push @headers, {
-            table  => $name,
-            row    => $row_count,
-            header => $header,
-            skip   => $skip_rows,
-            temp   => $tempfield,
+        push @metadata, {
+            table     => $name,
+            row       => $row_count,
+            headermap => $headermap,
+            skip      => $skip_rows,
+            tempfield => $tempfield,
         };
     }
-    return \@headers;
+    return \@metadata;
 }
 
 has _contents => (
@@ -87,21 +84,21 @@ sub _build_contents {
     my $csv  = $self->csv;
     open my $fh, "<:encoding(utf8)", $self->input_file
         or die "Error opening CSV: $!";
-    my $header = $self->get_header(0)->{header};
-    my $temp   = $self->get_header(0)->{temp};
+    my $headermap = $self->get_header(0)->{headermap};
+    my $tempfield = $self->get_header(0)->{temp};
     my @cols   = @{ $csv->getline($fh) };
     my $row    = {};
     my @records;
     $csv->bind_columns( \@{$row}{@cols} );
 
     # Add the temporary fields to the record
-    foreach my $field ( @{$temp} ) {
-        $header->{$field} = $field;
+    foreach my $field ( @{$tempfield} ) {
+        $headermap->{$field} = $field;
     }
 
     # Validate field list
     my @not_found = ();
-    foreach my $col ( keys % {$header} ) {
+    foreach my $col ( keys % {$headermap} ) {
         unless ( any { $col eq $_ } @cols ) {
             push @not_found, $col;
         }
@@ -115,13 +112,12 @@ sub _build_contents {
     while ( $csv->getline($fh) ) {
         my $record = {};
         foreach my $col (@cols) {
-            if ( my $field = $header->{$col} ) {
+            if ( my $field = $headermap->{$col} ) {
                 $record->{$field} = $row->{$col};
             }
         }
         push @records, $record
             if any { defined($_) } values %{$record};
-
     }
     close $fh;
     return \@records;
@@ -184,7 +180,7 @@ A L<Path::Tiny::File> object representing the Excel input file.
 
 A L<Text::CSV> object representing the CSV input file.
 
-=head3 C<_headers>
+=head3 C<_headermap>
 
 An array reference holding info about the table in the file.  The
 data-structure contains the table, row, header and skip attributes.
