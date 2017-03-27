@@ -74,9 +74,7 @@ END {
     );
 }
 
-my $uri = URI->new($ENV{FBSQL_URI} || die "env var FBSQL_URI is not set!");
-say "T:",$uri->dbi_dsn;
-
+my $uri = URI->new($ENV{FBSQL_URI} || 'db:fbodbc://user:@localhost/dbname');
 my $err = try {
     $ofb->use_driver;
     $dbh = DBI->connect($uri->dbi_dsn, $uri->user, $uri->password, {
