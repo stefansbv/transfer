@@ -70,9 +70,13 @@ has 'tempfields' => (
     lazy     => 1,
     default  => sub {
         my $self   = shift;
-        my $table  = $self->recipe->destination->table;
-        my $fields = $self->recipe->tables->get_table($table)->tempfield;
-        return $fields // [];
+        my $table = $self->recipe->destination->table;
+        if ( my $recipe_table = $self->recipe->tables->get_table($table) ) {
+            if ( $recipe_table->can('tempfield') ) {
+                return $recipe_table->tempfield;
+            }
+        }
+        return [];
     },
     handles  => {
         all_temp_fields => 'elements',
@@ -905,7 +909,12 @@ sub get_logfiled_name {
     my ( $self, $table, $table_info ) = @_;
     my $logfld;
     if ($table) {
-        $logfld = $self->recipe->tables->get_table($table)->logfield;
+        if ( my $recipe_table = $self->recipe->tables->get_table($table) ) {
+            $logfld = $self->recipe_table->logfield;
+        }
+        else {
+            $logfld = '?';
+        }
     }
     if ( !$logfld and $table_info ) {
         my @cols = $self->sort_hash_by_pos($table_info);
