@@ -143,7 +143,11 @@ has 'in_type' => (
         my $self = shift;
         my $reader = $self->source->reader;
         my $prefix = $reader;
-        $prefix = 'file' if $reader eq 'xls' or $reader eq 'csv' or $reader eq 'dbf';
+        $prefix = 'file'
+            if $reader eq 'xls'
+            or $reader eq 'csv'
+            or $reader eq 'dbf'
+            or $reader eq 'odt';
         return $prefix;
     },
 );

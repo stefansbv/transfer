@@ -76,7 +76,7 @@ option 'input_file' => (
     coerce        => 1,
     cmd_flag      => 'in-file',
     cmd_aliases   => [qw(if)],
-    documentation => q[The input file (xls|csv|dbf).],
+    documentation => q[The input file (xls|csv|dbf|odt).],
 );
 
 option 'output_file' => (
@@ -91,7 +91,7 @@ option 'output_file' => (
 
 option 'in_file_format' => (
     is            => 'ro',
-    isa           => enum( [qw(xls csv dbf)] ),
+    isa           => enum( [qw(xls csv dbf odt)] ),
     required      => 0,
     cmd_flag      => 'in-file-format',
     cmd_aliases   => [qw(iff)],
@@ -241,9 +241,7 @@ sub src_table_info {
     my $info = [];
     my $in_type = $self->in_type;
     if ( $in_type eq 'file' ) {
-        if ( $self->out_type eq 'db' ) {
-            $info = $self->output_db_info;
-        }
+        $info = $self->input_file_info;
     }
     elsif ( $in_type eq 'db' ) {
         $info = $self->input_db_info;
@@ -259,9 +257,7 @@ sub dst_table_info {
     my $info = [];
     my $out_type = $self->out_type;
     if ( $out_type eq 'file' ) {
-        if ( $self->in_type eq 'db' ) {
-            $info = $self->input_db_info;
-        }
+        $info = $self->output_file_info;
     }
     elsif ( $out_type eq 'db' ) {
         $info = $self->output_db_info;
@@ -272,12 +268,24 @@ sub dst_table_info {
     return $info;
 }
 
+sub input_file_info {
+    my $self = shift;
+    # TODO
+    return [];
+}
+
 sub input_db_info {
     my $self = shift;
     my $src_engine = $self->src_target->engine;
     my $src_table  = $self->input_table;
     my $src_table_info = $src_engine->get_columns($src_table);
     return $src_table_info;
+}
+
+sub output_file_info {
+    my $self = shift;
+    # TODO
+    return [];
 }
 
 sub output_db_info {
