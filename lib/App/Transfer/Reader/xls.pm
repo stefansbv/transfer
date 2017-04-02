@@ -13,8 +13,6 @@ use Spreadsheet::ParseExcel;
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
-use Data::Dump;
-
 extends 'App::Transfer::Reader';
 
 has 'input_file' => (
@@ -99,9 +97,6 @@ sub _build_headers {
 
         # push @records, $record
         #     if any { defined($_) } values %{$record};
-
-        say "cols:";
-        dd $cols;
 
         # Search for headers
       HEADER:
