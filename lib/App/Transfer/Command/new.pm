@@ -454,9 +454,21 @@ Call the method mapped to the subcommand.
 
 =head3 dst_table_info
 
+=head3 input_file_info
+
+Return meta-data regarding the input table fields.
+
 =head3 input_db_info
 
+Return meta-data regarding the input table fields.
+
 =head3 output_db_info
+
+Return meta-data regarding the output table fields.
+
+=head3 output_file_info
+
+Return meta-data regarding the output table fields.
 
 =head3 table_fields
 
