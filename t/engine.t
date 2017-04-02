@@ -100,9 +100,10 @@ like $@->previous_exception, qr/\QCan't locate/,
 # Test handling of an invalid engine.
 throws_ok { $CLASS->load({ engine => 'nonexistent', transfer => $transfer, target => $target }) }
     'App::Transfer::X', 'Should die on invalid engine';
-is $@->message, __('Unable to load App::Transfer::Engine::nonexistent'),
+my $err = $@;
+is $err->message, __('Unable to load App::Transfer::Engine::nonexistent'),
     'Should get load error message';
-like $@->previous_exception, qr/\QCan't locate/,
+like $err->previous_exception, qr/\QCan't locate/,
     'Should have relevant previoius exception';
 
 NOENGINE: {

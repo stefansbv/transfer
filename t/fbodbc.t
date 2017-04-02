@@ -6,7 +6,7 @@
 #     export FBSQL_URI=db:fbodbc://user:pass@localhost:3050//path/to//test.fdb?Driver=Firebird
 #
 # Note that it must include the `?Driver=$driver` bit so that DBD::ODBC loads
-# the proper driver.  Alternatively use  `export DBI_DRIVER=Firebird`
+# the proper driver.
 
 # Implmentation inspired/copied from the Sqitch Vertica driver by theory.
 #
@@ -74,7 +74,9 @@ END {
     );
 }
 
-my $uri = URI->new($ENV{FBSQL_URI} || 'db:fbodbc://user:@localhost/dbname');
+my $uri = URI->new($ENV{FBSQL_URI} || 'db:fbodbc://user:pass@localhost:3050//path/to//test.fdb?Driver=Firebird');
+say "T:",$uri->dbi_dsn;
+
 my $err = try {
     $ofb->use_driver;
     $dbh = DBI->connect($uri->dbi_dsn, $uri->user, $uri->password, {
