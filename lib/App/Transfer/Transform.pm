@@ -73,7 +73,7 @@ has 'tempfields' => (
         my $table = $self->recipe->destination->table;
         if ( my $recipe_table = $self->recipe->tables->get_table($table) ) {
             if ( $recipe_table->can('tempfield') ) {
-                return $recipe_table->tempfield;
+                return $recipe_table->tempfield // [];
             }
         }
         return [];
@@ -910,11 +910,11 @@ sub get_logfiled_name {
     my $logfld;
     if ($table) {
         if ( my $recipe_table = $self->recipe->tables->get_table($table) ) {
-            $logfld = $self->recipe_table->logfield;
+            if ( $recipe_table->can('logfield') ) {
+                return $recipe_table->logfield // '?';
+            }
         }
-        else {
-            $logfld = '?';
-        }
+        $logfld //= '?';
     }
     if ( !$logfld and $table_info ) {
         my @cols = $self->sort_hash_by_pos($table_info);
