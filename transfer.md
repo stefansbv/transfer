@@ -253,3 +253,15 @@ fields of the respective type.
     file                = lista-facturi-salubritate.csv
     date_format         = dmy
   </source>
+
+
+
+BUG!
+
+The table attribute is required for the destination config and must be
+the same name as one of tables->table section names, so the export to
+files feature does not really work!
+
+Test cases:
+
+- date field with other data in it (ex: UNDETERMINED)
