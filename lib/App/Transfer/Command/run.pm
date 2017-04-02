@@ -29,7 +29,7 @@ option 'input_file' => (
     coerce        => 1,
     cmd_flag      => 'in-file',
     cmd_aliases   => [qw(if)],
-    documentation => q[The input file (xls|csv|dbf).],
+    documentation => q[The input file (xls|csv|dbf|odt).],
 );
 
 option 'output_file' => (
