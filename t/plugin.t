@@ -30,7 +30,8 @@ my $p = {
     logstr      => 'error',
 };
 
-#-- Date                                               TODO: test with different date seps
+#-- Date                                     TODO: test with different date seps
+
 $p->{value}        = '31.01.2014';
 $p->{src_format}   = 'dmy';
 $p->{src_sep}      = '.';
@@ -50,6 +51,37 @@ $p->{value}        = '2014-12';
 $p->{src_format}   = 'iso';
 $p->{dst_format}   = 'iso';
 is $ttr->do_transform('date', $p), undef, 'date iso to iso';
+
+#-- Date Time                                TODO: test with different date seps
+
+#-- Firebird timestamp
+
+$p->{value}        = '31.01.2014, 18:30:34:000';
+$p->{src_format}   = 'dmy';
+$p->{src_sep}      = '.';
+is $ttr->do_transform('timestamp', $p), '2014-01-31T18:30:34:000', 'date dmy to iso';
+
+$p->{value}        = '01/31/2014T18:30:34:000';
+$p->{src_format}   = 'mdy';
+$p->{src_sep}      = '/';
+is $ttr->do_transform('timestamp', $p), '2014-01-31T18:30:34:000', 'date mdy to iso';
+
+$p->{value}        = '2014-01-31;18:30:34:000';
+$p->{src_format}   = 'iso';
+$p->{dst_format}   = 'iso';
+is $ttr->do_transform('timestamp', $p), '2014-01-31T18:30:34:000', 'date iso to iso';
+
+$p->{value}        = '2014-12';
+$p->{src_format}   = 'iso';
+$p->{dst_format}   = 'iso';
+is $ttr->do_transform('timestamp', $p), undef, 'date iso to iso';
+
+#-- PostgreSQL timestamp
+
+$p->{value}        = '2017-05-04 13:02:08.613372';
+$p->{src_format}   = 'iso';
+$p->{src_sep}      = '.';
+is $ttr->do_transform('timestamp', $p), '2017-05-04T13:02:08.613372', 'date dmy to iso';
 
 TODO: {
     todo_skip "Test log info for plugin: date not date", 1;
