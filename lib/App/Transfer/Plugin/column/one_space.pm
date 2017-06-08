@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::one_space;
+package App::Transfer::Plugin::column::one_space;
 
 # ABSTRACT: Transfer plugin: no spaces
 

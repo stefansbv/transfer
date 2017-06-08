@@ -1,6 +1,6 @@
-package App::Transfer::Plugin::null_ifzero;
+package App::Transfer::Plugin::column::null_ifundef;
 
-# ABSTRACT: Transfer plugin: null if zero
+# ABSTRACT: Transfer plugin: null if undef string
 
 use 5.010001;
 use Moose;
@@ -8,11 +8,11 @@ use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
-sub null_ifzero {
+sub null_ifundef {
     my ($self, $p) = @_;
     my ($logstr, $text ) = @$p{qw(logstr value)};
     return unless defined $text;
-    return if $text == 0;
+    return if $text eq 'undef';
     return $text;
 }
 
@@ -26,13 +26,13 @@ __END__
 
 =head1 Name
 
-App::Transfer::Plugin::null_ifzero - Transfer plugin: 'null_ifzero'
+App::Transfer::Plugin::null_ifundef - Transfer plugin: 'null_ifundef'
 
 =head1 Interface
 
 =head2 Instance Methods
 
-=head3 C<null_ifzero>
+=head3 C<null_ifundef>
 
 Parameters:
 
@@ -44,7 +44,7 @@ Parameters:
 
 =back
 
-The C<null_ifzero> method return undef for a value == 0 (zero).
+The C<null_ifundef> method return undef for a value == 0 (zero).
 Otherwise returns C<$text>.
 
 =cut

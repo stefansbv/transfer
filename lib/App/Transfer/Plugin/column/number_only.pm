@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::number_only;
+package App::Transfer::Plugin::column::number_only;
 
 # ABSTRACT: Transfer plugin: number only
 

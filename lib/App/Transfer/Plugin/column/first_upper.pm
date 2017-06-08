@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::first_upper;
+package App::Transfer::Plugin::column::first_upper;
 
 # ABSTRACT: Transfer plugin: first upper
 

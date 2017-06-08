@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::digits_only;
+package App::Transfer::Plugin::column::digits_only;
 
 # ABSTRACT: Transfer plugin: digits only
 

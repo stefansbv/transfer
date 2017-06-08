@@ -6,7 +6,8 @@ use 5.010001;
 use Moose;
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
-use Module::Pluggable::Object;
+use Moose::Util::TypeConstraints;
+use Module::Pluggable::Object min_depth => 666;
 use App::Transfer::Config;
 use namespace::autoclean;
 
@@ -16,12 +17,19 @@ has 'plugins' => (
     builder => '_build_plugins',
 );
 
+has 'plugin_type' => (
+    is       => 'ro',
+	isa      => enum( [qw(column_type column row)] ),
+    required => 1,
+);
+
 sub _build_plugins {
+	my $self = shift;
     return [
         Module::Pluggable::Object->new(
             instantiate => 'new',
             search_path => 'App::Transfer::Plugin',
-            search_dirs => ['plugins'],
+            search_dirs => [ $self->plugin_type ],
         )->plugins,
     ];
 };

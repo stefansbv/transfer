@@ -146,12 +146,30 @@ has 'writer' => (
     },
 );
 
-has 'plugin' => (
+has 'plugin_column_type' => (
     is      => 'ro',
     isa     => 'App::Transfer::Plugin',
     lazy    => 1,
     default => sub {
-        return App::Transfer::Plugin->new;
+        return App::Transfer::Plugin->new( plugin_type => 'column_type' );
+    },
+);
+
+has 'plugin_column' => (
+    is      => 'ro',
+    isa     => 'App::Transfer::Plugin',
+    lazy    => 1,
+    default => sub {
+        return App::Transfer::Plugin->new( plugin_type => 'column' );
+    },
+);
+
+has 'plugin_row' => (
+    is      => 'ro',
+    isa     => 'App::Transfer::Plugin',
+    lazy    => 1,
+    default => sub {
+        return App::Transfer::Plugin->new( plugin_type => 'row' );
     },
 );
 
@@ -211,7 +229,7 @@ sub type_split {
     $p->{separator} = $step->separator;
 
     # Assuming that the number of values matches the number of destinations
-    my @values = $self->plugin->do_transform( $step->method, $p );
+    my @values = $self->plugin_row->do_transform( $step->method, $p );
     my $i = 0;
     foreach my $value (@values) {
         my $field = ${ $step->field_dst }[$i];
@@ -243,7 +261,7 @@ sub type_join {
     $p->{value}     = $values;
 
     $record->{ $step->field_dst }
-        = $self->plugin->do_transform( $step->method, $p );
+        = $self->plugin_row->do_transform( $step->method, $p );
 
     return $record;
 }
@@ -263,7 +281,7 @@ sub type_copy {
     $p->{attributes} = $attributes;
     $p->{lookup_list}
         = $self->recipe->datasource->get_valid_list( $step->datasource );
-    my $r = $self->plugin->do_transform( $step->method, $p );
+    my $r = $self->plugin_row->do_transform( $step->method, $p );
     if ( ref $r ) {
 
         # Write to the destination field
@@ -326,7 +344,7 @@ sub type_batch {
     $p->{field_src}  = $field_src;
     $p->{field_dst}  = $field_dst;
     $p->{attributes} = $attributes;
-    my $r = $self->plugin->do_transform( $step->method, $p );
+    my $r = $self->plugin_row->do_transform( $step->method, $p );
     foreach my $field ( keys %{$r} ) {
         $record->{$field} = $r->{$field};
     }
@@ -350,7 +368,7 @@ sub type_lookup {
     $p->{lookup_table} = $self->recipe->datasource->get_ds( $step->datasource );
 
     $record->{ $step->field_dst }
-        = $self->plugin->do_transform( $step->method, $p );
+        = $self->plugin_row->do_transform( $step->method, $p );
 
     return $record;
 }
@@ -385,7 +403,7 @@ sub type_lookupdb {
     $p->{where}  = { $step->where_fld => $lookup_val };
 
     my $fld_dst_map = $step->field_dst_map;
-    my $result_aref = $self->plugin->do_transform( $step->method, $p );
+    my $result_aref = $self->plugin_row->do_transform( $step->method, $p );
     foreach my $dst_field ( @{ $step->field_dst } ) {
         my $field = $fld_dst_map->{$dst_field};
         $record->{$dst_field} = $result_aref->{$field};
@@ -789,7 +807,7 @@ sub column_trafos {
         $p->{name}   = $field;
         $p->{value}  = $record->{$field};
         foreach my $meth ( @{ $step->method } ) {
-            $p->{value} = $self->plugin->do_transform( $meth, $p );
+            $p->{value} = $self->plugin_columns->do_transform( $meth, $p );
         }
         $record->{$field} = $p->{value};
     }
@@ -839,7 +857,7 @@ sub column_type_trafos {
         }
         $p->{logstr}      = $logstr;
         $p->{value}       = $value;
-        $p->{value}       = $self->plugin->do_transform( $meth, $p );
+        $p->{value}       = $self->plugin_column_type->do_transform( $meth, $p );
         $record->{$field} = $p->{value};
     }
     return $record;

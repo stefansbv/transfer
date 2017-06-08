@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::zero_ifnull;
+package App::Transfer::Plugin::column::zero_ifnull;
 
 # ABSTRACT: Transfer plugin: zero if not defined
 
