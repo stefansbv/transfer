@@ -61,7 +61,8 @@ has dbh => (
 sub parse_error {
     my ( $self, $err ) = @_;
 
-    # say "FB: >$err<";
+	say "DBIError: $err" if $self->debug;
+
     my $message_type
         = $err eq q{} ? "nomessage"
         : $err =~ m/operation for file ($RE{quoted})/smi ? "dbnotfound:$1"
