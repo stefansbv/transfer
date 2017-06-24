@@ -44,7 +44,7 @@ has dbh => (
 sub parse_error {
     my ($self, $err) = @_;
 
-    # say "Error: $err" if $self->debug;
+    say "DBIError: $err" if $self->debug;
 
     my $message_type =
          $err eq q{}                                          ? "nomessage"
