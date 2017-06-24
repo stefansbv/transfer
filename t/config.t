@@ -18,7 +18,12 @@ BEGIN {
 delete @ENV{qw( TRANSFER_CONFIG TRANSFER_USER_CONFIG TRANSFER_SYSTEM_CONFIG )};
 
 isa_ok my $config = $CLASS->new, $CLASS, 'New config object';
+
 is $config->confname, 'transfer.conf', 'confname should be "transfer.conf"';
+TODO: {
+    todo_skip "Test system_dir", 1;
+	is $config->system_dir, '/etc', 'system_dir should be "/etc"';;
+}
 
 is $config->user_dir->canonpath, File::Spec->catfile(
     File::HomeDir->my_home, '.transfer'
