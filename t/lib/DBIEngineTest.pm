@@ -824,9 +824,9 @@ sub run {
         my $expected_4i = [
             { category => "Planes",        categ_code => "P",   id => 1 },
             { category => "Trains",        categ_code => "T",   id => 2 },
-            { category => "Some unknown ", categ_code => undef, id => 3 },
+            { category => "Some unknown ", categ_code => "Some unknown ", id => 3 },
             { category => "Planes",        categ_code => "P",   id => 4 },
-            { category => "Another cat.",  categ_code => undef, id => 5 },
+            { category => "Another cat.",  categ_code => "Another cat.", id => 5 },
         ];
 
         is_deeply \@records, $expected_4i, 'i. resulting records';

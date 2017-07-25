@@ -348,7 +348,11 @@ sub type_lookup {
     $p->{value}      = $lookup_val;
     $p->{field_src}  = $field_src;
     $p->{lookup_table} = $self->recipe->datasource->get_ds( $step->datasource );
-
+    if ( $step->valid_list ) {
+        $p->{valid_list} = $self->recipe->datasource->get_valid_list(
+            $step->valid_list
+        );
+    }
     $record->{ $step->field_dst }
         = $self->plugin->do_transform( $step->method, $p );
 
