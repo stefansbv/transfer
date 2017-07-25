@@ -4,22 +4,28 @@ package App::Transfer::Plugin::lookup_in_ds;
 
 use 5.010001;
 use Moose;
+use List::Util qw/any/;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 sub lookup_in_ds {
     my ( $self, $p ) = @_;
-    my ( $logstr, $field, $text, $lookup_table )
-        = @$p{qw(logstr field_src value lookup_table)};
+    my ( $logstr, $field, $text, $lookup_table, $valid_list)
+        = @$p{qw(logstr field_src value lookup_table valid_list)};
     return unless $text;
+    # XXX TEST it: Keep the value if is in the valid list
+    if ( $valid_list ) {
+        return $text if any { $text eq $_ } @{$valid_list};
+    }
+    # Lookup
     foreach my $rec ( @{$lookup_table} ) {
         foreach my $key ( keys %{$rec} ) {
-            return $rec->{$key} if $text =~ m{$key};
+            return $rec->{$key} if lc($text) eq lc($key);
         }
     }
     $self->log->info("$logstr lookup: failed for '$field'='$text'");
-    return;
+    return $text;
 }
 
 __PACKAGE__->meta->make_immutable;
