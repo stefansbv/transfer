@@ -97,6 +97,15 @@ sub _build_contents {
     }
 
     # Validate field list
+    if ( any { ! defined $_ } @cols ) {
+        hurl field_info => __x(
+            '[EE] At least a column is not defined in list "{list}"',
+            list => join( ', ', @cols ),
+        );
+    }
+    else {
+        say "C: @cols" if $self->debug;
+    }
     my @not_found = ();
     foreach my $col ( keys % {$headermap} ) {
         unless ( any { $col eq $_ } @cols ) {
@@ -109,6 +118,7 @@ sub _build_contents {
     ) if scalar @not_found;
 
     # Get the data
+  REC:
     while ( $csv->getline($fh) ) {
         my $record = {};
         foreach my $col (@cols) {
