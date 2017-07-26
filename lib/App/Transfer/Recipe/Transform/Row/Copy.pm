@@ -13,21 +13,6 @@ extends 'App::Transfer::Recipe::Transform::Row::Step';
 
 has 'field_src' => ( is => 'ro', isa => 'Str', required => 1 );
 has 'field_dst' => ( is => 'ro', isa => 'Str', required => 1 );
-has 'attributes' => (
-    is       => 'ro',
-    isa      => 'HashRef',
-    required => 1,
-    default  => sub {
-        return {
-            APPEND      => undef,
-            APPENDSRC   => undef,
-            COPY        => undef,
-            MOVE        => undef,
-            REPLACE     => undef,
-            REPLACENULL => 1,
-        };
-    },
-);
 has 'datasource' => ( is => 'ro', isa => 'Str', required => 1 );
 
 has 'params' => (
