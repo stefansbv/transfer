@@ -39,6 +39,7 @@ has 'load' => (
                         MOVE        => 1,
                         REPLACE     => 1,
                         REPLACENULL => 1,
+                        IGNORECASE  => 1,
                     },
                 },
             );
