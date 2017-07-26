@@ -12,7 +12,25 @@ has 'type' => (
     isa      => enum( [qw(split join copy batch lookup lookupdb)] ),
     required => 1,
 );
+
 has 'method' => ( is => 'ro', isa => 'Str', required => 1 );
+
+has 'attributes' => (
+    is       => 'ro',
+    isa      => 'HashRef',
+    required => 1,
+    default  => sub {
+        return {
+            APPEND      => undef,
+            APPENDSRC   => undef,
+            COPY        => undef,
+            MOVE        => undef,
+            REPLACE     => undef,
+            REPLACENULL => 1,
+            IGNORECASE  => undef,
+        };
+    },
+);
 
 __PACKAGE__->meta->make_immutable;
 

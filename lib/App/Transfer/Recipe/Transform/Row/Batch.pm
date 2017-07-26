@@ -18,21 +18,6 @@ has 'field_src' => (
     required => 1,
 );
 has 'field_dst' => ( is => 'ro', isa => 'Str', required => 1 );
-has 'attributes' => (
-    is       => 'ro',
-    isa      => 'HashRef',
-    required => 1,
-    default  => sub {
-        return {
-            APPEND      => undef,
-            APPENDSRC   => undef,
-            COPY        => undef,
-            MOVE        => undef,
-            REPLACE     => undef,
-            REPLACENULL => 1,
-        };
-    },
-);
 
 has 'params' => (
     is      => 'ro',
