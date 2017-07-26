@@ -14,10 +14,12 @@ sub lookup_in_ds {
     my ( $logstr, $field, $text, $lookup_table, $valid_list)
         = @$p{qw(logstr field_src value lookup_table valid_list)};
     return unless $text;
+
     # XXX TEST it: Keep the value if is in the valid list
     if ( $valid_list ) {
         return $text if any { $text eq $_ } @{$valid_list};
     }
+
     # Lookup
     foreach my $rec ( @{$lookup_table} ) {
         foreach my $key ( keys %{$rec} ) {
