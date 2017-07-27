@@ -16,14 +16,6 @@ with 'MooX::Log::Any';
 
 requires 'dbh';
 
-has 'sql' => (
-    is      => 'ro',
-    isa     => 'SQL::Abstract',
-    default => sub {
-        return SQL::Abstract->new;
-    },
-);
-
 sub begin_work {
     my $self = shift;
     $self->dbh->begin_work;
@@ -61,7 +53,17 @@ sub insert {
 }
 
 sub lookup {
-    my ($self, $table, $fields, $where) = @_;
+    my ($self, $table, $fields, $where, $attribs) = @_;
+
+	# if ( $attribs->{IGNORECASE} ) {
+	# 	say 'IGNORECASE=true' if $self->debug;
+	# 	my $where_new = {};
+	# 	while ( my ( $key, $value ) = each( %{$where} ) ) {
+	# 		$where_new->{"upper($key)"} = $value;
+	# 	}
+	# 	$where = $where_new;
+	# }
+
     my ( $sql, @bind ) = $self->sql->select( $table, $fields, $where );
     my @records;
     try {
