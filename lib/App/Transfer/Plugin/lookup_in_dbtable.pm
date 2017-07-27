@@ -10,11 +10,11 @@ with 'MooX::Log::Any';
 
 sub lookup_in_dbtable {
     my ( $self, $p ) = @_;
-    my ( $logstr, $fields, $table, $engine, $where, $lookup )
-        = @$p{qw(logstr fields table engine where lookup)};
+    my ( $logstr, $fields, $table, $engine, $where, $lookup, $attribs)
+        = @$p{qw(logstr fields table engine where lookup attributes)};
     return unless $lookup;
 
-    my $result_aref = $engine->lookup( $table, $fields, $where );
+    my $result_aref = $engine->lookup( $table, $fields, $where, $attribs );
     my $ret_no = scalar @{$result_aref};
     if ( $ret_no == 1 ) {
         return $result_aref->[0];

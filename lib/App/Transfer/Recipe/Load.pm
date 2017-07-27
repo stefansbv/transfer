@@ -40,6 +40,7 @@ has 'load' => (
                         REPLACE     => 1,
                         REPLACENULL => 1,
                         IGNORECASE  => 1,
+						IGNOREDIACRITIC => 1,
                     },
                 },
             );
