@@ -12,6 +12,9 @@ use namespace::autoclean;
 
 extends 'App::Transfer::Engine';
 sub dbh;                                     # required by DBIEngine;
+
+with 'App::Transfer::Role::SQL' => { ignorecase => 0 };
+
 with qw(App::Transfer::Role::DBIEngine
         App::Transfer::Role::DBIMessages);
 
