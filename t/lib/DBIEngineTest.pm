@@ -581,6 +581,69 @@ sub run {
 
         };                      # subtest d.
 
+        ######################################################################
+        # Test the lookup_in_dbtable plugin and type_lookupdb trafo method
+        # With field_dst as hash ref and the IGNORECASE attribute on
+
+        # The step config section
+        # <step>
+        #   type                = lookupdb
+        #   datasource          = test_dict
+        #   field_src           = localitate
+        #   method              = lookup_in_dbtable
+        #   field_dst           = siruta
+        # </step>
+        subtest 'd2. type_lookupdb with dst: a mapping and a field' => sub {
+
+        my $records_4d2 = [
+            { localitate => "IZVORU MUREŞULUI", id => 1 },
+            { localitate => "Sfîntu GHEORGHE",  id => 2 },
+            { localitate => "PODU Oltului",     id => 3 },
+            { localitate => "Băile Tuşnad",     id => 4 },
+            { localitate => "BRAȘOV",           id => 5 },
+            { localitate => "Albești",          id => 6 },
+        ];
+
+        ok my $step = shift @{$trafos_row}, 'the d.2 step';
+
+        my @records;
+        foreach my $rec ( @{$records_4d2} ) {
+            my $id = $rec->{id} // '?';
+            my $logstr = "[id:$id]";
+            push @records, $trafo->type_lookupdb( $step, $rec, $logstr );
+        }
+
+        my $expected_4d2 = [
+            {   id       => 1,
+                localitate => 'IZVORU MUREŞULUI',
+                siruta   => 86357,
+            },
+            {   id       => 2,
+                localitate => 'Sfîntu GHEORGHE',
+                siruta   => 63394,
+            },
+            {   id       => 3,
+                localitate => 'PODU Oltului',
+                siruta   => 41104,
+            },
+            {   id       => 4,
+                localitate => 'Băile Tuşnad',
+                siruta   => 83428,
+            },
+            {   id       => 5,
+                localitate => 'BRAȘOV',
+                siruta   => 40198,
+            },
+            {   id       => 6,
+                localitate => 'Albești',
+                siruta   => undef,
+            },
+        ];
+
+        is_deeply \@records, $expected_4d2, 'd.2 resulting records again';
+
+        };                      # subtest 2.d
+
 
         ######################################################################
         # Test the split_field plugin and type_split trafo method

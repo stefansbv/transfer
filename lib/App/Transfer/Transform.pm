@@ -13,6 +13,7 @@ use Perl6::Form;
 use List::Compare;
 use Progress::Any;
 use Progress::Any::Output 'TermProgressBarColor';
+use Lingua::Translit 0.23; # for "Common RON" table
 use namespace::autoclean;
 
 use App::Transfer::Options;
@@ -218,6 +219,15 @@ has '_contents_iter' => (
     iterate_over => '_contents',
 );
 
+# Transliteration
+has 'common_RON' => (
+    is      => 'ro',
+    isa     => 'Lingua::Translit',
+    default => sub {
+        return Lingua::Translit->new('Common RON');
+    },
+);
+
 sub type_split {
     my ( $self, $step, $record, $logstr ) = @_;
 
@@ -380,11 +390,22 @@ sub type_lookup {
 sub type_lookupdb {
     my ( $self, $step, $record, $logstr ) = @_;
 
-    # Lookup value
+    my $attribs = $step->attributes;
+
+    # Lookup value and where field
     my $lookup_val = $record->{ $step->field_src };
+	my $where_fld  = $step->where_fld;
+
     return $record unless defined $lookup_val; # skip if undef
 
-    say "Looking for '$lookup_val'" if $self->debug;
+	if ( $attribs->{IGNOREDIACRITIC} ) {
+		$lookup_val = $self->common_RON->translit($lookup_val);
+	}
+    if ( $attribs->{IGNORECASE} ) {
+		$where_fld  = "upper($where_fld)"; # all SQL engines have upper() ??? XXX
+        $lookup_val = uc $lookup_val;
+    }
+    say "Looking for '$where_fld = $lookup_val'" if $self->debug;
 
     # Hints
     if ( my $hint = $step->hints ) {
@@ -404,7 +425,8 @@ sub type_lookupdb {
         : $self->reader->target->engine;
     $p->{lookup} = $lookup_val;       # required, used only for loging
     $p->{fields} = $step->fields;
-    $p->{where}  = { $step->where_fld => $lookup_val };
+    $p->{where}  = { $where_fld => $lookup_val };
+    $p->{attributes} = $attribs;
 
     my $fld_dst_map = $step->field_dst_map;
     my $result_aref = $self->plugin_row->do_transform( $step->method, $p );
