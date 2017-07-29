@@ -4,7 +4,18 @@ package App::Transfer::Recipe::Datasource;
 
 use 5.010001;
 use Moose;
+use App::Transfer::Recipe::Hints;
 use namespace::autoclean;
+
+has 'ignorediacritic' => (
+    is  => 'ro',
+    isa => 'Bool',
+);
+
+has 'ignorecase' => (
+    is  => 'ro',
+    isa => 'Bool',
+);
 
 has '_valid_elts' => (
     is       => 'ro',
@@ -31,11 +42,22 @@ has '_non_valid_elts' => (
 has '_hints' => (
     is       => 'ro',
     isa      => 'HashRef[HashRef]',
-    traits   => ['Hash'],
     init_arg => 'hints',
     default  => sub { {} },
-    handles  => {
-        get_hints => 'get',
+);
+
+has 'hints' => (
+    is      => 'ro',
+    isa     => 'App::Transfer::Recipe::Hints',
+    lazy    => 1,
+    init_arg => undef,
+    default => sub {
+        my $self = shift;
+        return App::Transfer::Recipe::Hints->new(
+            hints           => $self->_hints,
+            ignorediacritic => $self->ignorediacritic,
+            ignorecase      => $self->ignorecase,
+        );
     },
 );
 
