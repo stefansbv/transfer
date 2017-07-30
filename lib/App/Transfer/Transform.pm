@@ -59,7 +59,7 @@ has 'recipe' => (
     default => sub {
         my $self = shift;
         return App::Transfer::Recipe->new(
-            recipe_file => $self->recipe_file->stringify,
+            recipe_file     => $self->recipe_file->stringify,
         );
     },
 );
@@ -347,11 +347,15 @@ sub type_batch {
 sub type_lookup {
     my ( $self, $step, $record, $logstr ) = @_;
 
+	my $attribs = $step->attributes;
+
     # Lookup value
     my $field_src  = $step->field_src;
     my $lookup_val = $record->{$field_src};
 
     return $record unless defined $lookup_val; # skip if undef
+
+	say "Looking for '$field_src'='$lookup_val'" if $self->debug;
 
     my $p;
     $p->{logstr}     = $logstr;
@@ -363,6 +367,8 @@ sub type_lookup {
             $step->valid_list
         );
     }
+    $p->{attributes} = $attribs;
+
     $record->{ $step->field_dst }
         = $self->plugin->do_transform( $step->method, $p );
 
@@ -376,26 +382,30 @@ sub type_lookupdb {
 
     # Lookup value and where field
     my $lookup_val = $record->{ $step->field_src };
-	my $where_fld  = $step->where_fld;
+    my $where_fld  = $step->where_fld;
 
     return $record unless defined $lookup_val; # skip if undef
 
-	if ( $attribs->{IGNOREDIACRITIC} ) {
-		$lookup_val = $self->common_RON->translit($lookup_val);
-	}
-    if ( $attribs->{IGNORECASE} ) {
-		$where_fld  = "upper($where_fld)"; # all SQL engines have upper() ??? XXX
-        $lookup_val = uc $lookup_val;
+    # Attributes - ignore diacritics
+    if ( $attribs->{IGNOREDIACRITIC} ) {
+        $lookup_val = $self->common_RON->translit($lookup_val);
     }
-    say "Looking for '$where_fld = $lookup_val'" if $self->debug;
 
     # Hints
     if ( my $hint = $step->hints ) {
-        my $hints = $self->recipe->datasource->get_hints($hint);
-        if ( exists $hints->{$lookup_val} ) {
-            $lookup_val = $hints->{$lookup_val};
+        if ( my $value = $self->recipe->datasource->hints->get_hint_for(
+                $hint, $lookup_val ) ) {
+            $lookup_val = $value;
         }
     }
+
+    # Attributes - ignore case
+    if ( $attribs->{IGNORECASE} ) {
+        $where_fld  = "upper($where_fld)"; # all SQL engines have upper() ??? XXX
+        $lookup_val = uc $lookup_val;
+    }
+
+    say "Looking for '$where_fld'='$lookup_val'" if $self->debug;
 
     # Run-time parameters for the plugin
     my $p;
@@ -791,7 +801,7 @@ sub transformations {
 
     #--  Logging settings
     my $logidx = $record->{$logfld} ? $record->{$logfld} : '?';
-    my $logstr = qq{[$logfld=$logidx]};
+    my $logstr = $self->verbose ? qq{[$logfld=$logidx]} : qq{[$logidx]};
 
     $record = $self->column_trafos( $record, $info, $logstr );
     $record = $self->record_trafos( $record, $info, $logstr );
