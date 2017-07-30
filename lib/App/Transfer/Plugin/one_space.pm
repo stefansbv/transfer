@@ -1,6 +1,6 @@
 package App::Transfer::Plugin::one_space;
 
-# ABSTRACT: Transfer plugin: no spaces
+# ABSTRACT: Transfer plugin: one space
 
 use 5.010001;
 use Moose;

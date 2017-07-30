@@ -125,11 +125,12 @@ has 'transform' => (
 has 'datasource' => (
     is      => 'ro',
     isa     => 'App::Transfer::Recipe::Datasource',
-    lazy     => 1,
+    lazy    => 1,
     default => sub {
         my $self = shift;
         return App::Transfer::Recipe::Datasource->new(
-            $self->recipe_data->{datasources} );
+            $self->recipe_data->{datasources},
+		);
     },
 );
 
