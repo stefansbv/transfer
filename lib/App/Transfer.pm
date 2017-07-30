@@ -48,14 +48,31 @@ option 'dryrun' => (
 option 'verbose' => (
     is            => 'rw',
     isa           => 'Bool',
+    cmd_aliases   => [qw(v)],
     documentation => q[Verbose output.],
 );
 
 option 'debug' => (
     is            => 'rw',
     isa           => 'Bool',
+    cmd_aliases   => [qw(d)],
     documentation => q[Debug output.],
 );
+
+# Not sure if this have to be set globally
+# option 'ignorecase' => (
+#     is            => 'rw',
+#     isa           => 'Bool',
+#     cmd_aliases   => [qw(ic)],
+#     documentation => q[Ignore case.],
+# );
+
+# option 'ignorediacritic' => (
+#     is            => 'rw',
+#     isa           => 'Bool',
+# 	cmd_aliases   => [qw(id)],
+#     documentation => q[Ignore diacritic.],
+# );
 
 has plugins_dir => (
     is       => 'ro',
