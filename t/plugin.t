@@ -29,7 +29,7 @@ subtest 'Column Type Transformations' => sub {
         logstr      => 'error',
     };
 
-#-- Date                                     TODO: test with different date seps
+    #-- Date                                     TODO: test with different date seps
 
     $p->{value}      = '31.01.2014';
     $p->{src_format} = 'dmy';
@@ -51,7 +51,7 @@ subtest 'Column Type Transformations' => sub {
     $p->{dst_format} = 'iso';
     is $ttr->do_transform( 'date', $p ), undef, 'date iso to iso';
 
-#-- Date Time                                TODO: test with different date seps
+    #-- Date Time                                TODO: test with different date seps
 
     #-- Firebird timestamp
 
@@ -86,7 +86,7 @@ subtest 'Column Type Transformations' => sub {
     is $ttr->do_transform( 'timestamp', $p ), '2017-05-04T13:02:08.613372',
         'date dmy to iso';
 
-TODO: {
+  TODO: {
         todo_skip "Test log info for plugin: date not date", 1;
         $p->{value} = '2014';
         my $t = Test::Log::Log4perl->expect(
@@ -94,7 +94,7 @@ TODO: {
         $ttr->do_transform( 'date', $p );
     }
 
-TODO: {
+  TODO: {
         todo_skip "Test log info for plugin: date not valid", 1;
         $p->{value} = '01/31/2014';
         my $t = Test::Log::Log4perl->expect(
@@ -115,7 +115,7 @@ TODO: {
     $p->{value} = undef;
     is $ttr->do_transform( 'integer', $p ), undef, 'integer undef';
 
-TODO: {
+  TODO: {
         todo_skip "Test log info for plugin: integer not numeric", 1;
         $p->{value} = 'fun';
         my $t = Test::Log::Log4perl->expect(
@@ -123,7 +123,7 @@ TODO: {
         $ttr->do_transform( 'integer', $p );
     }
 
-TODO: {
+  TODO: {
         todo_skip "Test log info for plugin: integer not numeric", 1;
         $p->{value} = '';
         my $t = Test::Log::Log4perl->expect(
@@ -144,7 +144,7 @@ TODO: {
     $p->{value} = -32768;
     is $ttr->do_transform( 'smallint', $p ), -32768, 'small smallint';
 
-TODO: {
+  TODO: {
         todo_skip "Test log info for plugin: smallint ouside of range", 1;
         $p->{value} = -32769;
         my $t
@@ -157,7 +157,7 @@ TODO: {
     $p->{value} = 32767;
     is $ttr->do_transform( 'smallint', $p ), 32767, 'big smallint';
 
-TODO: {
+  TODO: {
         todo_skip "Test log info for plugin: smallint ouside of range", 1;
         $p->{value} = 32768;
         my $t
@@ -184,7 +184,7 @@ TODO: {
     is $ttr->do_transform( 'numeric', $p ), undef, 'numeric undef';
 
     @$p{qw(value prec scale)} = ( '', 8, 2 );
-TODO: {
+  TODO: {
         todo_skip "Test log info for plugin: numeric empty string", 1;
         my $t = Test::Log::Log4perl->expect(
             [ 'App.Transfer.Plugin.numeric', info => qr/is not numeric/ ] );
@@ -194,7 +194,7 @@ TODO: {
         'numeric empty string return undef';
 
     @$p{qw(value prec scale)} = ( 'fun', 8, 2 );
-TODO: {
+  TODO: {
         todo_skip "Test log info for plugin: numeric string", 1;
         my $t = Test::Log::Log4perl->expect(
             [ 'App.Transfer.Plugin.numeric', info => qr/is not numeric/ ] );
@@ -241,12 +241,35 @@ subtest 'Column Transformations' => sub {
     $p->{value} = '12/56T';
     is $ttr->do_transform( 'digits_only', $p ), 1256, 'digits_only';
 
+    #-- Trim
+    $p->{value} = ' a string';
+    is $ttr->do_transform('trim', $p), 'a string', 'trim string left';
+
+    $p->{value} = ' another string ';
+    is $ttr->do_transform('trim', $p), 'another string', 'trim string both';
+
+    $p->{value} = 'one MORE String     ';
+    is $ttr->do_transform('trim', $p), 'one MORE String', 'trim string right';
+
+    $p->{value} = undef;
+    is $ttr->do_transform('trim', $p), undef, 'trim undef';
+
+    $p->{value} = '';
+    is $ttr->do_transform('trim', $p), undef, 'trim empty string';
+
+    ###
+
+    #-- Only digits
+    $p->{value} = '12/56T';
+    is $ttr->do_transform('digits_only', $p), 1256, 'digits_only';
+
+
     #-- Only a number
     $p->{value} = 'Pret 12.56 L E I';
     is $ttr->do_transform( 'number_only', $p ), 12.56, 'number_only';
 
     #-- Test load plugin from local ./plugins dir
-TODO: {
+  TODO: {
         todo_skip "Test log info for plugin: test_plugin", 1;
         $p->{value} = 'does nothing';
         my $t = Test::Log::Log4perl->expect(
