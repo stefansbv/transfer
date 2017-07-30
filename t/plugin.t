@@ -222,6 +222,25 @@ is $ttr->do_transform('no_space', $p), undef, 'no_space undef';
 $p->{value} = '';
 is $ttr->do_transform('no_space', $p), undef, 'no_space empty string';
 
+###
+#-- Trim
+$p->{value} = ' a string';
+is $ttr->do_transform('trim', $p), 'a string', 'trim string left';
+
+$p->{value} = ' another string ';
+is $ttr->do_transform('trim', $p), 'another string', 'trim string both';
+
+$p->{value} = 'one MORE String     ';
+is $ttr->do_transform('trim', $p), 'one MORE String', 'trim string right';
+
+$p->{value} = undef;
+is $ttr->do_transform('trim', $p), undef, 'trim undef';
+
+$p->{value} = '';
+is $ttr->do_transform('trim', $p), undef, 'trim empty string';
+
+###
+
 #-- Only digits
 $p->{value} = '12/56T';
 is $ttr->do_transform('digits_only', $p), 1256, 'digits_only';
