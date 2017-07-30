@@ -410,10 +410,6 @@ subtest 'Datasources' => sub {
     #     hint              = Băile Tușnad
     #   </record>
     # </hints>
-    is ref $recipe->datasource->get_hints('one_element'), 'HASH',
-        'One element hint dictionary';
-    is ref $recipe->datasource->get_hints('two_elements'), 'HASH',
-        'Two elements hint dictionary';
 
     is ref $recipe->datasource->get_ds('one_element'), 'ARRAY',
         'One element ds dictionary';

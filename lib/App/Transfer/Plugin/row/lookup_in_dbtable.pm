@@ -31,8 +31,7 @@ sub lookup_in_dbtable {
     }
     else {
         $self->log->info(
-            "$logstr lookup: failed for '", join( ',', @{$fields} ),
-            "'='$lookup'");
+            "$logstr lookup: failed for '", join(',', @{$fields}), "'='$lookup'");
     }
     return;
 }
