@@ -14,15 +14,15 @@ parameter ignorecase => (
 );
 
 role {
-	my $p = shift;
-	my $ignorecase = $p->ignorecase;
+    my $p = shift;
+    my $ignorecase = $p->ignorecase;
 
     has 'sql' => (
         is      => 'ro',
         isa     => 'SQL::Abstract',
         default => sub {
             if ($ignorecase) {
-				return SQL::Abstract->new( convert => 'upper' );
+                return SQL::Abstract->new( convert => 'upper' );
             }
             else {
                 return SQL::Abstract->new;
