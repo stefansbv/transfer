@@ -412,7 +412,7 @@ __END__
 
 =head1 Name
 
-new - command to generate recipes
+Command to generate recipes
 
 =head1 Description
 
