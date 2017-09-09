@@ -12,6 +12,9 @@ use namespace::autoclean;
 
 extends 'App::Transfer::Engine';
 sub dbh;                                     # required by DBIEngine;
+
+with 'App::Transfer::Role::SQL' => { ignorecase => 0 };
+
 with qw(App::Transfer::Role::DBIEngine
         App::Transfer::Role::DBIMessages);
 
@@ -154,6 +157,53 @@ sub get_info {
     return $flds_ref;
 }
 
+sub table_keys {
+    my ( $self, $table, $foreign ) = @_;
+
+    hurl "The 'table' parameter is required for 'table_keys'" unless $table;
+
+    my $type = $foreign ? 'FOREIGN KEY' : 'PRIMARY KEY';
+
+    $table = uc $table;
+
+    my $sql = qq( SELECT TRIM(LOWER(s.RDB\$FIELD_NAME)) AS column_name
+                     FROM RDB\$INDEX_SEGMENTS s
+                        LEFT JOIN RDB\$INDICES i
+                          ON i.RDB\$INDEX_NAME = s.RDB\$INDEX_NAME
+                        LEFT JOIN RDB\$RELATION_CONSTRAINTS rc
+                          ON rc.RDB\$INDEX_NAME = s.RDB\$INDEX_NAME
+                        LEFT JOIN RDB\$REF_CONSTRAINTS refc
+                          ON rc.RDB\$CONSTRAINT_NAME = refc.RDB\$CONSTRAINT_NAME
+                        LEFT JOIN RDB\$RELATION_CONSTRAINTS rc2
+                          ON rc2.RDB\$CONSTRAINT_NAME = refc.RDB\$CONST_NAME_UQ
+                        LEFT JOIN RDB\$INDICES i2
+                          ON i2.RDB\$INDEX_NAME = rc2.RDB\$INDEX_NAME
+                        LEFT JOIN RDB\$INDEX_SEGMENTS s2
+                          ON i2.RDB\$INDEX_NAME = s2.RDB\$INDEX_NAME
+                      WHERE i.RDB\$RELATION_NAME = '$table'
+                        AND rc.RDB\$CONSTRAINT_TYPE = '$type'
+                      ORDER BY s.RDB\$FIELD_POSITION;
+    );
+
+    my $dbh = $self->dbh;
+    $dbh->{AutoCommit} = 1;    # disable transactions
+    $dbh->{RaiseError} = 0;
+    $dbh->{ChopBlanks} = 1;    # trim CHAR fields
+
+    my $pkf_aref;
+    try {
+        $pkf_aref = $dbh->selectcol_arrayref($sql);
+    }
+    catch {
+        hurl firebird => __x(
+            'Transaction aborted because: {error}',
+            error    => $_,
+        );
+    };
+
+    return $pkf_aref;
+}
+
 sub get_columns {
     my ($self, $table) = @_;
 
@@ -206,6 +256,31 @@ sub table_exists {
     };
 
     return $val_ret;
+}
+
+sub table_list {
+    my $self = shift;
+
+    my $sql = q{SELECT TRIM(LOWER(RDB$RELATION_NAME)) AS table_name
+                   FROM RDB$RELATIONS
+                    WHERE RDB$SYSTEM_FLAG=0
+                      AND RDB$VIEW_BLR IS NULL
+    };
+
+    my $dbh = $self->dbh;
+    $dbh->{AutoCommit} = 1;    # disable transactions
+    $dbh->{RaiseError} = 0;
+
+    my $table_list;
+    try {
+        $table_list = $dbh->selectcol_arrayref($sql);
+    }
+    catch {
+        hurl firebird =>
+            __x( "XXX Transaction aborted because: {error}", error => $_ );
+    };
+
+    return $table_list;
 }
 
 __PACKAGE__->meta->make_immutable;
