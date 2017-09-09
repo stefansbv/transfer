@@ -151,15 +151,24 @@ sub run {
 
 
         ######################################################################
-        # if ($class eq 'App::Transfer::Engine::pg') {
-        #     # Test someting specific for Pg
-        # }
+        # Test someting specific for Pg
+
+        if ($class eq 'App::Tpda3Dev::Engine::pg') {
+            my ($sch, $tbl) = $engine->get_schema_name('schema_name.table_name');
+            is $sch, 'schema_name', 'schema';
+            is $tbl, 'table_name', 'table';
+
+            ($sch, $tbl) = $engine->get_schema_name('table_name');
+            is $sch, undef, 'schema';
+            is $tbl, 'table_name', 'table';
+        }
 
 
         ######################################################################
-        # Test get_info
+        # Test the engine methods
 
         my @fields_info = (
+            [ 'field_00', 'integer' ],
             [ 'field_01', 'char(1)' ],
             [ 'field_02', 'date' ],
             [ 'field_03', 'integer' ],
@@ -168,22 +177,56 @@ sub run {
             [ 'field_06', 'varchar(10)' ],
         );
 
-        my $fields_list = join " \n , ", map { join ' ', @{$_} } @fields_info;
-        my $table_info  = 'test_info';
+        my @flds = map { $_->[0] } @fields_info;
+        my $field_def = join " \n , ", map { join ' ', @{$_} } @fields_info;
+        my $table_frn = 'test_info_frn';
+        my $table     = 'test_info';
 
-        my $ddl = qq{CREATE TABLE $table_info ( \n   $fields_list \n);};
+        my $ddl0 = qq{CREATE TABLE $table_frn (
+                          field_10 CHAR(1)
+                        , field_11 VARCHAR(10)
+                        , CONSTRAINT pk_${table_frn}_field_10
+                             PRIMARY KEY (field_10)
+                     )
+        };
 
-        ok $engine->dbh->do($ddl), "create '$table_info' table";
+        ok $engine->dbh->do($ddl0), "create '$table_frn' table";
 
-        is $engine->table_exists($table_info), 1, 'table exists';
-        is $engine->table_exists('nonexistenttable'), 0,
-            'nonexistenttable not exists';
+        my $ddl = qq{CREATE TABLE $table ( \n   $field_def \n
+                         , CONSTRAINT pk_${table}_field_00
+                             PRIMARY KEY (field_00)
+                         , CONSTRAINT fk__${table}_field_01
+                             FOREIGN KEY (field_01)
+                               REFERENCES $table_frn (field_10)
+                                          ON DELETE NO ACTION
+                                          ON UPDATE NO ACTION
+                     )
+        };
 
-        ok my $info = $engine->get_info($table_info), 'get info for table';
+        ok $engine->dbh->do($ddl), "create '$table' table";
+
+        ok $engine->table_exists($table), "$table table exists";
+
+        cmp_deeply $engine->table_keys($table_frn), ['field_10'],
+            'the pk keys data should match';
+
+        cmp_deeply $engine->table_keys($table), ['field_00'],
+            'the pk keys data should match';
+
+        cmp_deeply $engine->table_keys( $table, 'foreign' ),
+            ['field_01'],
+            'the fk keys data should match';
+
+        my $cols = $engine->get_columns($table);
+        cmp_deeply $cols, \@flds, 'table columns';
+
+        cmp_deeply $engine->table_list(), [$table_frn, $table], 'table list';
+
+        ok my $info = $engine->get_info($table), 'get info for table';
         foreach my $rec (@fields_info) {
             my ($name, $type) = @{$rec};
             $type =~ s{\(.*\)}{}gmx;       # just the type
-            $type =~ s{\s+precision}{}gmx; # just 'double'
+            $type =~ s{\s+precision}{}gmx; # just 'double', delete 'precision'
             $type =~ s{bigint}{int64}gmx;  # made with 'bigint' but is 'int64'
             is $info->{$name}{type}, $type, "type for field '$name' is '$type'";
         }

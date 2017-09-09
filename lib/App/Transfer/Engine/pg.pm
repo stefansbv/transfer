@@ -79,18 +79,21 @@ sub key    { 'pg' }
 sub name   { 'PostgreSQL' }
 sub driver { 'DBD::Pg 2.0' }
 
+sub get_schema_name {
+    my ( $self, $table ) = @_;
+    my ( $schema_name, $table_name ) = ( undef, $table );
+    if ( $table =~ m{\.} ) {
+        ( $schema_name, $table_name ) = split /[.]/, $table;
+    }
+    return ( $schema_name, $table_name );
+}
+
 sub get_info {
     my ($self, $table) = @_;
 
     hurl "The 'table' parameter is required for 'get_info'" unless $table;
 
-    my ($schema_name, $table_name);
-    if ( $table =~ m{\.} ) {
-        ($schema_name, $table_name) = split /[.]/, $table;
-    }
-    else {
-        $table_name = $table;
-    }
+	my ($schema_name, $table_name) = $self->get_schema_name($table);
 
     my $sql = qq( SELECT ordinal_position  AS pos
                     , column_name       AS name
@@ -141,18 +144,51 @@ sub get_info {
     return $flds_type;
 }
 
+sub table_keys {
+    my ( $self, $table, $foreign ) = @_;
+
+    hurl "The 'table' parameter is required for 'table_keys'" unless $table;
+
+	my ($schema_name, $table_name) = $self->get_schema_name($table);
+
+    my $type = $foreign ? 'FOREIGN KEY' : 'PRIMARY KEY';
+
+    my $sql = qq( SELECT kcu.column_name
+                    FROM information_schema.table_constraints tc
+                      LEFT JOIN information_schema.key_column_usage kcu
+                        ON tc.constraint_catalog = kcu.constraint_catalog
+                          AND tc.constraint_schema = kcu.constraint_schema
+                          AND tc.constraint_name = kcu.constraint_name
+                    WHERE tc.table_name = '$table_name'
+                      AND tc.constraint_type = '$type'
+    );
+    $sql .= qq{AND table_schema = '$schema_name'} if $schema_name;
+    $sql .=  q{ORDER BY ordinal_position;};
+
+    my $dbh = $self->dbh;
+    $dbh->{AutoCommit} = 1;    # disable transactions
+    $dbh->{RaiseError} = 0;
+
+    my $pkf_aref;
+    try {
+        $pkf_aref = $dbh->selectcol_arrayref($sql);
+    }
+    catch {
+        hurl pg => __x(
+            'Transaction aborted because: {error}',
+            error    => $_,
+        );
+    };
+
+    return $pkf_aref;
+}
+
 sub get_columns {
     my ($self, $table) = @_;
 
     hurl "The 'table' parameter is required for 'get_columns'" unless $table;
 
-    my ($schema_name, $table_name);
-    if ( $table =~ m{\.} ) {
-        ($schema_name, $table_name) = split /[.]/, $table;
-    }
-    else {
-        $table_name = $table;
-    }
+    my ($schema_name, $table_name) = $self->get_schema_name($table);
 
     my $sql = qq( SELECT column_name AS name
                FROM information_schema.columns
@@ -184,13 +220,7 @@ sub table_exists {
 
     hurl "The 'table' parameter is required for 'table_exists'" unless $table;
 
-    my ($schema_name, $table_name);
-    if ( $table =~ m{\.} ) {
-        ($schema_name, $table_name) = split /[.]/, $table;
-    }
-    else {
-        $table_name = $table;
-    }
+	my ($schema_name, $table_name) = $self->get_schema_name($table);
 
     my $sql = qq( SELECT COUNT(table_name)
                 FROM information_schema.tables
@@ -214,6 +244,33 @@ sub table_exists {
     };
 
     return $val_ret;
+}
+
+sub table_list {
+	my ($self, $schema_name) = @_;
+
+    my $sql = q{ SELECT table_name
+                   FROM information_schema.tables
+                   WHERE table_type = 'BASE TABLE'
+                     AND table_schema NOT IN
+                         ('pg_catalog', 'information_schema')
+    };
+	$sql .= qq{AND table_schema = '$schema_name'} if $schema_name;
+
+    my $dbh = $self->dbh;
+    $dbh->{AutoCommit} = 1;    # disable transactions
+    $dbh->{RaiseError} = 0;
+
+    my $table_list;
+    try {
+        $table_list = $dbh->selectcol_arrayref($sql);
+    }
+    catch {
+        hurl pg =>
+            __x( "XXX Transaction aborted because: {error}", error => $_ );
+    };
+
+    return $table_list;
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -249,17 +306,44 @@ for Transfer.  It supports Pg X.X and higher XXX ???.
 
 Parse and categorize the database error strings.
 
+=head3 C<key>
+
+Return the engine key.
+
+=head3 C<name>
+
+Return the engine name.
+
+=head3 C<driver>
+
+Return the DBD driver name.
+
+=head3 C<get_schema_name>
+
+Parse and return the schema name and the table name from the table
+parameter.
+
 =head3 C<get_info>
 
 Return a table info hash reference data structure.
 
-=head3 get_columns
+=head3 C<table_keys>
+
+Return an array refernece with the table primary key or the foreign
+keys when the C<foreign> parameter is set to true.
+
+=head3 C<get_columns>
 
 Return the column list for the table name provided as parameter.
 
 =head3 C<table_exists>
 
 Return true if the table provided as parameter exists in the database.
+
+=head3 table_list
+
+Return the table list in the schema provided as parameter or in the
+default schema.
 
 =head1 Author
 
