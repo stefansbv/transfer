@@ -38,6 +38,12 @@ has 'record_count' => (
     default => sub { return 0; },
 );
 
+has 'rows_read' => (
+    is       => 'rw',
+    isa      => 'Int',
+    default => sub { return 0; },
+);
+
 sub load {
     my ( $class, $p ) = @_;
 
