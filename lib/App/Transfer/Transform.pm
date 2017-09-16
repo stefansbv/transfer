@@ -524,6 +524,7 @@ sub job_info_output_db {
 
 sub job_info_work {
     my ($self, $rec_count, $rows_read) = @_;
+	$rows_read //= 0;
 	$rec_count //= $rows_read;
     my $start_l   = __ 'Working:';
     my $record_rr = __ 'source rows read:';
