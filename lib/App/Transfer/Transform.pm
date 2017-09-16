@@ -174,16 +174,6 @@ has 'plugin_row' => (
     },
 );
 
-has 'info' => (
-    traits   => ['Hash'],
-    is       => 'rw',
-    isa      => 'HashRef',
-    required => 0,
-    handles  => {
-        get_info => 'get',
-    },
-);
-
 has '_trafo_types' => (
     traits  => ['Hash'],
     is      => 'rw',
