@@ -6,9 +6,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: App-Transfer 0.001\n"
-"Report-Msgid-Bugs-To: stefan@s2i2.ro\n"
-"POT-Creation-Date: 2015-02-27 10:57+0200\n"
-"PO-Revision-Date: 2017-01-22 16:23+0200\n"
+"Report-Msgid-Bugs-To: stefbv70@gmail.com\n"
+"POT-Creation-Date: 2017-09-15 22:08+0300\n"
+"PO-Revision-Date: 2017-09-15 22:12+0300\n"
 "Last-Translator: Ștefan Suciu <stefan@s2i2.ro>\n"
 "Language-Team: none\n"
 "Language: ro\n"
@@ -17,190 +17,122 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Poedit 1.8.11\n"
+"X-Generator: Poedit 1.8.12\n"
 
-#: lib/App/Transfer/Config.pm:36
+#: lib/App/Transfer/Command/config.pm:187
+msgid "No such section!"
+msgstr "Nu există secțiunea!"
+
+#: lib/App/Transfer/Config.pm:65
 msgid "Could not determine home directory"
 msgstr "Nu am putut determina locația directorului acasă"
 
-#: lib/App/Transfer/Reader.pm:62
-#, perl-brace-format
-msgid "\"{reader}\" is not a valid reader"
-msgstr ""
-
-#: lib/App/Transfer/Writer.pm:78
-#, perl-brace-format
-msgid "\"{writer}\" is not a valid writer"
-msgstr ""
-
-#: lib/App/Transfer/Recipe.pm:49
-msgid "The recipe must have a recipe section."
-msgstr "Rețeta trebuie să conțină secțiunea recipe."
-
-#: lib/App/Transfer/Recipe.pm:64
-msgid "The recipe must have a 'config' section with a 'source' subsection."
-msgstr ""
-
-#: lib/App/Transfer/Recipe.pm:79
-msgid ""
-"The recipe must have a 'config' section with a 'destination' subsection."
-msgstr ""
-
-#: lib/App/Transfer/Plugin.pm:27
-msgid "Undefined param in do_transform!"
-msgstr ""
-
-#: lib/App/Transfer/Plugin.pm:39
-#, perl-brace-format
-msgid "No plugin for '{method}' in 'do_transform'."
-msgstr ""
-
-#: lib/App/Transfer/Engine.pm:39 lib/App/Transfer/Engine.pm:51
+#: lib/App/Transfer/Engine.pm:43 lib/App/Transfer/Engine.pm:55
 msgid "No engine specified; use --engine or set core.engine"
 msgstr "Motor nespecificat; folosiți --engine sau setați core.engine"
 
-#: lib/App/Transfer/Engine.pm:65
+#: lib/App/Transfer/Engine.pm:69
 #, perl-brace-format
 msgid "{driver} required to manage {engine}"
 msgstr ""
 
-#: lib/App/Transfer/Options.pm:85 lib/App/Transfer/Options.pm:131
+#: lib/App/Transfer/Engine/fbodbc.pm:161 lib/App/Transfer/Engine/fbodbc.pm:190
+#: lib/App/Transfer/Engine/firebird.pm:152
+#: lib/App/Transfer/Engine/firebird.pm:199
+#: lib/App/Transfer/Engine/firebird.pm:228 lib/App/Transfer/Engine/pg.pm:124
+#: lib/App/Transfer/Engine/pg.pm:178 lib/App/Transfer/Engine/pg.pm:210
+#: lib/App/Transfer/Engine/pg.pm:241
+#, perl-brace-format
+msgid "Transaction aborted because: {error}"
+msgstr "Tranzacție abandonată pentru că: {error}"
+
+# Care e problema de am pus XXX?
+#: lib/App/Transfer/Engine/fbodbc.pm:217
+#: lib/App/Transfer/Engine/firebird.pm:255
+#: lib/App/Transfer/Engine/firebird.pm:280 lib/App/Transfer/Engine/pg.pm:270
+#, perl-brace-format
+msgid "XXX Transaction aborted because: {error}"
+msgstr "Tranzacție abandonată pentru că: {error}"
+
+#: lib/App/Transfer/Options.pm:96 lib/App/Transfer/Options.pm:148
 msgid "Unknown reader/writer type"
 msgstr ""
 
-#: lib/App/Transfer/Options.pm:107
+#: lib/App/Transfer/Options.pm:108
+#, perl-brace-format
+msgid "The file '{file}' was not found!"
+msgstr ""
+
+#: lib/App/Transfer/Options.pm:124
 #, perl-brace-format
 msgid "The file {rw_type} must have a valid file option or configuration."
 msgstr ""
 
-#: lib/App/Transfer/Options.pm:143
+#: lib/App/Transfer/Options.pm:160
 msgid "The URI option supersede the target option"
 msgstr ""
 
-#: lib/App/Transfer/Options.pm:195
+#: lib/App/Transfer/Options.pm:212
 #, perl-brace-format
 msgid ""
 "The db {rw_type} must have a valid target or URI option or configuration."
 msgstr ""
 
-#: lib/App/Transfer/Transform.pm:279
+#: lib/App/Transfer/Plugin.pm:31
+msgid "Undefined param in do_transform!"
+msgstr ""
+
+#: lib/App/Transfer/Plugin.pm:43
 #, perl-brace-format
-msgid "Error in recipe (batch): no such field '{field}'"
+msgid "No plugin for '{method}' in 'do_transform'."
 msgstr ""
 
-#: lib/App/Transfer/Transform.pm:360
-msgid "Recipe:"
-msgstr "Rețetă:"
-
-#: lib/App/Transfer/Transform.pm:363
-msgid "version:"
-msgstr "versiune:"
-
-#: lib/App/Transfer/Transform.pm:363
-msgid "syntax version:"
-msgstr "versiune sintaxă:"
-
-#: lib/App/Transfer/Transform.pm:363
-msgid "description:"
-msgstr "descriere:"
-
-#: lib/App/Transfer/Transform.pm:389
-msgid ""
-"No input file specified; use '--if' or set the source file in the recipe."
-msgstr ""
-"Fișier de intrare nespecificat; folosiți '--if' sau setați fișierul sursă în "
-"rețetă"
-
-#: lib/App/Transfer/Transform.pm:391
-msgid ""
-"Invalid input file specified; use '--if' or fix the source file in the "
-"recipe."
-msgstr ""
-"Fișier de intrare nespecificat; folosiți '--if' sau setați fișierul sursă în "
-"rețetă."
-
-#: lib/App/Transfer/Transform.pm:393
+#: lib/App/Transfer/Reader.pm:70
 #, perl-brace-format
-msgid "The table '{table}' does not exists!"
+msgid "\"{reader}\" is not a valid reader"
 msgstr ""
 
-#: lib/App/Transfer/Transform.pm:398 lib/App/Transfer/Transform.pm:505
-msgid "No columns type info retrieved from database!"
-msgstr ""
-
-#: lib/App/Transfer/Transform.pm:412 lib/App/Transfer/Transform.pm:521
-msgid "Working:"
-msgstr "Lucrez:"
-
-#: lib/App/Transfer/Transform.pm:413 lib/App/Transfer/Transform.pm:522
-msgid "records read:"
-msgstr "înregistrări citite:"
-
-#: lib/App/Transfer/Transform.pm:446 lib/App/Transfer/Transform.pm:556
-msgid "Input:"
-msgstr "Intrare:"
-
-#: lib/App/Transfer/Transform.pm:456
-msgid "file:"
-msgstr "fișier:"
-
-#: lib/App/Transfer/Transform.pm:456
-msgid "worksheet:"
-msgstr "foaie de lucru:"
-
-#: lib/App/Transfer/Transform.pm:464 lib/App/Transfer/Transform.pm:570
-msgid "Output:"
-msgstr "Ieșire:"
-
-#: lib/App/Transfer/Transform.pm:470 lib/App/Transfer/Transform.pm:562
-#: lib/App/Transfer/Transform.pm:576
-msgid "table:"
-msgstr "tabelă:"
-
-#: lib/App/Transfer/Transform.pm:470 lib/App/Transfer/Transform.pm:562
-#: lib/App/Transfer/Transform.pm:576
-msgid "database:"
-msgstr "bază de date:"
-
-#: lib/App/Transfer/Transform.pm:491
+#: lib/App/Transfer/Reader/csv.pm:102
 #, perl-brace-format
-msgid "The source table '{table}' does not exists!"
+msgid "[EE] At least a column is not defined in list \"{list}\""
 msgstr ""
 
-#: lib/App/Transfer/Transform.pm:495
-#, perl-brace-format
-msgid "The destination table '{table}' does not exists!"
-msgstr ""
-
-#: lib/App/Transfer/Transform.pm:501
-msgid "The source and the destination tables must be different!"
-msgstr ""
-
-#: lib/App/Transfer/Transform.pm:590
-msgid "Summary:"
-msgstr "Sumar:"
-
-#: lib/App/Transfer/Transform.pm:596
-msgid "records inserted:"
-msgstr "înregistrări inserate:"
-
-#: lib/App/Transfer/Transform.pm:596
-msgid "records skipped:"
-msgstr "înregistrări omise:"
-
-#: lib/App/Transfer/Transform.pm:620 lib/App/Transfer/Transform.pm:650
+#: lib/App/Transfer/Reader/csv.pm:116 lib/App/Transfer/Reader/odt.pm:114
 #, perl-brace-format
 msgid ""
-"Field info for '{field}' not found!  Header map config. <--> DB schema "
-"inconsistency"
+"Header map <--> CSV file header inconsistency. Some columns where not found :"
+"\"{list}\""
 msgstr ""
 
-#: lib/App/Transfer/Transform.pm:642
+#: lib/App/Transfer/Reader/db.pm:127 lib/App/Transfer/Reader/db.pm:175
 #, perl-brace-format
-msgid "Trafo type {type} not implemented"
+msgid "Table \"{table}\" does not exists"
 msgstr ""
 
-#: lib/App/Transfer/Recipe/Dst.pm:24
+#: lib/App/Transfer/Reader/db.pm:141
+#, perl-brace-format
+msgid "Table \"{table}\" has no header-map in the recipe"
+msgstr ""
+
+#: lib/App/Transfer/Reader/db.pm:154
+#, perl-brace-format
+msgid ""
+"Columns from the map file not found in the \"{table}\" table: \"{list}\""
+msgstr ""
+
+#: lib/App/Transfer/Reader/dbf.pm:104
+#, perl-brace-format
+msgid ""
+"Header map <--> DBF file header inconsistency. Some columns where not found :"
+"\"{list}\""
+msgstr ""
+
+#: lib/App/Transfer/Reader/xls.pm:252
+#, perl-brace-format
+msgid "Worksheet \"{worksheet}\" not found in the XLS file"
+msgstr ""
+
+#: lib/App/Transfer/Recipe/Dst.pm:26
 msgid "The destination section must have a 'writer' attribute"
 msgstr ""
 
@@ -212,79 +144,244 @@ msgstr ""
 msgid "The recipe must have a valid 'syntaxversion' attribute"
 msgstr ""
 
-#: lib/App/Transfer/Recipe/Src.pm:24
+#: lib/App/Transfer/Recipe/Load.pm:50
+#, perl-brace-format
+msgid "Failed to load the recipe file '{file}': {error}"
+msgstr ""
+
+#: lib/App/Transfer/Recipe/Load.pm:65
+msgid "The recipe must have a recipe section."
+msgstr "Rețeta trebuie să conțină secțiunea recipe."
+
+#: lib/App/Transfer/Recipe/Load.pm:69 lib/App/Transfer/Recipe/Load.pm:74
+msgid ""
+"The recipe must have a 'config' section with 'source' and 'destination' "
+"subsections."
+msgstr ""
+
+#: lib/App/Transfer/Recipe/Load.pm:79
+msgid "The recipe must have a 'tables' section."
+msgstr "Rețeta trebuie să conțină secțiunea recipe."
+
+#: lib/App/Transfer/Recipe/Src.pm:43
 msgid "The source section must have a 'reader' attribute"
 msgstr ""
 
-#: lib/App/Transfer/Recipe/Transform.pm:65
+#: lib/App/Transfer/Recipe/Transform.pm:58
 #, perl-brace-format
 msgid "Row transformation step type \"{type}\" not known"
 msgstr ""
 
-#: lib/App/Transfer/Role/DBIEngine.pm:55
+#: lib/App/Transfer/Render.pm:62 lib/App/Transfer/Render.pm:75
+#, perl-brace-format
+msgid "Template error: {error}"
+msgstr ""
+
+#: lib/App/Transfer/Render.pm:97
+#, perl-brace-format
+msgid "Template error, unknown type: '{type}'"
+msgstr ""
+
+#: lib/App/Transfer/Role/DBIEngine.pm:47
 #, perl-brace-format
 msgid "Insert failed: \"{error}\" for record \"{record}\""
 msgstr ""
 
-#: lib/App/Transfer/Role/DBIEngine.pm:72 lib/App/Transfer/Role/DBIEngine.pm:87
-#: lib/App/Transfer/Role/DBIEngine.pm:106
+#: lib/App/Transfer/Role/DBIEngine.pm:77 lib/App/Transfer/Role/DBIEngine.pm:92
+#: lib/App/Transfer/Role/DBIEngine.pm:111
 #, perl-brace-format
 msgid "Select failed: {error}"
 msgstr ""
 
-#: lib/App/Transfer/Command/config.pm:187
-msgid "No such section!"
-msgstr "Nu există secțiunea!"
-
-#: lib/App/Transfer/Command/run.pm:128
+#: lib/App/Transfer/Transform.pm:326
 #, perl-brace-format
-msgid "Unknown recipe syntax version: {version}"
-msgstr "Versiune de sintaxă pentru rețetă necunoscută: {version}"
-
-#: lib/App/Transfer/Command/run.pm:140
-#, perl-brace-format
-msgid "Unimplemented reader-writer combo: '{type}'!"
+msgid "Error in recipe (batch): no such field '{field}'"
 msgstr ""
 
-#: lib/App/Transfer/Reader/db.pm:120 lib/App/Transfer/Reader/db.pm:169
-#, perl-brace-format
-msgid "Table \"{table}\" does not exists"
-msgstr ""
+#: lib/App/Transfer/Transform.pm:438
+msgid "Recipe:"
+msgstr "Rețetă:"
 
-#: lib/App/Transfer/Reader/db.pm:134
-#, perl-brace-format
-msgid "Table \"{table}\" has no header-map in the recipe"
-msgstr ""
+#: lib/App/Transfer/Transform.pm:441
+msgid "version:"
+msgstr "versiune:"
 
-#: lib/App/Transfer/Reader/db.pm:147
+#: lib/App/Transfer/Transform.pm:441
+msgid "syntax version:"
+msgstr "versiune sintaxă:"
+
+#: lib/App/Transfer/Transform.pm:441
+msgid "description:"
+msgstr "descriere:"
+
+#: lib/App/Transfer/Transform.pm:462 lib/App/Transfer/Transform.pm:504
+msgid "Input:"
+msgstr "Intrare:"
+
+#: lib/App/Transfer/Transform.pm:471 lib/App/Transfer/Transform.pm:492
+msgid "file:"
+msgstr "fișier:"
+
+#: lib/App/Transfer/Transform.pm:471 lib/App/Transfer/Transform.pm:492
+msgid "worksheet:"
+msgstr "foaie de lucru:"
+
+#: lib/App/Transfer/Transform.pm:483 lib/App/Transfer/Transform.pm:521
+msgid "Output:"
+msgstr "Ieșire:"
+
+#: lib/App/Transfer/Transform.pm:509 lib/App/Transfer/Transform.pm:526
+msgid "table:"
+msgstr "tabelă:"
+
+#: lib/App/Transfer/Transform.pm:509 lib/App/Transfer/Transform.pm:526
+msgid "database:"
+msgstr "bază de date:"
+
+#: lib/App/Transfer/Transform.pm:538
+msgid "Working:"
+msgstr "Lucrez:"
+
+#: lib/App/Transfer/Transform.pm:539
+msgid "source rows read:"
+msgstr "înregistrări sursă citite:"
+
+#: lib/App/Transfer/Transform.pm:540
+msgid "records prepared:"
+msgstr "înregistrări preparate:"
+
+#: lib/App/Transfer/Transform.pm:557
+msgid "Summary:"
+msgstr "Sumar:"
+
+#: lib/App/Transfer/Transform.pm:563
+msgid "records inserted:"
+msgstr "înregistrări inserate:"
+
+#: lib/App/Transfer/Transform.pm:563
+msgid "records skipped:"
+msgstr "înregistrări omise:"
+
+#: lib/App/Transfer/Transform.pm:592
 #, perl-brace-format
 msgid ""
-"Columns from the map file not found in the \"{table}\" table: \"{list}\""
+"\n"
+"Unimplemented reader-writer combo: '{type}'!"
 msgstr ""
 
-#: lib/App/Transfer/Reader/excel.pm:223
+#: lib/App/Transfer/Transform.pm:604
 #, perl-brace-format
-msgid "Worksheet \"{worksheet}\" not found in the XSL file"
+msgid "The table '{table}' does not exists!"
 msgstr ""
 
-#: lib/App/Transfer/Reader/csv.pm:102
+#: lib/App/Transfer/Transform.pm:608 lib/App/Transfer/Transform.pm:675
+#: lib/App/Transfer/Transform.pm:726
+msgid "No columns type info retrieved from database!"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:616 lib/App/Transfer/Transform.pm:767
+msgid ""
+"No input file specified; use '--if' or set the source file in the recipe."
+msgstr ""
+"Fișier de intrare nespecificat; folosiți '--if' sau setați fișierul sursă în "
+"rețetă"
+
+#: lib/App/Transfer/Transform.pm:618 lib/App/Transfer/Transform.pm:771
+msgid ""
+"Invalid input file specified; use '--if' or fix the source file in the "
+"recipe."
+msgstr ""
+"Fișier de intrare nespecificat; folosiți '--if' sau setați fișierul sursă în "
+"rețetă."
+
+#: lib/App/Transfer/Transform.pm:660 lib/App/Transfer/Transform.pm:719
+#, perl-brace-format
+msgid "The source table '{table}' does not exists!"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:663
+#, perl-brace-format
+msgid "The destination table '{table}' does not exists!"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:671
+msgid "The source and the destination tables must be different!"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:769
+msgid ""
+"No output file specified; use '--of' or set the destination file in the "
+"recipe."
+msgstr ""
+"Fișier de intrare nespecificat; folosiți '--if' sau setați fișierul sursă în "
+"rețetă"
+
+#: lib/App/Transfer/Transform.pm:852
+#, perl-brace-format
+msgid "Trafo type {type} not implemented"
+msgstr ""
+
+#: lib/App/Transfer/Transform.pm:870
 #, perl-brace-format
 msgid ""
-"Header map <--> CSV file header inconsistency. Column \"{col}\" not found."
+"Field info for '{field}' not found!  Header map config. <--> DB schema "
+"inconsistency"
 msgstr ""
 
-#: lib/App/Transfer/Engine/pg.pm:106 lib/App/Transfer/Engine/pg.pm:146
-#: lib/App/Transfer/Engine/firebird.pm:143
-#: lib/App/Transfer/Engine/firebird.pm:168
+#: lib/App/Transfer/Transform.pm:919
 #, perl-brace-format
-msgid "Transaction aborted because: {error}"
-msgstr "Tranzacție abandonată pentru că: {error}"
-
-#: lib/App/Transfer/Engine/firebird.pm:173
-#, fuzzy, perl-brace-format
-msgid "XXX Transaction aborted because: {error}"
-msgstr "Tranzacție abandonată pentru că: {error}"
-
-#: t/lib/DBIEngineTest.pm:276
-msgid "Table \"nonexistenttable\" does not exists"
+msgid "Destination table \"{table}\" not found"
 msgstr ""
+
+#: lib/App/Transfer/Transform.pm:926
+#, perl-brace-format
+msgid ""
+"Destination fields from trafos not found in the \"{table}\" destination "
+"table: \"{list}\""
+msgstr ""
+
+#: lib/App/Transfer/Writer.pm:80
+#, perl-brace-format
+msgid "\"{writer}\" is not a valid writer"
+msgstr ""
+
+#: lib/App/Transfer/Writer/csv.pm:55
+#, perl-brace-format
+msgid "Cannot open '{file}': {error}"
+msgstr "Nu pot deschide '{file}': {error}"
+
+#: lib/App/Transfer/Writer/csv.pm:128
+#, perl-brace-format
+msgid "Cannot close '{file}': {error}"
+msgstr "Nu pot închide '{file}': {error}"
+
+#: lib/App/Transfer/Writer/csv.pm:139
+#, perl-brace-format
+msgid "CSV error: {error}"
+msgstr "Eroare CSV: {error}"
+
+#: lib/App/Transfer/Writer/dbf.pm:42
+#, perl-brace-format
+msgid ""
+"Could not find the structure file (check the case of the extension): {file}"
+msgstr ""
+
+#: lib/App/Transfer/Writer/dbf.pm:100
+#, perl-brace-format
+msgid "Wont overwrite existing file: {file}"
+msgstr ""
+
+#: lib/App/Transfer/Writer/dbf.pm:163
+#, perl-brace-format
+msgid "DBF error: {error}"
+msgstr "Eroare DBF: {error}"
+
+#, fuzzy
+#~ msgid "records produced:"
+#~ msgstr "înregistrări omise:"
+
+#~ msgid "records count:"
+#~ msgstr "înregistrări numărate:"
+
+#~ msgid "Unknown recipe syntax version: {version}"
+#~ msgstr "Versiune de sintaxă pentru rețetă necunoscută: {version}"
