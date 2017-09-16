@@ -10,8 +10,12 @@ use Locale::TextDomain 1.20 qw(App-Transfer);
 use List::Util qw(first any);
 use List::Compare;
 use Spreadsheet::ParseExcel;
+use Spreadsheet::ParseExcel::FmtJapan;       # FmtUnicode has some issues
+use Lingua::Translit 0.23; # for "Common RON" table
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
+
+use Data::Dump;
 
 extends 'App::Transfer::Reader';
 
@@ -64,6 +68,27 @@ has 'lastrow' => (
     },
 );
 
+has 'lastcol' => (
+    is      => 'rw',
+    isa     => 'Maybe[Int]',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        return $self->recipe->tables->lastcol
+			if defined $self->recipe->tables->lastcol;
+		return;
+    },
+);
+
+# Transliteration
+has 'common_RON' => (
+    is      => 'ro',
+    isa     => 'Lingua::Translit',
+    default => sub {
+        return Lingua::Translit->new('Common RON');
+    },
+);
+
 has '_headers' => (
     isa      => 'ArrayRef[HashRef]',
     traits   => ['Array'],
@@ -77,66 +102,94 @@ has '_headers' => (
 
 sub _build_headers {
     my $self = shift;
-
     my @headers;
     my $row_count = 0;
     my $iter      = $self->contents_iter;
     my $found_tables    = 0;
     my $expected_tables = $self->recipe->tables->count_tables; # XXX stop when all found
-    say "expected_tables = $expected_tables";
+    say "table number = $expected_tables" if $self->debug;
     while ( $iter->has_next ) {
-        my $row  = $iter->next;
-
-        # Compress the text, remove some chars like in the header-map
-        my $cols = [];
-        foreach my $col ( @{$row} ) {
-            my $text = $col;
-            ( $text = $col ) =~ s{[-./\s]}{}gi if defined $col;
-            push @{$cols}, $text;
-        }
-
-        # push @records, $record
-        #     if any { defined($_) } values %{$record};
+        my $row = $iter->next;
+        my $data_row = $self->_clean_row_text($row);
 
         # Search for headers
-      HEADER:
-        foreach my $name ( $self->recipe->tables->all_table_names ) {
-            my $headermap = $self->recipe->tables->get_table($name)->headermap;
-            my $skip_rows = $self->recipe->tables->get_table($name)->skiprows;
-            my $head_cols = [ keys %{$headermap} ];
-
-            # say "headermap";
-            # dd $headermap;
-            # say "header_cols";
-            # dd $head_cols;
-
-            my $lc = List::Compare->new( $head_cols, $cols );
-            next HEADER unless $lc->get_intersection;
-
-            say "Header at row ", ($row_count + 1); # if $self->verbose;
+        if ( my ($name, $headermap) = $self->_is_row_header($data_row) ) {
+            say "Header ($name) at row ", ( $row_count + 1 ) if $self->debug;
             my $record = [];
-            foreach my $col ( @{$cols} ) {
+            foreach my $col ( @{$data_row} ) {
                 push @{$record}, $headermap->{$col} if defined $col;
             }
 
-            # Check header record
+            # Header record
             if ( @{$record} ) {
-                $self->_debug_config_map( $name, $record )
-                    if any { !defined($_) } @{$record};
                 push @headers, {
                     table  => $name,
                     row    => $row_count,
                     header => $record,
-                    skip   => $skip_rows,
+					skip   => $self->recipe->tables->get_table($name)->skiprows,
                 };
             }
             $found_tables++;
-        }
+            last if $found_tables == $expected_tables;
+		}
         $row_count++;
     }
 
     $self->maxrow($row_count);    # store row count
+    # dd \@headers;
+
     return \@headers;
+}
+
+sub _clean_row_text {
+    my ( $self, $row ) = @_;
+
+    # Compress the text, remove some chars like in the header-map
+    my $data_row = [];
+    foreach my $col ( @{$row} ) {
+        my $text;
+        if ($col) {
+            $text = $self->common_RON->translit($col);
+            $text =~ s{[-./\s]}{}gi;
+        }
+        push @{$data_row}, $text;
+    }
+    return $data_row;
+}
+
+sub _is_row_header {
+    my ($self, $data_row) = @_;
+  HEADER:
+    foreach my $name ( $self->recipe->tables->all_table_names ) {
+        my $headermap = $self->recipe->tables->get_table($name)->headermap;
+        my $head_cols = [ keys %{$headermap} ];
+		my $count_hx = scalar @{$head_cols};
+        my $lc = List::Compare->new( $head_cols, $data_row );
+        my @inter = $lc->get_intersection;
+		my $count_hi = scalar @inter;
+		if ($count_hx == $count_hi) {
+			if ($self->debug) {
+				my @Lonly = $lc->get_Lonly;
+				if (scalar @Lonly) {
+					say "Header map left side:";
+					$self->print_array(\@Lonly);
+				}
+				my @Ronly = $lc->get_Ronly;
+				if (scalar @Ronly) {
+					say "Header map right side:";
+					$self->print_array(\@Ronly);
+				}
+			}
+			return ($name, $headermap);
+		}
+    }
+	return;
+}
+
+sub print_array {
+    my ($self, $aref) = @_;
+    say " - '$_'" for @{$aref};
+	return;
 }
 
 has '_record_set' => (
@@ -196,7 +249,7 @@ sub _build_contents {
     if ( $self->worksheet ) {
         $worksheet = $self->workbook->worksheet( $self->worksheet );
         hurl xls =>
-            __x( 'Worksheet "{worksheet}" not found in the XSL file',
+            __x( 'Worksheet "{worksheet}" not found in the XLS file',
                  worksheet => $self->worksheet )
             unless defined $worksheet;
     }
@@ -207,10 +260,13 @@ sub _build_contents {
     my ( $row_min, $row_max ) = $worksheet->row_range();
     my ( $col_min, $col_max ) = $worksheet->col_range();
 
-    say "row_min = $row_min   row_max = $row_max";
-    say "col_min = $col_min   col_max = $col_max";
-
     $row_max = $self->lastrow if defined $self->lastrow;
+    $col_max = $self->lastcol if defined $self->lastcol;
+
+	if ( $self->debug ) {
+        say "row_min = $row_min   row_max = $row_max";
+        say "col_min = $col_min   col_max = $col_max";
+    }
 
     my @aoa = ();
     for my $row ( 0 .. $row_max ) {
@@ -240,28 +296,12 @@ has 'workbook' => (
     default  => sub {
         my $self     = shift;
         my $parser   = Spreadsheet::ParseExcel->new;
-        my $workbook = $parser->parse( $self->input_file->stringify );
+        my $formattr = Spreadsheet::ParseExcel::FmtJapan->new();
+        my $workbook = $parser->parse( $self->input_file->stringify, $formattr );
         die "Error:", $parser->error(), ".\n" if !defined $workbook;
         return $workbook;
     },
 );
-
-sub _debug_config_map {
-    my ($self, $name, $record) = @_;
-    my $header = $self->recipe->tables->get_table($name)->headermap;
-
-    my @header = values %{$header};
-    my $lc = List::Compare->new( \@header, $record );
-    my @fields = $lc->get_unique;
-
-    my %revers = reverse %{$header};
-    my @errors = map { $revers{$_} } @fields;
-
-    say "\nCheck header text for:";
-    say "  * '$_'" for @errors;
-
-    die "Configuration error(s) detected, aborting.\n";
-}
 
 sub has_table {
     my ($self, $name) = @_;
@@ -281,7 +321,8 @@ sub get_data {
     my $min      = $data_set->{min};
     my $max      = $data_set->{max} // $self->maxrow;
 
-    my $row_count = 0;
+    my $row_count = 0;				  # rows read from xls
+    my $rec_count = 0;				  # records inserted in output AoH
     my @records;
     while ( $iter->has_next ) {
         my $row = $iter->next;
@@ -293,12 +334,16 @@ sub get_data {
             }
 
             # Only records with at least one defined value
-            push @records, $record
-                if any { defined($_) } values %{$record};
-        }
+            if (any { defined($_) } values %{$record}) {
+				push @records, $record;
+				$rec_count++;
+			}
+		}
         $row_count++;
     }
-    $self->record_count($row_count);
+    $self->rows_read($row_count);
+    $self->record_count($rec_count);
+
     return \@records;
 }
 
@@ -373,10 +418,6 @@ A L<MooseX::Iterator> object for the contents of the xls file.
 A L<Spreadsheet::ParseExcel::Workbook> object.
 
 =head2 Instance Methods
-
-=head3 C<_debug_config_map>
-
-Print a list of the headers without a valid mapping.
 
 =head3 C<has_table>
 
