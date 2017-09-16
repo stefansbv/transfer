@@ -31,7 +31,6 @@ subtest '"db" reader: no options; no config; all from recipe config' => sub {
     is $options->uri_str, 'db:firebird://user:@localhost/name1',
         'should get uri from the recipe config section';
 
-	is $options->_get_uri_from_config, '';
     # Have to call 'target' after 'uri_str', else we get the default
     is $options->target, 'name1', 'should get name from the config';
 };
@@ -53,6 +52,8 @@ subtest '"db" reader: no options; name, uri from config; reader, writer from rec
     ), 'new options instance';
     is $options->uri_str, 'db:firebird://user:@localhost/name1',
         'should get uri from the config';
+    is $options->_get_uri_from_config('name1'),
+        'db:firebird://user:@localhost/name1', 'uri from config';
 
     # Have to call 'target' after 'uri_str', else we get the default
     is $options->target, 'name1', 'should get name from the config';
