@@ -38,6 +38,16 @@ like(
     'Should have error for missing file option or configuration'
 );
 
+ok (
+	lives { $trafo->job_info_work },
+    'Should have no error for missing parameters'
+);
+
+ok (
+	lives { $trafo->job_summary },
+    'Should have no error for missing parameters'
+);
+
 subtest 'DB to DB' => sub {
 	isa_ok $trafo->transfer, ['App::Transfer'], 'is a transfer instance';
 	is $trafo->recipe_file, $recipe_file, 'has recipe file';
