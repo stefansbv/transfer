@@ -109,7 +109,7 @@ sub get_section {
     };
 }
 
-# Mock up original_key for older versions fo Config::GitLike.
+# Mock up original_key for older versions of Config::GitLike.
 eval 'sub original_key { $_[1] }' unless __PACKAGE__->can('original_key');
 
 sub initial_key {
