@@ -9,8 +9,9 @@ use namespace::autoclean;
 
 use App::Transfer::Recipe::Tables::Table;
 
-has 'worksheet' => ( is => 'ro', isa => 'Str' );
+has 'worksheet' => ( is => 'ro', isa => 'Maybe[Str]' );
 has 'lastrow'   => ( is => 'ro', isa => 'Maybe[Int]' );
+has 'lastcol'   => ( is => 'ro', isa => 'Maybe[Int]' );
 has 'table'     => ( is => 'ro', isa => 'HashRef', required => 1 );
 
 has '_table_list' => (
@@ -58,6 +59,21 @@ sub has_table {
     return $self->find_table_name( sub { /$name/ } );
 }
 
+around BUILDARGS => sub {
+    my $orig  = shift;
+    my $class = shift;
+    my @args  = @_;
+
+    $args[0]->{worksheet} = undef
+        if exists $args[0]->{worksheet} and $args[0]->{worksheet} eq "";
+    $args[0]->{lastrow} = undef
+        if exists $args[0]->{lastrow} and $args[0]->{lastrow} eq "";
+    $args[0]->{lastcol} = undef
+        if exists $args[0]->{lastcol} and $args[0]->{lastcol} eq "";
+
+    return $class->$orig(@args);
+};
+
 __PACKAGE__->meta->make_immutable;
 
 1;
@@ -100,6 +116,11 @@ optional, if not provided, the first sheet is used.
 =head3 C<lastrow>
 
 Returns the C<lastrow> attribute from the C<tables> section of the
+recipe.
+
+=head3 C<lastcol>
+
+Returns the C<lastcol> attribute from the C<tables> section of the
 recipe.
 
 =head3 C<table>
