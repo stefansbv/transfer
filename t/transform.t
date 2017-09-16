@@ -13,7 +13,6 @@ use lib 't/lib';
 # binmode STDOUT, ':utf8';
 
 my $uri            = 'db:pg://@localhost/__transfertest__';
-my $target_params  = [ uri => $uri ];
 my $recipe_file    = path( 't', 'recipes', 'recipe-db.conf' );
 my $trafo_params   = [ recipe_file => $recipe_file ];
 my $input_options  = { input_uri  => $uri };
@@ -40,7 +39,6 @@ like(
 );
 
 subtest 'DB to DB' => sub {
-	# use Data::Printer; p $trafo;
 	isa_ok $trafo->transfer, ['App::Transfer'], 'is a transfer instance';
 	is $trafo->recipe_file, $recipe_file, 'has recipe file';
 	is $trafo->input_options, $input_options, 'has input options';
