@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Path::Tiny;
 use Test::Most;
+use List::Util qw(first);
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::Recipe;
 
@@ -92,6 +93,11 @@ subtest 'Recipe - minimum' => sub {
     is $recipe->get_uri('siruta'), 'db:firebird://localhost/siruta', 'target URI';
 
     # Tables
+    is $recipe->tables->count_tables, 2, 'tables count ';
+    ok my @allnames = $recipe->tables->all_table_names;
+    ok first {$_ eq 'judete'} @allnames, 'table judete match';
+    ok first {$_ eq 'siruta'} @allnames, 'table siruta match';
+
     foreach my $name ( $recipe->tables->all_table_names ) {
         is $recipe->tables->has_table($name), $name, "has table name '$name'";
         ok my $recipe_table = $recipe->tables->get_table($name), 'table.';
@@ -172,6 +178,9 @@ subtest 'Table section minimum config' => sub {
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
 
+    is $recipe->tables->lastrow, undef, 'last row';
+    is $recipe->tables->lastcol, undef, 'last col';
+
     ok my $table = $recipe->tables->has_table('test_table'), 'has table name';
     ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
     ok $recipe_table->description, 'table desc.';
@@ -184,6 +193,9 @@ subtest 'Table section maximum config' => sub {
     ok my $recipe
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
+
+    is $recipe->tables->lastrow, 50, 'last row';
+    is $recipe->tables->lastcol, 10, 'last col';
 
     is $recipe->tables->has_table('test_table'), 'test_table', 'has table name';
     ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
@@ -228,6 +240,9 @@ subtest 'Table section medium config' => sub {
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
 
+    is $recipe->tables->lastrow, undef, 'last row';
+    is $recipe->tables->lastcol, undef, 'last col';
+
     ok my $table = $recipe->tables->has_table('test_table'), 'has table name';
     ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
     ok $recipe_table->description, 'table desc.';
@@ -243,6 +258,9 @@ subtest 'Table section complex orderby config' => sub {
     ok my $recipe
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
+
+    is $recipe->tables->lastrow, undef, 'last row';
+    is $recipe->tables->lastcol, undef, 'last col';
 
     ok my $table = $recipe->tables->has_table('test_table'), 'has table name';
     ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
