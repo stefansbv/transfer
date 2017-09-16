@@ -551,18 +551,21 @@ sub job_info_output_db {
 }
 
 sub job_info_work {
-    my ($self, $record_count) = @_;
-
-    my $start_l  = __ 'Working:';
-    my $record_l = __ 'records read:';
+    my ($self, $rec_count, $rows_read) = @_;
+	$rec_count //= $rows_read;
+    my $start_l   = __ 'Working:';
+    my $record_rr = __ 'source rows read:';
+    my $record_rc = __ 'records prepared:';
     print form " -----------------------------";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
        $start_l;
     print form
     "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-       $record_l,                   $record_count;
-
+       $record_rr,                   $rows_read;
+    print form
+    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[}",
+       $record_rc,                   $rec_count;
     return;
 }
 
@@ -634,16 +637,17 @@ sub transfer_file2db {
 
     my $logfld = $self->get_logfiled_name($table, $table_info);
 
-    my $iter         = $self->_contents_iter; # call before record_count
-    my $row_count    = 0;
-    my $record_count = $self->reader->record_count;
+    my $iter      = $self->_contents_iter; # call before record_count
+    my $row_count = 0;
+    my $rows_read = $self->reader->rows_read;
+    my $rec_count = $self->reader->record_count;
 
-    $self->job_info_work($record_count);
+    $self->job_info_work($rec_count, $rows_read);
 
-    return unless $record_count;
+    return unless $rec_count;
 
     my $progress = Progress::Any->get_indicator(
-        target => $record_count,
+        target => $rec_count,
     );
     while ( $iter->has_next ) {
         $row_count++;
@@ -655,7 +659,8 @@ sub transfer_file2db {
         #last;                                # DEBUG
     }
     $progress->finish;
-    return;
+
+	return;
 }
 
 sub transfer_db2db {
@@ -696,14 +701,14 @@ sub transfer_db2db {
 
     my $iter         = $self->_contents_iter; # call before record_count
     my $row_count    = 0;
-    my $record_count = $self->reader->record_count;
+    my $rec_count = $self->reader->record_count;
 
-    $self->job_info_work($record_count);
+    $self->job_info_work($rec_count);
 
-    return unless $record_count;
+    return unless $rec_count;
 
     my $progress = Progress::Any->get_indicator(
-        target => $record_count,
+        target => $rec_count,
     );
     while ( $iter->has_next ) {
         $row_count++;
@@ -745,16 +750,16 @@ sub transfer_db2file {
 
     my $iter         = $self->_contents_iter; # call before record_count
     my $row_count    = 0;
-    my $record_count = $self->reader->record_count;
+    my $rec_count = $self->reader->record_count;
 
-    $self->job_info_work($record_count);
+    $self->job_info_work($rec_count);
 
-    return unless $record_count;
+    return unless $rec_count;
 
     $self->writer->insert_header;
 
     my $progress = Progress::Any->get_indicator(
-        target => $record_count,
+        target => $rec_count,
     );
     while ( $iter->has_next ) {
         $row_count++;
@@ -788,18 +793,18 @@ sub transfer_file2file {
 
     my $iter         = $self->_contents_iter; # call before record_count
     my $row_count    = 0;
-    my $record_count = $self->reader->record_count;
+    my $rec_count = $self->reader->record_count;
 
-    $self->job_info_work($record_count);
+    $self->job_info_work($rec_count);
 
-    return unless $record_count;
+    return unless $rec_count;
 
     my $dst_table_info = $self->recipe->tables->get_table($dst_table)->columns;
 
     $self->writer->insert_header;
 
     my $progress = Progress::Any->get_indicator(
-        target => $record_count,
+        target => $rec_count,
     );
     while ( $iter->has_next ) {
         $row_count++;
