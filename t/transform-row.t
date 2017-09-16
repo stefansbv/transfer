@@ -28,18 +28,6 @@ ok my $trafo = App::Transfer::Transform->new(
     @{$trafo_params},
     ), 'new trafo instance';
 
-like (
-    dies { $trafo->job_info_input_file },
-    qr/The file reader must have a valid/,
-    'Should have error for missing file option or configuration'
-);
-
-like(
-    dies { $trafo->job_info_output_file },
-    qr/The file writer must have a valid/,
-    'Should have error for missing file option or configuration'
-);
-
 subtest 'join - src fields included in dst' => sub {
     my $step = App::Transfer::Recipe::Transform::Row::Join->new(
         type      => 'join',
