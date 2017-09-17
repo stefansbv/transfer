@@ -355,7 +355,7 @@ sub type_batch {
 sub type_lookup {
     my ( $self, $step, $record, $logstr ) = @_;
 
-	my $attribs = $step->attributes;
+    my $attribs = $step->attributes;
 
     # Lookup value
     my $field_src  = $step->field_src;
@@ -363,7 +363,7 @@ sub type_lookup {
 
     return $record unless defined $lookup_val; # skip if undef
 
-	say "Looking for '$field_src'='$lookup_val'" if $self->debug;
+    say "Looking for '$field_src'='$lookup_val'" if $self->debug;
 
     my $p;
     $p->{logstr}     = $logstr;
@@ -542,8 +542,8 @@ sub job_info_output_db {
 
 sub job_info_work {
     my ($self, $rec_count, $rows_read) = @_;
-	$rows_read //= 0;
-	$rec_count //= $rows_read;
+    $rows_read //= 0;
+    $rec_count //= $rows_read;
     my $start_l   = __ 'Working:';
     my $record_rr = __ 'source rows read:';
     my $record_rc = __ 'records prepared:';
@@ -570,8 +570,9 @@ sub job_summary {
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
        $summ_l;
     my @o_l = (__ 'records inserted:', __ 'records skipped:');
-    my @o_v = ( $self->writer->records_inserted,
-                $self->writer->records_skipped );
+    my $ins = $self->writer->records_inserted // 0;
+    my $skp = $self->writer->records_skipped  // 0;
+    my @o_v = ($ins, $skp);
     print form
     "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
        \@o_l,                       \@o_v;
@@ -651,7 +652,7 @@ sub transfer_file2db {
     }
     $progress->finish;
 
-	return;
+    return;
 }
 
 sub transfer_db2db {
