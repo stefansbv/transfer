@@ -70,7 +70,7 @@ option 'debug' => (
 # option 'ignorediacritic' => (
 #     is            => 'rw',
 #     isa           => 'Bool',
-# 	cmd_aliases   => [qw(id)],
+#     cmd_aliases   => [qw(id)],
 #     documentation => q[Ignore diacritic.],
 # );
 
