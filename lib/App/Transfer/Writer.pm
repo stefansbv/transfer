@@ -59,12 +59,17 @@ sub load {
 
     my $transfer = $p->{transfer};
 
-    # We should have a writer.
-    $class->usage unless $p->{writer};
+    unless ( $p->{writer} ) {
+        hurl {
+            ident   => 'writer',
+            exitval => 1,
+            message => __( "A valid writer option is required!" ),
+        };
+    }
     ( my $writer = delete $p->{writer} ) =~ s/-/_/g;
+    my $pkg = __PACKAGE__ . "::$writer";
 
     # Load the writer class.
-    my $pkg = __PACKAGE__ . "::$writer";
     try {
         eval "require $pkg" or die $@;
     }
