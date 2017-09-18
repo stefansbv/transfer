@@ -32,6 +32,7 @@ has transfer => (
     handles  => [qw(
         debug
         verbose
+        show_progress
     )],
 );
 
@@ -542,8 +543,8 @@ sub job_info_output_db {
 
 sub job_info_work {
     my ($self, $rec_count, $rows_read) = @_;
-    $rows_read //= 0;
-    $rec_count //= $rows_read;
+    $rec_count //= 0;
+    $rows_read = $rec_count;
     my $start_l   = __ 'Working:';
     my $record_rr = __ 'source rows read:';
     my $record_rc = __ 'records prepared:';
@@ -636,7 +637,7 @@ sub transfer_file2db {
 
     $self->job_info_work($rec_count, $rows_read);
 
-    return unless $rec_count;
+    hurl run => __("No input records!") unless $rec_count;
 
     my $progress = Progress::Any->get_indicator(
         target => $rec_count,
@@ -697,7 +698,7 @@ sub transfer_db2db {
 
     $self->job_info_work($rec_count);
 
-    return unless $rec_count;
+    hurl run => __("No input records!") unless $rec_count;
 
     my $progress = Progress::Any->get_indicator(
         target => $rec_count,
@@ -746,7 +747,7 @@ sub transfer_db2file {
 
     $self->job_info_work($rec_count);
 
-    return unless $rec_count;
+    hurl run => __("No input records!") unless $rec_count;
 
     $self->writer->insert_header;
 
@@ -783,31 +784,33 @@ sub transfer_file2file {
 
     my $logfld = $self->get_logfiled_name();
 
-    my $iter         = $self->_contents_iter; # call before record_count
-    my $row_count    = 0;
+    my $iter      = $self->_contents_iter; # call before record_count
+    my $row_count = 0;
     my $rec_count = $self->reader->record_count;
 
     $self->job_info_work($rec_count);
 
-    return unless $rec_count;
+    hurl run => __("No input records!") unless $rec_count;
 
     my $dst_table_info = $self->recipe->tables->get_table($dst_table)->columns;
 
     $self->writer->insert_header;
 
-    my $progress = Progress::Any->get_indicator(
-        target => $rec_count,
-    );
+    my $progress;
+    if ( $self->show_progress ) {
+        $progress = Progress::Any->get_indicator( target => $rec_count );
+    }
     while ( $iter->has_next ) {
         $row_count++;
         my $record = $iter->next;
         $record    = $self->transformations($record, $dst_table_info, $logfld);
         $self->writer->insert(undef, $record);
-        $progress->update( message => "Record $row_count|" );
+        $progress->update( message => "Record $row_count|" ) if $self->show_progress;
 
         #last;                                # DEBUG
     }
-    $progress->finish;
+    $progress->finish if $self->show_progress;
+
     return;
 }
 
