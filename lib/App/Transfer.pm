@@ -59,6 +59,14 @@ option 'debug' => (
     documentation => q[Debug output.],
 );
 
+option 'show_progress' => (
+    is            => 'rw',
+    isa           => 'Bool',
+    cmd_aliases   => [qw(p)],
+    documentation => q[Verbose output.],
+    default       => sub { 0 },
+);
+
 # Not sure if this have to be set globally
 # option 'ignorecase' => (
 #     is            => 'rw',
