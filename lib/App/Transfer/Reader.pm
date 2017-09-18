@@ -49,12 +49,17 @@ sub load {
 
     my $transfer = $p->{transfer};
 
-    # We should have a reader.
-    $class->usage unless $p->{reader};
+    unless ( $p->{reader} ) {
+        hurl {
+            ident   => 'reader',
+            exitval => 1,
+            message => __( "A valid reader option is required!" ),
+        };
+    }
     ( my $reader = delete $p->{reader} ) =~ s/-/_/g;
+    my $pkg = __PACKAGE__ . "::$reader";
 
     # Load the reader class.
-    my $pkg = __PACKAGE__ . "::$reader";
     try {
         eval "require $pkg" or die $@;
     }
