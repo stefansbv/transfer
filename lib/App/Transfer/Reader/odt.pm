@@ -9,21 +9,11 @@ use MooseX::Iterator;
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use List::Util qw(first any);
 use List::Compare;
-use Lingua::Translit 0.23;
 use ODF::lpOD;
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
 extends 'App::Transfer::Reader';
-
-# Transliteration
-has 'clean_diacritics' => (
-    is      => 'ro',
-    isa     => 'Lingua::Translit',
-    default => sub {
-        return Lingua::Translit->new('Common RON');
-    },
-);
 
 has 'input_file' => (
     is       => 'ro',
@@ -93,7 +83,7 @@ sub _build_contents {
     for (my $j = 0; $j < $w; $j++) {
         my $cell = $row->get_cell($j) or last CELL;
         my $text = $cell->get_text;
-        $text = lc $self->clean_diacritics->translit($text);
+        $text = lc $self->common_RON->translit($text);
         ( my $col = $text ) =~ s{[-./\s]}{}gi if defined $text;
         push @cols, $col;
     }

@@ -7,6 +7,7 @@ use Moose;
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use Try::Tiny;
+use Lingua::Translit 0.23; # for "Common RON" table
 use namespace::autoclean;
 
 has transfer => (
@@ -42,6 +43,16 @@ has 'rows_read' => (
     is       => 'rw',
     isa      => 'Int',
     default => sub { return 0; },
+);
+
+# Transliteration
+# TODO: make it configurable
+has 'common_RON' => (
+    is      => 'ro',
+    isa     => 'Lingua::Translit',
+    default => sub {
+        return Lingua::Translit->new('Common RON');
+    },
 );
 
 sub load {
