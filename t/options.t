@@ -208,7 +208,7 @@ subtest '"db" writer: target option; uri from config; reader, writer from recipe
 };
 
 subtest '"file" reader: no options; no config; all from recipe config' => sub {
-    ok my $recipe_file = path( 't', 'recipes', 'recipe-xls.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-generic.conf' ),
         "Recipe file";
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {}, 'cli options';
@@ -226,7 +226,7 @@ subtest '"file" reader: no options; no config; all from recipe config' => sub {
 };
 
 subtest '"file" reader: input_file option; no config; ignore recipe config' => sub {
-    ok my $recipe_file = path( 't', 'recipes', 'recipe-xls.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-generic.conf' ),
         "Recipe file";
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {
