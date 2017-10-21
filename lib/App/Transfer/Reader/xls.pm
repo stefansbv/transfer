@@ -11,7 +11,6 @@ use List::Util qw(first any);
 use List::Compare;
 use Spreadsheet::ParseExcel;
 use Spreadsheet::ParseExcel::FmtJapan;       # FmtUnicode has some issues
-use Lingua::Translit 0.23; # for "Common RON" table
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
@@ -75,17 +74,8 @@ has 'lastcol' => (
     default => sub {
         my $self = shift;
         return $self->recipe->tables->lastcol
-			if defined $self->recipe->tables->lastcol;
-		return;
-    },
-);
-
-# Transliteration
-has 'common_RON' => (
-    is      => 'ro',
-    isa     => 'Lingua::Translit',
-    default => sub {
-        return Lingua::Translit->new('Common RON');
+            if defined $self->recipe->tables->lastcol;
+        return;
     },
 );
 
@@ -107,7 +97,7 @@ sub _build_headers {
     my $iter      = $self->contents_iter;
     my $found_tables    = 0;
     my $expected_tables = $self->recipe->tables->count_tables; # XXX stop when all found
-    say "table number = $expected_tables" if $self->debug;
+    say "table count = $expected_tables" if $self->debug;
     while ( $iter->has_next ) {
         my $row = $iter->next;
         my $data_row = $self->_clean_row_text($row);
@@ -124,20 +114,17 @@ sub _build_headers {
             if ( @{$record} ) {
                 push @headers, {
                     table  => $name,
-                    row    => $row_count,
+                    row    => $row_count + 1,
                     header => $record,
-					skip   => $self->recipe->tables->get_table($name)->skiprows,
+                    skip   => $self->recipe->tables->get_table($name)->skiprows,
                 };
             }
             $found_tables++;
-            last if $found_tables == $expected_tables;
-		}
+            last if $self->lastrow > 0 and $found_tables == $expected_tables;
+        }
         $row_count++;
+        $self->maxrow($row_count) unless $self->lastrow > 0;    # store row count
     }
-
-    $self->maxrow($row_count);    # store row count
-    # dd \@headers;
-
     return \@headers;
 }
 
@@ -163,33 +150,33 @@ sub _is_row_header {
     foreach my $name ( $self->recipe->tables->all_table_names ) {
         my $headermap = $self->recipe->tables->get_table($name)->headermap;
         my $head_cols = [ keys %{$headermap} ];
-		my $count_hx = scalar @{$head_cols};
+        my $count_hx = scalar @{$head_cols};
         my $lc = List::Compare->new( $head_cols, $data_row );
         my @inter = $lc->get_intersection;
-		my $count_hi = scalar @inter;
-		if ($count_hx == $count_hi) {
-			if ($self->debug) {
-				my @Lonly = $lc->get_Lonly;
-				if (scalar @Lonly) {
-					say "Header map left side:";
-					$self->print_array(\@Lonly);
-				}
-				my @Ronly = $lc->get_Ronly;
-				if (scalar @Ronly) {
-					say "Header map right side:";
-					$self->print_array(\@Ronly);
-				}
-			}
-			return ($name, $headermap);
-		}
+        my $count_hi = scalar @inter;
+        if ($count_hx == $count_hi) {
+            if ($self->debug) {
+                my @Lonly = $lc->get_Lonly;
+                if (scalar @Lonly) {
+                    say "Header map left side:";
+                    $self->print_array(\@Lonly);
+                }
+                my @Ronly = $lc->get_Ronly;
+                if (scalar @Ronly) {
+                    say "Header map right side:";
+                    $self->print_array(\@Ronly);
+                }
+            }
+            return ($name, $headermap);
+        }
     }
-	return;
+    return;
 }
 
 sub print_array {
     my ($self, $aref) = @_;
     say " - '$_'" for @{$aref};
-	return;
+    return;
 }
 
 has '_record_set' => (
@@ -231,7 +218,6 @@ sub _build_record_set {
         $range{$table}{min}    = $min;
         $range{$table}{max}    = $max;
     }
-
     return \%range;
 }
 
@@ -263,7 +249,9 @@ sub _build_contents {
     $row_max = $self->lastrow if defined $self->lastrow;
     $col_max = $self->lastcol if defined $self->lastcol;
 
-	if ( $self->debug ) {
+    $self->maxrow($row_max) unless $self->maxrow > 0;
+
+    if ( $self->debug ) {
         say "row_min = $row_min   row_max = $row_max";
         say "col_min = $col_min   col_max = $col_max";
     }
@@ -320,9 +308,13 @@ sub get_data {
     my $header   = $data_set->{header};
     my $min      = $data_set->{min};
     my $max      = $data_set->{max} // $self->maxrow;
-
-    my $row_count = 0;				  # rows read from xls
-    my $rec_count = 0;				  # records inserted in output AoH
+    hurl xls =>
+        __x( 'Worksheet min={min} is greater than max={max}!',
+             min => $min,
+             max => $max,
+        ) if $min > $max;
+    my $row_count = 0;                # rows read from xls
+    my $rec_count = 0;                # records inserted in output AoH
     my @records;
     while ( $iter->has_next ) {
         my $row = $iter->next;
@@ -330,15 +322,21 @@ sub get_data {
             my $record = {};
             for ( my $idx = 0; $idx <= $#{$header}; $idx++ ) {
                 my $cell_value = $row->[$idx];
-                $record->{ $header->[$idx] } = $cell_value;
+
+                # skip empty fields: allow:
+                # Somesourcefieldname =
+                # in the header map
+                if ( $header->[$idx] ) {
+                    $record->{ $header->[$idx] } = $cell_value;
+                }
             }
 
             # Only records with at least one defined value
             if (any { defined($_) } values %{$record}) {
-				push @records, $record;
-				$rec_count++;
-			}
-		}
+                push @records, $record;
+                $rec_count++;
+            }
+        }
         $row_count++;
     }
     $self->rows_read($row_count);
