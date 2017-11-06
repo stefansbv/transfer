@@ -38,15 +38,18 @@ subtest 'Datasources' => sub {
     is ref $recipe->datasource->get_valid_list('stare_teh'), 'ARRAY',
         'Two valid elements list';
 
+    is $recipe->datasource->ignorediacritic, undef, 'ignorediacritic attrib';
+    is $recipe->datasource->ignorecase, undef, 'ignorecase attrib';
+
     ok my $stare = $recipe->datasource->get_ds('stare_teh'), 'get DS list';
     is ref $stare, 'ARRAY', 'stare datasource is ref';
     is $stare, $stare_, 'compare';
 
-	isa_ok $recipe->datasource->hints, ['App::Transfer::Recipe::Hints'], 'check ISA';
+    isa_ok $recipe->datasource->hints, ['App::Transfer::Recipe::Hints'], 'check ISA';
 
     is $recipe->datasource->hints->get_hint_for(
         'localitati', 'Izvorul Mures'
-	), 'Izvoru Mureșului', 'One element hint dictionary';
+    ), 'Izvoru Mureșului', 'One element hint dictionary';
 
 };
 

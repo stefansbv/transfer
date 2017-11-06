@@ -262,8 +262,18 @@ sub type_copy {
     $p->{field_src}  = $field_src;
     $p->{field_dst}  = $field_dst;
     $p->{attributes} = $attributes;
-    $p->{lookup_list}
-        = $self->recipe->datasource->get_valid_list( $step->datasource );
+
+    if ( $step->datasource ) {
+        $p->{lookup_list} =
+          $self->recipe->datasource->get_valid_list( $step->datasource );
+    }
+    if ( $step->valid_regex ) {
+        $p->{valid_regex} = $step->valid_regex if $step->valid_regex;
+    }
+    if ( $step->invalid_regex ) {
+        $p->{invalid_regex} = $step->invalid_regex if $step->invalid_regex;
+    }
+
     my $r = $self->plugin->do_transform( $step->method, $p );
     if ( ref $r ) {
 
@@ -298,6 +308,9 @@ sub type_copy {
         if ( $attributes->{MOVE} ) {
             $record->{$field_src} = undef;
         }
+    }
+    else {
+        # TODO: XXX else what?
     }
 
     return $record;
@@ -380,6 +393,10 @@ sub type_lookupdb {
     # Attributes - ignore diacritics
     if ( $attribs->{IGNOREDIACRITIC} ) {
         $lookup_val = $self->common_RON->translit($lookup_val);
+    }
+    # Attributes - ignore case
+    if ( $attribs->{IGNORECASE} ) {
+        $lookup_val = uc $lookup_val;
     }
 
     # Hints

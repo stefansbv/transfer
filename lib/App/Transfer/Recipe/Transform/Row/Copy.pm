@@ -11,9 +11,11 @@ use namespace::autoclean;
 
 extends 'App::Transfer::Recipe::Transform::Row::Step';
 
-has 'field_src' => ( is => 'ro', isa => 'Str', required => 1 );
-has 'field_dst' => ( is => 'ro', isa => 'Str', required => 1 );
-has 'datasource' => ( is => 'ro', isa => 'Str', required => 1 );
+has 'field_src'  => ( is => 'ro', isa => 'Str', required => 1 );
+has 'field_dst'  => ( is => 'ro', isa => 'Str', required => 1 );
+has 'datasource' => ( is => 'ro', isa => 'Str', required => 0 );
+has 'valid_regex'   => ( is => 'ro', isa => 'Maybe[Str]', required => 0 );
+has 'invalid_regex' => ( is => 'ro', isa => 'Maybe[Str]', required => 0 );
 
 has 'params' => (
     is       => 'ro',

@@ -130,7 +130,7 @@ has 'datasource' => (
         my $self = shift;
         return App::Transfer::Recipe::Datasource->new(
             $self->recipe_data->{datasources},
-		);
+        );
     },
 );
 

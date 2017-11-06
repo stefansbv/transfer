@@ -811,6 +811,7 @@ sub run {
 
         ######################################################################
         # Test the move_filtered plugin and type_copy trafo method
+        # with datasource
 
         # The step config section
         # <step>
@@ -938,6 +939,56 @@ sub run {
         is_deeply \@records, $expected_4i, 'i. resulting records';
 
         };                      # subtest i.
+
+
+        ######################################################################
+        # Test the move_filtered_regex plugin and type_copy trafo method
+        # with valid_regex
+
+        # The step config section
+        # <step>
+        #   type                = copy
+        #   valid_regex         = "(\d{4,4}([/;,]\d{4,4})*)"
+        #   field_src           = year
+        #   method              = move_filtered
+        #   field_dst           = obs
+        #   attributes          = MOVE | APPENDSRC
+        # </step>
+        subtest 'j. copy' => sub {
+
+        ok my $step = shift @{$trafos_row}, 'the j. step';
+
+        my $records_4j = [
+            { year => "1890",         id => 1, obs => undef },
+            { year => "2021",         id => 2, obs => undef },
+            { year => "1950/1973",    id => 3, obs => undef },
+            { year => "1963",         id => 4, obs => undef },
+            { year => "1999",         id => 5, obs => undef },
+            { year => "unknown year", id => 6, obs => 'some obs' },
+            { year => "i don't know", id => 7, obs => undef },
+        ];
+
+        my @records;
+        foreach my $rec ( @{$records_4j} ) {
+            my $id = $rec->{id} // '?';
+            my $logstr = "[id:$id]";
+            push @records, $trafo->type_copy( $step, $rec, $logstr );
+        }
+
+        my $expected_4j = [
+            { id => 1, year => "1890",      obs => undef },
+            { id => 2, year => "2021",      obs => undef },
+            { id => 3, year => "1950/1973", obs => undef },
+            { id => 4, year => "1963",      obs => undef },
+            { id => 5, year => "1999",      obs => undef },
+            { id => 6, year => undef, obs => "some obs, year: unknown year" },
+            { id => 7, year => undef, obs => "year: i don't know" },
+        ];
+
+        cmp_deeply \@records, $expected_4j, 'j. resulting records';
+
+        };                      # subtest j.
+
 
         ######################################################################
         # All done.
