@@ -366,6 +366,8 @@ subtest 'Row transformation type' => sub {
             is ref $field_src, '', 'copy src field string';
             is ref $field_dst, '', 'copy dst field string';
             is $step->datasource, 'status', 'copy datasource';
+            is $step->valid_regex, '\d{4,4}', 'valid_regex';
+            is $step->invalid_regex, '', 'invalid_regex';
         }
         if ($type eq 'lookup') {
             is $step->method, 'lookup_in_ds', 'lookup method';
