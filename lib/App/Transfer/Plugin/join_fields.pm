@@ -10,10 +10,9 @@ with 'MooX::Log::Any';
 
 sub join_fields {
     my ( $self, $p ) = @_;
-    my ( $logstr, $text, $separator ) = @$p{qw(logstr value separator)};
-    return unless ref $text;
-    my $new_text = join $separator, @{$text};
-    return $new_text;
+    my ( $logstr, $values_aref, $separator ) = @$p{qw(logstr values_aref separator)};
+    return unless ref $values_aref;
+    return join $separator, @{$values_aref};
 }
 
 __PACKAGE__->meta->make_immutable;
