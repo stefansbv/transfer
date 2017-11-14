@@ -93,6 +93,9 @@ subtest 'File to file transfer' => sub {
     ), 'new trafo instance';
 
     ok( lives { $trafo->transfer_file2file }, 'transfer file to file' );
+
+#    $trafo->type_join($step, $record, $logstr);
+
 };
 
 done_testing;

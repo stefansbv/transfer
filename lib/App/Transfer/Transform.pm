@@ -226,11 +226,11 @@ sub type_split {
 sub type_join {
     my ( $self, $step, $record, $logstr ) = @_;
 
-    my $values;
+    my $values_aref = [];
     foreach my $field ( @{ $step->field_src } ) {
         if ( exists $record->{$field} ) {
             my $value = $record->{$field};
-            push @{$values}, $value if defined $value;
+            push @{$values_aref}, $value if defined $value;
         }
         else {
             $self->log->info(
@@ -238,10 +238,10 @@ sub type_join {
         }
     }
     my $p;
-    $p->{logstr}    = $logstr;
-    $p->{name}      = $step->field_dst;
-    $p->{separator} = $step->separator;
-    $p->{value}     = $values;
+    $p->{logstr}      = $logstr;
+    $p->{name}        = $step->field_dst;
+    $p->{separator}   = $step->separator;
+    $p->{values_aref} = $values_aref;
 
     $record->{ $step->field_dst }
         = $self->plugin->do_transform( $step->method, $p );
@@ -1005,6 +1005,10 @@ __END__
 
 =head3 tempfields
 
+An attribute holding the temporary fields defined in the recipe.  The
+values are added in the reader and than removed befor sending the
+record to the writer.
+
 =head3 reader_options
 
 =head3 writer_options
@@ -1028,6 +1032,19 @@ __END__
 =head3 type_split
 
 =head3 type_join
+
+Join two or more fields into one, with a separator.
+
+  # Use " to preserve space, not '
+  <step>
+    type                = join
+    separator           = ", "
+    field_src           = obs1
+    field_src           = obs2
+    field_src           = obs3
+    method              = join_fields
+    field_dst           = obs
+  </step>
 
 =head3 type_copy
 

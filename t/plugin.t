@@ -275,7 +275,7 @@ $p = {
 };
 
 #-- join
-@$p{qw(value separator)} = ($values, ', ');
+@$p{qw(values_aref separator)} = ($values, ', ');
 ok my $res_join = $ttr->do_transform( 'join_fields', $p ), 'join fields';
 is $res_join, 'Brașov, B-dul Saturn, nr. 20', 'resulting string';
 

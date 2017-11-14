@@ -40,6 +40,9 @@ subtest 'CSV OK' => sub {
     is $reader->input_file, 't/siruta.csv', 'csv file name';
     ok my $records = $reader->get_data, 'get data for table';
     is scalar @{$records}, 18, 'got 18 records';
+    is $records->[0]{obs1}, 'asta', 'tempfield: obs1';
+    is $records->[0]{obs2}, 'este', 'tempfield: obs2';
+    is $records->[0]{obs3}, 'judet', 'tempfield: obs3';
 };
 
 subtest 'CSV with lc header' => sub {
