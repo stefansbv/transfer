@@ -85,7 +85,7 @@ sub _build_contents {
     open my $fh, "<:encoding(utf8)", $self->input_file
         or die "Error opening CSV: $!";
     my $headermap = $self->get_header(0)->{headermap};
-    my $tempfield = $self->get_header(0)->{temp};
+    my $tempfield = $self->get_header(0)->{tempfield};
     my @cols   = @{ $csv->getline($fh) };
     my $row    = {};
     my @records;
