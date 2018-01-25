@@ -22,7 +22,9 @@ has 'output_file' => (
     coerce   => 1,
     default  => sub {
         my $self = shift;
-        return $self->options->file_path;
+        my $file = $self->options->file_path;
+        $file .= '.csv' unless $file =~ m{\.csv}i;
+        return $file;
     },
 );
 
@@ -111,12 +113,11 @@ sub insert {
     my $csv_o  = $self->csv;
     my $out_fh = $self->csv_fh;
     my $status = $csv_o->print_hr( $out_fh, $row );
-    if (!$status) {
-        $self->emit_error;
-        $self->inc_skipped;
+    if ($status) {
+        $self->inc_inserted;
     }
     else {
-        $self->inc_inserted;
+        $self->emit_error;
     }
     return;
 }
