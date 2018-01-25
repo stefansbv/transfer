@@ -144,6 +144,10 @@ sub _build_headers {
     return \@headers;
 }
 
+sub insert_header {
+
+}
+
 sub insert {
     my ( $self, $id, $row ) = @_;
     if ($self->dbf->set_record( $id, @{$row} ) ) {
