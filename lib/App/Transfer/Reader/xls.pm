@@ -14,8 +14,6 @@ use Spreadsheet::ParseExcel::FmtJapan;       # FmtUnicode has some issues
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
-use Data::Dump;
-
 extends 'App::Transfer::Reader';
 
 has 'input_file' => (
@@ -272,7 +270,6 @@ sub _build_contents {
     my @aoa = ();
     for my $row ( 0 .. $row_max ) {
         my @cols = ();
-        say "reading row $row" if $self->debug;
         for my $col ( $col_min .. $col_max ) {
             my $cell  = $worksheet->get_cell( $row, $col );
             next unless $cell;

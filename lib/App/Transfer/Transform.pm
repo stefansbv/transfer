@@ -828,9 +828,9 @@ sub transfer_file2file {
     }
 
     if ( $self->writer->can('finish') ) {
-        print "Call finish...";
+        print "Call finish..." if $self->debug;
         $self->writer->finish;
-        print " done\n";
+        print " done\n" if $self->debug;
     }
 
     $progress->finish if $self->show_progress;
