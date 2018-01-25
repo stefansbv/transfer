@@ -33,6 +33,7 @@ has '_messages' => (
             username    => 'wrong user name: {name}',
             userpass    => 'authentication failed',
             servererror => 'server not available',
+            missingfk   => 'missing FK in {name}'
         };
     },
     handles => { get_message => 'get', },
