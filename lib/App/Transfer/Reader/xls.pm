@@ -54,7 +54,11 @@ has 'maxrow' => (
     is       => 'rw',
     isa      => 'Int',
     init_arg => undef,
-    default  => 0,
+    lazy     => 1,
+    default  => sub {
+        my $self = shift;
+        return $self->lastrow // 0;
+    },
 );
 
 has 'lastrow' => (
@@ -120,10 +124,13 @@ sub _build_headers {
                 };
             }
             $found_tables++;
-            last
-              if defined $self->lastrow
-              and $self->lastrow > 0
-              and $found_tables == $expected_tables;
+            if (    defined $self->lastrow
+                and $self->lastrow > 0
+                and $found_tables == $expected_tables ) {
+                say "Found all $found_tables table headers."
+                    if $self->debug;
+                last;
+            }
         }
         $row_count++;
         $self->maxrow($row_count)
@@ -210,12 +217,13 @@ sub _build_record_set {
         my $table = $header->{table};
         my $hrow  = $header->{row};
         my $skip  = $header->{skip} // 0;
+        my $min = $hrow + 1 + $skip;
 
-        my $min = $hrow + 0 + $skip;
         die "Bad range (min) for '$table'" unless defined $min;
 
         my $max = first { $_ > $min } @header_rows;
         $max-- if defined $max;    # 1 less than the next header
+        $max //= $self->maxrow if $self->maxrow > $min;
 
         die "Bad range for '$table'" if defined $max and $min >= $max;
 
@@ -251,8 +259,8 @@ sub _build_contents {
     my ( $row_min, $row_max ) = $worksheet->row_range();
     my ( $col_min, $col_max ) = $worksheet->col_range();
 
-    $row_max = $self->lastrow if defined $self->lastrow;
-    $col_max = $self->lastcol if defined $self->lastcol;
+    $row_max = $self->lastrow - 1 if defined $self->lastrow;
+    $col_max = $self->lastcol - 1 if defined $self->lastcol;
 
     $self->maxrow($row_max) unless $self->maxrow > 0;
 
@@ -264,11 +272,12 @@ sub _build_contents {
     my @aoa = ();
     for my $row ( 0 .. $row_max ) {
         my @cols = ();
+        say "reading row $row" if $self->debug;
         for my $col ( $col_min .. $col_max ) {
             my $cell  = $worksheet->get_cell( $row, $col );
             next unless $cell;
             my $value = $cell->value();
-            push @cols, $value ? $value : undef; # for NULL in DB
+            push @cols, defined $value ? $value : undef; # for NULL in DB
         }
         push @aoa, [@cols];
     }
@@ -311,8 +320,14 @@ sub get_data {
     my $iter     = $self->contents_iter;
     my $data_set = $self->get_recordset($table);
     my $header   = $data_set->{header};
-    my $min      = $data_set->{min};
-    my $max      = $data_set->{max} // $self->maxrow;
+    my $min      = $data_set->{min} - 1;
+    my $max      = $data_set->{max} - 1; # // $self->maxrow;
+
+    if ( $self->debug ) {
+        say "row_min = $min";
+        say "row_max = $max";
+    }
+
     hurl xls =>
         __x( 'Worksheet min={min} is greater than max={max}!',
              min => $min,
@@ -394,7 +409,12 @@ An integer value with the maximum row number.
 
 =head3 C<lastrow>
 
-The last row number (counting from 0) with data on the xls
+The last row number (counting from 1) with data on the xls
+worksheet.  It is a C<tables> section attribute in the recipe.
+
+=head3 C<lastcol>
+
+The last col number (counting from 1) with data on the xls
 worksheet.  It is a C<tables> section attribute in the recipe.
 
 =head3 C<_headers>
