@@ -19,7 +19,7 @@ BEGIN {
 
 my $output_file = 't/fisacult.dbf';
 
-subtest 'DBF OK' => sub {
+subtest 'DBF new' => sub {
     ok my $recipe_file = path( 't', 'recipes', 'recipe-dbf.conf' ),
         "recipe file";
     my $transfer = App::Transfer->new;
