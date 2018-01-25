@@ -30,6 +30,18 @@ has 'log_file_name' => (
     },
 );
 
+has 'log_file_path' => (
+    is       => 'ro',
+    isa      => 'Path::Tiny',
+    lazy     => 1,
+    required => 1,
+    default  => sub {
+        my $self = shift;
+        return path $ENV{TRANSFER_LOG_CONFIG}
+            || path( $self->user_dir, '.transfer', 'log.conf' );
+    },
+);
+
 has 'sharedir' => (
     is      => 'ro',
     isa     => Path,
@@ -60,7 +72,6 @@ has 'templ_path' => (
 my $SYSTEM_DIR = undef;                      # works ok for Linux ;)
 
 sub user_dir {
-    require File::HomeDir;
     my $hd = File::HomeDir->my_home or hurl config => __(
         "Could not determine home directory"
     );

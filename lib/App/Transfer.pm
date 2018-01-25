@@ -11,7 +11,6 @@ use MooseX::App qw(Color Version MutexGroup); #  Depends
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use Locale::Messages qw(bind_textdomain_filter);
 use App::Transfer::X qw(hurl);
-use File::HomeDir;
 use Path::Tiny;
 use Log::Any::Adapter;
 use Log::Log4perl;
@@ -27,10 +26,11 @@ BEGIN {
     # Force Locale::TextDomain to encode in UTF-8 and to decode all messages.
     $ENV{OUTPUT_CHARSET} = 'UTF-8';
     bind_textdomain_filter 'App-Transfer' => \&Encode::decode_utf8;
+}
 
-    # Init logger
-    my $home = File::HomeDir->my_home;
-    my $log_fqn = path($home, '.transfer', 'log.conf' )->stringify;
+sub _init_logger {
+    my $self = shift;
+    my $log_fqn = $self->config->log_file_path->stringify;
     Log::Log4perl->init($log_fqn) if -f $log_fqn;
 }
 
@@ -173,6 +173,13 @@ sub warn_literal {
 }
 
 ###
+
+sub BUILD {
+    my $self = shift;
+    $self->_init_logger;
+    return;
+}
+
 
 1;
 

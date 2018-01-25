@@ -10,6 +10,7 @@ use lib 't/lib';
 
 binmode STDOUT, ':utf8';
 
+$ENV{TRANSFER_LOG_CONFIG} = 't/log.conf';
 
 subtest 'DB to DB transfer' => sub {
     my $uri            = 'db:pg://@localhost/__transfertest__';
