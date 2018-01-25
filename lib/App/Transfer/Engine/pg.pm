@@ -93,7 +93,7 @@ sub get_info {
 
     hurl "The 'table' parameter is required for 'get_info'" unless $table;
 
-	my ($schema_name, $table_name) = $self->get_schema_name($table);
+    my ($schema_name, $table_name) = $self->get_schema_name($table);
 
     my $sql = qq( SELECT ordinal_position  AS pos
                     , column_name       AS name
@@ -149,7 +149,7 @@ sub table_keys {
 
     hurl "The 'table' parameter is required for 'table_keys'" unless $table;
 
-	my ($schema_name, $table_name) = $self->get_schema_name($table);
+    my ($schema_name, $table_name) = $self->get_schema_name($table);
 
     my $type = $foreign ? 'FOREIGN KEY' : 'PRIMARY KEY';
 
@@ -220,7 +220,7 @@ sub table_exists {
 
     hurl "The 'table' parameter is required for 'table_exists'" unless $table;
 
-	my ($schema_name, $table_name) = $self->get_schema_name($table);
+    my ($schema_name, $table_name) = $self->get_schema_name($table);
 
     my $sql = qq( SELECT COUNT(table_name)
                 FROM information_schema.tables
@@ -247,7 +247,7 @@ sub table_exists {
 }
 
 sub table_list {
-	my ($self, $schema_name) = @_;
+    my ($self, $schema_name) = @_;
 
     my $sql = q{ SELECT table_name
                    FROM information_schema.tables
@@ -255,7 +255,7 @@ sub table_list {
                      AND table_schema NOT IN
                          ('pg_catalog', 'information_schema')
     };
-	$sql .= qq{AND table_schema = '$schema_name'} if $schema_name;
+    $sql .= qq{AND table_schema = '$schema_name'} if $schema_name;
 
     my $dbh = $self->dbh;
     $dbh->{AutoCommit} = 1;    # disable transactions
