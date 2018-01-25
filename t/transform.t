@@ -71,7 +71,7 @@ subtest 'DB to DB transfer' => sub {
     is $trafo->io_trafo_type('csv', 'db'), 'csv2db', 'csv and db';
     like(
         dies { $trafo->_contents },
-        qr/database .+ not found/,
+        qr/(database|server)( .+)? not (found|available)/,
         'Should have error for missing database'
     );
     # TODO: other subtest for this:
