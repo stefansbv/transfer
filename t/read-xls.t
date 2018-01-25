@@ -68,17 +68,40 @@ subtest 'Read the SIRUTA table' => sub {
         },
     );
 
+    my @expected_names = (
+        'JUDEŢUL ALBA',
+        'MUNICIPIUL ALBA IULIA',
+        'ALBA IULIA',
+        'BARABANŢ',
+        'MICEŞTI',
+        'OARDA',
+        'JUDEŢUL ARAD',
+        'MUNICIPIUL ARAD',
+        'ARAD',
+        'ORAŞ CHIŞINEU-CRIŞ',
+        'CHIŞINEU-CRIŞ',
+        'NADAB',
+        'JUDEŢUL ARGEŞ',
+        'MUNICIPIUL PITEŞTI',
+        'PITEŞTI',
+        'MUNICIPIUL CAMPULUNG',
+        'CAMPULUNG',
+        'VALEA RUMÂNEŞTILOR',
+    );
     ok my @headers = $reader->all_headers, 'get all headers';
     is_deeply \@headers, \@expected_headers, 'header records';
 
     is $reader->has_no_recordsets, 0, 'has no recordsets is false (0)';
     is $reader->num_recordsets,    2, 'number of record sets is 2';
-    my $recordset = { header => $hcols_s, min => 7, max => 28 };
+    my $recordset = { header => $hcols_s, min => 6, max => 28 };
     is_deeply $reader->get_recordset('siruta'), $recordset,
         'record set by name';
 
     ok my $records = $reader->get_data, 'get data for table';
     is scalar @{$records}, 18, 'got 18 records';
+    my @got_names = map { $_->{denloc} } @{$records};
+    use Data::Printer; p @got_names;
+    # is_deeply \@got_names, \@expected_names, 'judete names';
 };
 
 subtest 'Read the Judete table' => sub {
@@ -134,17 +157,63 @@ subtest 'Read the Judete table' => sub {
         },
     );
 
+    my @expected_names = (qw{
+	  ALBA
+	  ARAD
+	  ARGES
+	  BACAU
+	  BIHOR
+	  BISTRITA-NASAUD
+	  BOTOSANI
+	  BRASOV
+	  BRAILA
+	  BUZAU
+	  CARAS-SEVERIN
+	  CLUJ
+	  CONSTANTA
+	  COVASNA
+	  DIMBOVITA
+	  DOLJ
+	  GALATI
+	  GORJ
+	  HARGHITA
+	  HUNEDOARA
+	  IALOMITA
+	  IASI
+	  ILFOV
+	  MARAMURES
+	  MEHEDINTI
+	  MURES
+	  NEAMT
+	  OLT
+	  PRAHOVA
+	  SATU_MARE
+	  SALAJ
+	  SIBIU
+	  SUCEAVA
+	  TELEORMAN
+	  TIMIS
+	  TULCEA
+	  VASLUI
+	  VILCEA
+	  VRANCEA
+	  BUCURESTI
+	  CALARASI
+	  GIURGIU
+    });
     ok my @headers = $reader->all_headers, 'get all headers';
     is_deeply \@headers, \@expected_headers, 'header records';
 
     is $reader->has_no_recordsets, 0, 'has no recordsets is false (0)';
     is $reader->num_recordsets,    2, 'number of record sets is 2';
-    my $recordset = { header => $hcols_j, min => 30, max => undef };
+    my $recordset = { header => $hcols_j, min => 29, max => undef };
     is_deeply $reader->get_recordset('judete'), $recordset,
         'record set by name';
 
     ok my $records = $reader->get_data, 'get data for table';
-    is scalar @{$records}, 41, 'got 41 records';
+    is scalar @{$records}, 42, 'got 42 records';
+	my @got_names = map { $_->{denj} } @{$records};
+	is_deeply \@got_names, \@expected_names, 'judete names';
 };
 
 done_testing;

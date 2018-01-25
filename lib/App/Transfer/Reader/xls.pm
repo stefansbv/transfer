@@ -120,10 +120,15 @@ sub _build_headers {
                 };
             }
             $found_tables++;
-            last if $self->lastrow > 0 and $found_tables == $expected_tables;
+            last
+              if defined $self->lastrow
+              and $self->lastrow > 0
+              and $found_tables == $expected_tables;
         }
         $row_count++;
-        $self->maxrow($row_count) unless $self->lastrow > 0;    # store row count
+        $self->maxrow($row_count)
+          unless defined $self->lastrow
+          and $self->lastrow > 0;    # store row count
     }
     return \@headers;
 }
@@ -206,7 +211,7 @@ sub _build_record_set {
         my $hrow  = $header->{row};
         my $skip  = $header->{skip} // 0;
 
-        my $min = $hrow + 1 + $skip;
+        my $min = $hrow + 0 + $skip;
         die "Bad range (min) for '$table'" unless defined $min;
 
         my $max = first { $_ > $min } @header_rows;
