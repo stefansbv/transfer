@@ -17,6 +17,8 @@ use Log::Log4perl;
 
 use App::Transfer::Config;
 
+with 'MooX::Log::Any';
+
 Log::Any::Adapter->set('Log4perl');
 
 app_namespace 'App::Transfer::Command';
@@ -30,8 +32,15 @@ BEGIN {
 
 sub _init_logger {
     my $self = shift;
-    my $log_fqn = $self->config->log_file_path->stringify;
-    Log::Log4perl->init($log_fqn) if -f $log_fqn;
+    my $log_fqn = $self->config->log_file_path;
+    if ( $log_fqn->is_file ) {
+        Log::Log4perl->init( $log_fqn->stringify );
+        say "Log file config is '$log_fqn'.\n" if $self->debug;
+        $self->log->info("Logging system initialized");
+    }
+    else {
+        warn "Logging is disabled, log file config '$log_fqn' not found.\n";
+    }
 }
 
 sub DEMOLISH {
