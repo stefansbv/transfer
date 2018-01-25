@@ -821,11 +821,18 @@ sub transfer_file2file {
         $row_count++;
         my $record = $iter->next;
         $record    = $self->transformations($record, $dst_table_info, $logfld);
-        $self->writer->insert(undef, $record);
+        $self->writer->insert('table', $record );
         $progress->update( message => "Record $row_count|" ) if $self->show_progress;
 
         #last;                                # DEBUG
     }
+
+    if ( $self->writer->can('finish') ) {
+        print "Call finish...";
+        $self->writer->finish;
+        print " done\n";
+    }
+
     $progress->finish if $self->show_progress;
 
     return;
@@ -837,10 +844,12 @@ sub transformations {
     #--  Logging settings
     my $logidx = $record->{$logfld} ? $record->{$logfld} : '?';
     my $logstr = $self->verbose ? qq{[$logfld=$logidx]} : qq{[$logidx]};
-
+    
     $record = $self->column_trafos( $record, $info, $logstr );
     $record = $self->record_trafos( $record, $info, $logstr );
-    $record = $self->column_type_trafos( $record, $info, $logstr );
+    $record = $self->column_type_trafos( $record, $info, $logstr )
+        if $self->recipe->out_type eq 'db';  # TODO allow for other
+                                             # trafo types
 
     $self->remove_tempfields($record);
 
