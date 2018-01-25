@@ -19,7 +19,7 @@ subtest 'Read the SIRUTA table' => sub {
     ok my $recipe_file = path( 't', 'recipes', 'recipe-xls-siruta.conf' ),
         "Recipe file";
     my $transfer = App::Transfer->new;
-    my $options_href = { input_file => 't/siruta.xls', };
+    my $options_href = { input_file => 't/siruta.xls', verbose => 1, };
     ok my $recipe
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
@@ -40,12 +40,10 @@ subtest 'Read the SIRUTA table' => sub {
     is $reader->input_file, 't/siruta.xls', 'xls file name';
     is $reader->dst_table,  'siruta',       'table name';
     is $reader->worksheet,  'Foaie1',       'worksheet name';
-    is $reader->lastrow,    70,             'last row';
+    is $reader->lastrow,    71,             'last row';
     isa_ok $reader->workbook, 'Spreadsheet::ParseExcel::Workbook', 'workbook';
 
-    is $reader->maxrow, 0, 'initial maxrow value';
-    ok $reader->maxrow(1000), 'set maxrow value';
-    is $reader->maxrow, 1000, 'new maxrow value';
+    is $reader->maxrow, 71, 'initial maxrow value';
 
     ok my @names = $reader->recipe->tables->all_table_names,
         'get table name(s)';
@@ -93,15 +91,14 @@ subtest 'Read the SIRUTA table' => sub {
 
     is $reader->has_no_recordsets, 0, 'has no recordsets is false (0)';
     is $reader->num_recordsets,    2, 'number of record sets is 2';
-    my $recordset = { header => $hcols_s, min => 6, max => 28 };
+    my $recordset = { header => $hcols_s, min => 7, max => 28 };
     is_deeply $reader->get_recordset('siruta'), $recordset,
         'record set by name';
 
     ok my $records = $reader->get_data, 'get data for table';
     is scalar @{$records}, 18, 'got 18 records';
     my @got_names = map { $_->{denloc} } @{$records};
-    use Data::Printer; p @got_names;
-    # is_deeply \@got_names, \@expected_names, 'judete names';
+    is_deeply \@got_names, \@expected_names, 'judete names';
 };
 
 subtest 'Read the Judete table' => sub {
@@ -129,12 +126,10 @@ subtest 'Read the Judete table' => sub {
     is $reader->input_file, 't/siruta.xls', 'xls file name';
     is $reader->dst_table,  'judete',       'table name';
     is $reader->worksheet,  'Foaie1',       'worksheet name';
-    is $reader->lastrow,    70,             'last row';
+    is $reader->lastrow,    71,             'last row';
     isa_ok $reader->workbook, 'Spreadsheet::ParseExcel::Workbook', 'workbook';
 
-    is $reader->maxrow, 0, 'initial maxrow value';
-    ok $reader->maxrow(1000), 'set maxrow value';
-    is $reader->maxrow, 1000, 'new maxrow value';
+    is $reader->maxrow, 71, 'initial maxrow value';
 
     ok my @names = $reader->recipe->tables->all_table_names,
         'get table name(s)';
@@ -206,7 +201,7 @@ subtest 'Read the Judete table' => sub {
 
     is $reader->has_no_recordsets, 0, 'has no recordsets is false (0)';
     is $reader->num_recordsets,    2, 'number of record sets is 2';
-    my $recordset = { header => $hcols_j, min => 29, max => undef };
+    my $recordset = { header => $hcols_j, min => 30, max => 71 };
     is_deeply $reader->get_recordset('judete'), $recordset,
         'record set by name';
 
