@@ -9,7 +9,11 @@ use namespace::autoclean;
 
 subtype 'ArrayRefFromStr', as 'ArrayRef';
 
-coerce 'ArrayRefFromStr', from 'Str', via { [ $_ ] };
+subtype 'CoordsFromStr', as 'ArrayRef';
+
+coerce 'ArrayRefFromStr', from 'Str', via { [$_] };
+
+coerce 'CoordsFromStr', from 'Str', via { [ split /\s*,\s*/, $_ ] };
 
 __PACKAGE__->meta->make_immutable;
 

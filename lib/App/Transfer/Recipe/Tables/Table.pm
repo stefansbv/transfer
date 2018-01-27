@@ -9,7 +9,14 @@ use App::Transfer::Recipe::Transform::Types;
 use namespace::autoclean;
 
 has 'description' => ( is => 'ro', isa => 'Str' );
+
 has 'logfield'    => ( is => 'ro', isa => 'Str' );
+
+has 'rectangle' => (
+    is     => 'ro',
+    isa    => 'CoordsFromStr',
+    coerce => 1,
+);
 
 has 'skiprows' => (
     is      => 'ro',
@@ -132,6 +139,15 @@ Example log record:
     [3094] [id:6] lookup: multiple values for...
             ^
             logfield name
+
+=head3 C<rectangle>
+
+Data rectangle defined by the label of the top left and bottom right
+cell.
+
+Example from siruta.xls for the siruta table:
+
+    rectangle = A7,C21
 
 =head3 C<skiprows>
 

@@ -437,4 +437,31 @@ subtest 'Datasources' => sub {
         'Two elements ds dictionary';
 };
 
+subtest 'Recipe for spreadsheet reader' => sub {
+    my $headermap = {
+        CodSIRUTA                                        => 'siruta',
+        DenumireLocalitate                               => 'denloc',
+        CodPostal                                        => 'codp',
+        CodDeJudet                                       => 'jud',
+        'CodForTutelar(unitateaadminierarhicsuperioara)' => 'sirsup',
+        CodTipLocalitate                                 => 'tip',
+        CodNivel                                         => 'niv',
+        'CodMediu(1URBAN3RURAL)'                         => 'med',
+        FactorDeSortarePeJudete                          => 'fsj',
+        FactorDeSortareInOrdineAlfabeticaALocalitatilor  => 'fsl',
+        Rang                                             => 'rang',
+    };
+    my $recipe_file = path( 't', 'recipes', 'recipe-ss-siruta.conf' );
+    ok my $recipe
+        = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
+        ), 'new recipe instance';
+    ok my $table = $recipe->tables->has_table('siruta'), 'has table name';
+    ok my $recipe_table = $recipe->tables->get_table('siruta'), 'siruta table.';
+    is $recipe_table->rectangle, 'A7,C21';
+    ok $recipe_table->description, 'The SIRUTA data.';
+    ok defined $recipe_table->skiprows, 'table skip rows';
+    ok $recipe_table->logfield, 'siruta';
+    is_deeply $recipe_table->headermap, $headermap,  'headermap';
+};
+
 done_testing;
