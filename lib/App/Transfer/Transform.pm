@@ -1036,6 +1036,11 @@ An attribute holding the temporary fields defined in the recipe.  The
 values are added in the reader and than removed befor sending the
 record to the writer.
 
+This fields exists in the source table but not in the destination
+table and their contents can be copied to another destination field
+using, for example, the copy row transformation with the APPENDSRC
+attribute.
+
 =head3 reader_options
 
 =head3 writer_options
