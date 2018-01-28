@@ -14,7 +14,7 @@ has 'logfield'    => ( is => 'ro', isa => 'Str' );
 
 has 'rectangle' => (
     is     => 'ro',
-    isa    => 'CoordsFromStr',
+    isa    => 'CoordsArrayFromStr',
     coerce => 1,
 );
 
