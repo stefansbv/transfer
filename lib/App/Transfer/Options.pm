@@ -182,7 +182,7 @@ sub _build_db_options {
         }
     }
     else {
-        # 1.1 Target name from recipe
+        # 2.1 Target name from recipe
         if ( $name = $self->recipe->$section->target ) {
             $self->target($name);
             if ( $uri = $self->recipe->get_uri($name) ) {

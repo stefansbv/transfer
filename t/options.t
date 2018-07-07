@@ -195,7 +195,6 @@ subtest '"db" writer: target option; uri from config; reader, writer from recipe
     ok my $options = $CLASS->new(
         transfer => $transfer,
         recipe   => $recipe,
-        recipe   => $recipe,
         options  => $cli_options,
         rw_type  => 'writer',
     ), 'new options instance';

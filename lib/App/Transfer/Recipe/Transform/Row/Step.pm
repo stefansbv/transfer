@@ -28,7 +28,7 @@ has 'attributes' => (
             REPLACE     => undef,
             REPLACENULL => 1,
             IGNORECASE  => undef,
-			IGNOREDIACRITIC => undef,
+            IGNOREDIACRITIC => undef,
         };
     },
 );
