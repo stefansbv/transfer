@@ -7,11 +7,13 @@ use Moose;
 use MooseX::Types::Path::Tiny qw(File);
 use MooseX::Iterator;
 use Locale::TextDomain 1.20 qw(App-Transfer);
-use List::Util qw(first any);
+use List::Util qw(first any all);
 use List::Compare;
 use Spreadsheet::Read;
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
+
+use Data::Dump;
 
 extends 'App::Transfer::Reader';
 
@@ -24,16 +26,6 @@ has 'input_file' => (
     default  => sub {
         my $self = shift;
         return $self->options->file;
-    },
-);
-
-has 'dst_table' => (
-    is      => 'ro',
-    isa     => 'Str',
-    lazy    => 1,
-    default => sub {
-        my $self = shift;
-        return $self->recipe->destination->table;
     },
 );
 
@@ -66,36 +58,16 @@ has 'sheet' => (
         return $self->workbook->sheet( $self->worksheet );
     },
 );
-has 'maxrow' => (
-    is       => 'rw',
-    isa      => 'Int',
-    init_arg => undef,
-    lazy     => 1,
-    default  => sub {
-        my $self = shift;
-        return $self->lastrow // 0;
-    },
-);
 
-has 'lastrow' => (
-    is      => 'rw',
-    isa     => 'Maybe[Int]',
-    lazy    => 1,
-    default => sub {
-        my $self = shift;
-        return $self->recipe->tables->lastrow;
-    },
-);
-
-has 'lastcol' => (
-    is      => 'rw',
-    isa     => 'Maybe[Int]',
-    lazy    => 1,
-    default => sub {
-        my $self = shift;
-        return $self->recipe->tables->lastcol
-            if defined $self->recipe->tables->lastcol;
-        return;
+has '_header_prev' => (
+    is      => 'ro',
+    traits  => ['Hash'],
+    isa     => 'HashRef',
+    default => sub { {} },
+    handles => {
+        set_header     => 'set',
+        get_header     => 'get',
+        has_no_headers => 'is_empty',
     },
 );
 
@@ -117,170 +89,49 @@ sub _build_tables_meta {
     my $meta = {};
     foreach my $name ( $self->recipe->tables->all_table_names ) {
         my $headermap = $self->recipe->tables->get_table($name)->headermap;
-        my $src_cols = [ keys %{$headermap} ];
-        my $dst_cols = [ values %{$headermap} ];
-        my $cnt_src  = scalar @{$src_cols};
-        my $cnt_dst  = scalar @{$dst_cols};
+        use Data::Printer; p $headermap;
+        my $src_cols  = [ keys %{$headermap} ];
+        my $dst_cols  = [ values %{$headermap} ];
+        my $src_count = scalar @{$src_cols};
+        my $dst_count = scalar @{$dst_cols};
         $meta->{$name} = {
             src_cols  => $src_cols,
             dst_cols  => $dst_cols,
-            cnt_src   => $cnt_src,
-            cnt_dst   => $cnt_dst,
             headermap => $headermap,
+            rectangle => $self->recipe->tables->get_table($name)->rectangle,
         };
     }
     return $meta;
 }
 
-has '_headers' => (
-    isa      => 'ArrayRef[HashRef]',
-    traits   => ['Array'],
-    init_arg => undef,
-    lazy     => 1,
-    builder  => '_build_headers',
-    handles  => {
-        all_headers => 'elements',
-    },
-);
-
-sub _build_headers {
-    my $self = shift;
-    my $headers = [];
-    my $row_count = 0;
-    my $iter      = $self->contents_iter;
-    my $found_tables    = 0;
-    my $expected_tables = $self->recipe->tables->count_tables;
-    say "table count = $expected_tables" if $self->debug;
-    while ( $iter->has_next ) {
-        my $row = $iter->next;
-        my $data_row = $self->_clean_row_text($row);
-
-        # Search for headers
-        if ( my ($name, $headermap) = $self->_is_row_header($data_row) ) {
-            say "Header ($name) at row ", ( $row_count + 1 ) if $self->debug;
-            my $record = [];
-            foreach my $col ( @{$data_row} ) {
-                push @{$record}, $headermap->{$col} if defined $col;
-            }
-
-            # Header record
-            if ( @{$record} ) {
-                push @{$headers}, {
-                    table  => $name,
-                    row    => $row_count + 1,
-                    header => $record,
-                    skip   => $self->recipe->tables->get_table($name)->skiprows,
-                };
-            }
-            $found_tables++;
-            if (    defined $self->lastrow
-                and $self->lastrow > 0
-                and $found_tables == $expected_tables ) {
-                say "Found all $found_tables table headers."
-                    if $self->debug;
-                last;
-            }
-        }
-        $row_count++;
-        $self->maxrow($row_count)
-          unless defined $self->lastrow
-          and $self->lastrow > 0;    # store row count
-    }
-    return $headers;
-}
-
-sub _clean_row_text {
-    my ( $self, $row ) = @_;
-
-    # Compress the text, remove some chars like in the header-map
-    my $data_row = [];
-    foreach my $col ( @{$row} ) {
-        my $text;
-        if ($col) {
-            $text = $self->common_RON->translit($col);
-            $text =~ s{[-./\s]}{}gi;
-        }
-        push @{$data_row}, $text;
-    }
-    return $data_row;
-}
-
-sub print_array {
-    my ($self, $aref) = @_;
-    say " - '$_'" for @{$aref};
-    return;
-}
-
-has '_record_set' => (
-    is       => 'ro',
-    isa      => 'HashRef',
-    traits   => ['Hash'],
-    init_arg => undef,
-    lazy     => 1,
-    builder  => '_build_record_set',
-    handles  => {
-        get_recordset     => 'get',
-        has_no_recordsets => 'is_empty',
-        num_recordsets    => 'count',
-    },
-);
-
-sub _build_record_set {
-    my $self = shift;
-
-    # A record set has a header and a data range
-    # Data ranges are between the header rows or after the last
-    # header till the end of the table
-    #
-    # [A1]  B1  C1  D1   E1   F1
-    #  A2   B2  C2  D2   E2   F2
-    #  A3   B3  C3  D3   E3   F3
-    #  A4   B4  C4  D4   E4   F4
-    #  A5   B5  C5  D5   E5   F5
-    #  A6   B6  C6  D6   E6   F6
-    #  A7   B7  C6  D6   E7  [F7]
-    #
-    my %range;
-    my @header_rows = map { $_->{row} } $self->all_headers;
-    foreach my $header ( $self->all_headers ) {
-        my $table = $header->{table};
-        my $hrow  = $header->{row};
-        my $skip  = $header->{skip} // 0;
-        my $min = $hrow + 1 + $skip;
-
-        die "Bad range (min) for '$table'" unless defined $min;
-
-        my $max = first { $_ > $min } @header_rows;
-        $max-- if defined $max;    # 1 less than the next header
-        $max //= $self->maxrow if $self->maxrow > $min;
-
-        die "Bad range for '$table'" if defined $max and $min >= $max;
-
-        $range{$table}{header} = $header->{header};
-        $range{$table}{min}    = $min;
-        $range{$table}{max}    = $max;
-    }
-    return \%range;
-}
-
 sub _read_rectangle {
     my ($self, $top_cell, $bot_cell) = @_;
-    
+
     my ($col_min, $row_min) = $self->sheet->cell2cr($top_cell);
     my ($col_max, $row_max) = $self->sheet->cell2cr($bot_cell);
-    
-    say "row_min = $row_min  row_max = $row_max" if $self->debug;
-    say "col_min = $col_min  col_max = $col_max" if $self->debug;    
-    
-    my @aoa = ();
-    for my $row ( $row_min .. $row_max ) {
-        my @cols = ();
-        for my $col ( $col_min .. $col_max ) {
-            push @cols, $self->sheet->cell( $col, $row );
+
+    say "row_min = $row_min  row_max = $row_max"; # if $self->debug;
+    say "col_min = $col_min  col_max = $col_max"; # if $self->debug;
+
+    my $header = $self->get_table_meta('siruta')->{dst_cols};
+    use Data::Dump; dd $header;
+
+    my @aoh = ();
+    for my $row_cnt ( $row_min .. $row_max ) {
+        my @row = $self->sheet->row($row_cnt);
+        my $rec = {};
+        foreach my $col_cnt ( $col_min .. $col_max ) {
+            # say "col count = ", $col_cnt;
+            my $field = $header->[ ($col_cnt - 1) ];
+            my $value = $row[$col_cnt];
+            say "$field = $value";
+            # $rec->{$field} = $value;
+            # use Data::Dump; dd $rec;
         }
-        push @aoa, [@cols];
+        # push @aoh, $rec;
+        # $self->inc_count;
     }
-    return \@aoa;
+    return \@aoh;
 }
 
 has _contents => (
@@ -291,10 +142,11 @@ has _contents => (
 );
 
 sub _build_contents {
-    my $self = shift;
-    my ($top, $bot) = ('A7', 'C21');
-    my $rec = $self->_read_rectangle($top, $bot);
-    return $rec;
+    my $self         = shift;
+    my $recipe_table = $self->recipe->tables->get_table('siruta');
+    my ( $top, $bot ) = @{ $recipe_table->rectangle };
+    say "reading rectangle [$top, $bot]";
+    return $self->_read_rectangle( $top, $bot );
 }
 
 has 'contents_iter' => (
@@ -302,65 +154,11 @@ has 'contents_iter' => (
     iterate_over => '_contents',
 );
 
-sub has_table {
-    my ($self, $name) = @_;
-    die "the name parameter is required!" unless defined $name;
-    return $self->recipe->tables->has_table($name);
-}
-
-sub get_data {
-    my $self = shift;
-
-    my $table    = $self->dst_table;
-    die "Error: no table named '$table'!" unless $self->has_table($table);
-    die "No record set for '$table'" if $self->has_no_recordsets;
-    my $iter     = $self->contents_iter;
-    my $data_set = $self->get_recordset($table);
-    my $header   = $data_set->{header};
-    my $min      = $data_set->{min} - 1;
-    my $max      = $data_set->{max} - 1; # // $self->maxrow;
-
-    if ( $self->debug ) {
-        say "row_min = $min";
-        say "row_max = $max";
-    }
-
-    hurl xls =>
-        __x( 'Worksheet min={min} is greater than max={max}!',
-             min => $min,
-             max => $max,
-        ) if $min > $max;
-    my $row_count = 0;                # rows read from xls
-    my $rec_count = 0;                # records inserted in output AoH
-    my @records;
-    while ( $iter->has_next ) {
-        my $row = $iter->next;
-        if ( $row_count >= $min && $row_count <= $max ) {
-            my $record = {};
-            for ( my $idx = 0; $idx <= $#{$header}; $idx++ ) {
-                my $cell_value = $row->[$idx];
-
-                # skip empty fields: allow:
-                # Somesourcefieldname =
-                # in the header map
-                if ( $header->[$idx] ) {
-                    $record->{ $header->[$idx] } = $cell_value;
-                }
-            }
-
-            # Only records with at least one defined value
-            if (any { defined($_) } values %{$record}) {
-                push @records, $record;
-                $rec_count++;
-            }
-        }
-        $row_count++;
-    }
-    $self->rows_read($row_count);
-    $self->record_count($rec_count);
-
-    return \@records;
-}
+# sub has_table {
+#     my ($self, $name) = @_;
+#     die "the name parameter is required!" unless defined $name;
+#     return $self->recipe->tables->has_table($name);
+# }
 
 __PACKAGE__->meta->make_immutable;
 
