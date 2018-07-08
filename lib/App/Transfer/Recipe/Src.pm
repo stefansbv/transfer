@@ -14,6 +14,8 @@ has 'file'   => ( is => 'ro', isa => 'Str' );
 has 'target' => ( is => 'ro', isa => 'Str' );
 has 'table'  => ( is => 'ro', isa => 'Str' );
 
+has 'worksheet' => ( is => 'ro', isa => 'Str' );
+
 has 'date_format' => (
     is       => 'ro',
     isa      => enum( [qw(dmy mdy iso)] ),

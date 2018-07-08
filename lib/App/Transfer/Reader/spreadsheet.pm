@@ -30,12 +30,12 @@ has 'input_file' => (
 );
 
 has 'worksheet' => (
-    is      => 'rw',
+    is      => 'ro',
     isa     => 'Str',
     lazy    => 1,
     default => sub {
         my $self = shift;
-        return $self->recipe->tables->worksheet;
+        return $self->recipe->source->worksheet;
     },
 );
 
@@ -59,76 +59,29 @@ has 'sheet' => (
     },
 );
 
-has '_header_prev' => (
-    is      => 'ro',
-    traits  => ['Hash'],
-    isa     => 'HashRef',
-    default => sub { {} },
-    handles => {
-        set_header     => 'set',
-        get_header     => 'get',
-        has_no_headers => 'is_empty',
-    },
-);
-
-has '_tables_meta' => (
-    isa      => 'HashRef[HashRef]',
-    traits   => ['Hash'],
-    init_arg => undef,
-    lazy     => 1,
-    builder  => '_build_tables_meta',
-    handles  => {
-        all_meta       => 'elements',
-        get_table_meta => 'get',
-        meta_pairs     => 'kv',
-    },
-);
-
-sub _build_tables_meta {
-    my $self = shift;
-    my $meta = {};
-    foreach my $name ( $self->recipe->tables->all_table_names ) {
-        my $headermap = $self->recipe->tables->get_table($name)->headermap;
-        use Data::Printer; p $headermap;
-        my $src_cols  = [ keys %{$headermap} ];
-        my $dst_cols  = [ values %{$headermap} ];
-        my $src_count = scalar @{$src_cols};
-        my $dst_count = scalar @{$dst_cols};
-        $meta->{$name} = {
-            src_cols  => $src_cols,
-            dst_cols  => $dst_cols,
-            headermap => $headermap,
-            rectangle => $self->recipe->tables->get_table($name)->rectangle,
-        };
-    }
-    return $meta;
-}
-
 sub _read_rectangle {
     my ($self, $top_cell, $bot_cell) = @_;
 
+    my $header = $self->recipe->table->header;
+    
     my ($col_min, $row_min) = $self->sheet->cell2cr($top_cell);
     my ($col_max, $row_max) = $self->sheet->cell2cr($bot_cell);
-
-    say "row_min = $row_min  row_max = $row_max"; # if $self->debug;
-    say "col_min = $col_min  col_max = $col_max"; # if $self->debug;
-
-    my $header = $self->get_table_meta('siruta')->{dst_cols};
-    use Data::Dump; dd $header;
+    say "row_min = $row_min  row_max = $row_max" if $self->debug;
+    say "col_min = $col_min  col_max = $col_max" if $self->debug;
 
     my @aoh = ();
     for my $row_cnt ( $row_min .. $row_max ) {
         my @row = $self->sheet->row($row_cnt);
         my $rec = {};
         foreach my $col_cnt ( $col_min .. $col_max ) {
-            # say "col count = ", $col_cnt;
-            my $field = $header->[ ($col_cnt - 1) ];
-            my $value = $row[$col_cnt];
-            say "$field = $value";
-            # $rec->{$field} = $value;
-            # use Data::Dump; dd $rec;
+            my $index = $col_cnt - $col_min;
+            my $field = $header->[$index];
+            my $value = $row[$index];
+            say "[$index] $field = $value" if $self->debug;
+            $rec->{$field} = $value;
         }
-        # push @aoh, $rec;
+        dd $rec if $self->debug;
+        push @aoh, $rec;
         # $self->inc_count;
     }
     return \@aoh;
@@ -142,23 +95,21 @@ has _contents => (
 );
 
 sub _build_contents {
-    my $self         = shift;
-    my $recipe_table = $self->recipe->tables->get_table('siruta');
-    my ( $top, $bot ) = @{ $recipe_table->rectangle };
-    say "reading rectangle [$top, $bot]";
-    return $self->_read_rectangle( $top, $bot );
+    my $self = shift;
+    if ( my @rect = @{$self->recipe->table->rectangle} ) {
+        my ( $top, $bot ) = @rect;
+        return $self->_read_rectangle( $top, $bot );
+    }
+    else {
+        hurl xls => __
+            "The table section must have a 'rectangle' attribute";
+    }
 }
 
 has 'contents_iter' => (
     metaclass    => 'Iterable',
     iterate_over => '_contents',
 );
-
-# sub has_table {
-#     my ($self, $name) = @_;
-#     die "the name parameter is required!" unless defined $name;
-#     return $self->recipe->tables->has_table($name);
-# }
 
 __PACKAGE__->meta->make_immutable;
 
@@ -189,39 +140,14 @@ builds a AoH data structure for the entire contents.
 
 A L<Path::Tiny::File> object representing the xls input file.
 
-=head3 C<dst_table>
-
-The name of the destination table.
-
 =head3 C<worksheet>
 
 The name of the xls worksheet to read from.  It is a C<tables>
 section attribute in the recipe.
 
-=head3 C<maxrow>
+=head3 C<workbook>
 
-An integer value with the maximum row number.
-
-=head3 C<lastrow>
-
-The last row number (counting from 1) with data on the xls
-worksheet.  It is a C<tables> section attribute in the recipe.
-
-=head3 C<lastcol>
-
-The last col number (counting from 1) with data on the xls
-worksheet.  It is a C<tables> section attribute in the recipe.
-
-=head3 C<_headers>
-
-An array reference holding info about each table in the worksheet.
-
-The data-structure is built by iterating over the contents of the
-spreadsheet and searching for the header columns defined in the
-L<headermap> section of the recipe.  When a header is found, the row
-is and some other info is recorded.
-
-=head3 C<_record_set>
+=head3 C<sheet>
 
 =head3 C<_contents>
 
@@ -231,21 +157,14 @@ An array reference holding the contents of the spreadsheet.
 
 A L<MooseX::Iterator> object for the contents of the xls file.
 
-=head3 C<workbook>
-
 A L<Spreadsheet::Read> object.
 
 =head2 Instance Methods
 
-=head3 C<has_table>
+=head3 _read_rectangle
 
-Return true if the table $name is defined in the recipe (actually
-returns the name of the table or undef).
+=head3 _build_contents
 
-=head3 C<get_data>
-
-Return an array reference of hashes, where the hash keys are the names
-of the columns and the values are the values read from the table
-columns. (XXX reformulate).
+The builder method for the C<_contents> attribute.
 
 =cut

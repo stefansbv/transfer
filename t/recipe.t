@@ -92,21 +92,13 @@ subtest 'Recipe - minimum' => sub {
     is $recipe->destination->table, 'siruta', 'has table';
     is $recipe->get_uri('siruta'), 'db:firebird://localhost/siruta', 'target URI';
 
-    # Tables
-    is $recipe->tables->count_tables, 2, 'tables count ';
-    ok my @allnames = $recipe->tables->all_table_names;
-    ok first {$_ eq 'judete'} @allnames, 'table judete match';
-    ok first {$_ eq 'siruta'} @allnames, 'table siruta match';
-
-    foreach my $name ( $recipe->tables->all_table_names ) {
-        is $recipe->tables->has_table($name), $name, "has table name '$name'";
-        ok my $recipe_table = $recipe->tables->get_table($name), 'table.';
-        ok $recipe_table->description, 'table desc.';
-        ok defined $recipe_table->skiprows, 'table skip rows';
-        ok $recipe_table->logfield, 'log field name';
-        is ref $recipe_table->orderby, '', 'table orderby';
-        is ref $recipe_table->headermap, 'HASH', 'headermap';
-    }
+    # Table
+    ok my $table = $recipe->table, 'table object instance';
+    is $table->name, 'siruta', 'table name';
+    is $table->logfield, 'siruta', 'log field name';
+    cmp_deeply $table->rectangle, ['A27','E36'], 'rectangle';
+    is ref $table->orderby, '', 'table orderby';
+    cmp_deeply $table->header, [qw(siruta denloc codp)], 'header';
 };
 
 #-- Config section
@@ -116,17 +108,26 @@ subtest 'Config section: from xls to db' => sub {
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
+
+    # Source
     isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipe source';
     is $recipe->source->reader, 'xls', 'has reader xls';
     is $recipe->source->file, 't/siruta.xls', 'has a file';
     is $recipe->source->target, undef, 'has no target';
     is $recipe->source->table, undef, 'has no table';
     is $recipe->source->date_format, 'dmy', 'has date format';
+
+    # Destination
     isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
     is $recipe->destination->writer, 'db', 'has writer db';
     is $recipe->destination->file, undef, 'has no file';
     is $recipe->destination->target, 'siruta', 'has target';
     is $recipe->destination->table, 'siruta', 'has table';
+
+    # Target
+    ok my ($name, $uri) = each %{ $recipe->target }, 'recipe target config';
+    is $name, 'siruta', 'target name';
+    is $uri, 'db:firebird://localhost/siruta', 'target uri';
 };
 
 subtest 'Config section: from xls to db - no file' => sub {
@@ -170,7 +171,7 @@ subtest 'Config section: from db to csv' => sub {
 
 #-- Tables section
 
-my $hmap = { id => 'id', denumire => 'denumire' };
+my $header_aref = [qw{id denumire} ];
 
 subtest 'Table section minimum config' => sub {
     my $recipe_file = path( 't', 'recipes', 'recipe-table-0.conf' );
@@ -178,14 +179,8 @@ subtest 'Table section minimum config' => sub {
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
 
-    is $recipe->tables->lastrow, undef, 'last row';
-    is $recipe->tables->lastcol, undef, 'last col';
-
-    ok my $table = $recipe->tables->has_table('test_table'), 'has table name';
-    ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
-    ok $recipe_table->description, 'table desc.';
-    ok $recipe_table->logfield, 'log field name';
-    cmp_deeply $recipe_table->headermap, $hmap,  'headermap';
+    is $recipe->table->logfield, 'id', 'log field name';
+    cmp_deeply $recipe->table->header, $header_aref, 'header';
 };
 
 subtest 'Table section maximum config' => sub {
@@ -194,22 +189,15 @@ subtest 'Table section maximum config' => sub {
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
 
-    is $recipe->tables->lastrow, 50, 'last row';
-    is $recipe->tables->lastcol, 10, 'last col';
-
-    is $recipe->tables->has_table('test_table'), 'test_table', 'has table name';
-    ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
-    ok $recipe_table->description, 'table desc.';
-    ok defined $recipe_table->skiprows, 'table skip rows';
-    ok $recipe_table->logfield, 'log field name';
-    cmp_deeply $recipe_table->orderby, [qw(id denumire)], 'table orderby';
+    ok $recipe->table->logfield, 'log field name';
+    cmp_deeply $recipe->table->orderby, [qw(id denumire)], 'table orderby';
     my $expected = {
         status => { "!" => "= completed", "-not_like" => "pending%" },
         user   => undef,
     };
-    cmp_deeply $recipe_table->filter, $expected, 'table filter';
-    cmp_deeply $recipe_table->headermap, $hmap, 'headermap';
-    cmp_deeply $recipe_table->tempfield, [ 'seria', 'factura' ], 'tempfields';
+    cmp_deeply $recipe->table->filter, $expected, 'table filter';
+    cmp_deeply $recipe->table->header, $header_aref, 'header';
+    cmp_deeply $recipe->table->tempfield, [ 'seria', 'factura' ], 'tempfields';
 
     # Columns
     my $info = {
@@ -230,7 +218,7 @@ subtest 'Table section maximum config' => sub {
             type   => "integer"
         },
     };
-    ok my $cols = $recipe_table->columns, 'get columns list';
+    ok my $cols = $recipe->table->columns, 'get columns list';
     cmp_deeply $cols, $info, 'columns info';
 };
 
@@ -240,17 +228,10 @@ subtest 'Table section medium config' => sub {
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
 
-    is $recipe->tables->lastrow, undef, 'last row';
-    is $recipe->tables->lastcol, undef, 'last col';
-
-    ok my $table = $recipe->tables->has_table('test_table'), 'has table name';
-    ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
-    ok $recipe_table->description, 'table desc.';
-    ok defined $recipe_table->skiprows, 'table skip rows';
-    ok $recipe_table->logfield, 'log field name';
-    cmp_deeply $recipe_table->orderby, { -asc => 'denumire' }, 'table orderby';
-    cmp_deeply $recipe_table->headermap, $hmap,  'headermap';
-    cmp_deeply $recipe_table->tempfield, [ 'seria' ], 'tempfields';
+    ok $recipe->table->logfield, 'log field name';
+    cmp_deeply $recipe->table->orderby, { -asc => 'denumire' }, 'table orderby';
+    cmp_deeply $recipe->table->header, $header_aref,  'header';
+    cmp_deeply $recipe->table->tempfield, [ 'seria' ], 'tempfields';
 };
 
 subtest 'Table section complex orderby config' => sub {
@@ -259,21 +240,14 @@ subtest 'Table section complex orderby config' => sub {
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
 
-    is $recipe->tables->lastrow, undef, 'last row';
-    is $recipe->tables->lastcol, undef, 'last col';
-
-    ok my $table = $recipe->tables->has_table('test_table'), 'has table name';
-    ok my $recipe_table = $recipe->tables->get_table('test_table'), 'table.';
-    ok $recipe_table->description, 'table desc.';
-    ok defined $recipe_table->skiprows, 'table skip rows';
-    ok $recipe_table->logfield, 'log field name';
-    cmp_deeply $recipe_table->orderby, [
+    ok $recipe->table->logfield, 'log field name';
+    cmp_deeply $recipe->table->orderby, [
         { -asc  => "colA" },
         { -desc => "colB" },
         { -asc  => [ "colC", "colD" ] },
     ], 'table orderby';
-    is $recipe_table->get_plugin('date'), 'date_german', 'plugin for date';
-    cmp_deeply $recipe_table->headermap, $hmap, 'headermap';
+    is $recipe->table->get_plugin('date'), 'date_german', 'plugin for date';
+    cmp_deeply $recipe->table->header, $header_aref, 'header';
 };
 
 #-- Transform
@@ -435,33 +409,6 @@ subtest 'Datasources' => sub {
         'One element ds dictionary';
     is ref $recipe->datasource->get_ds('two_elements'), 'ARRAY',
         'Two elements ds dictionary';
-};
-
-subtest 'Recipe for spreadsheet reader' => sub {
-    my $headermap = {
-        CodSIRUTA                                        => 'siruta',
-        DenumireLocalitate                               => 'denloc',
-        CodPostal                                        => 'codp',
-        CodDeJudet                                       => 'jud',
-        'CodForTutelar(unitateaadminierarhicsuperioara)' => 'sirsup',
-        CodTipLocalitate                                 => 'tip',
-        CodNivel                                         => 'niv',
-        'CodMediu(1URBAN3RURAL)'                         => 'med',
-        FactorDeSortarePeJudete                          => 'fsj',
-        FactorDeSortareInOrdineAlfabeticaALocalitatilor  => 'fsl',
-        Rang                                             => 'rang',
-    };
-    my $recipe_file = path( 't', 'recipes', 'recipe-ss-siruta.conf' );
-    ok my $recipe
-        = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
-        ), 'new recipe instance';
-    ok my $table = $recipe->tables->has_table('siruta'), 'has table name';
-    ok my $recipe_table = $recipe->tables->get_table('siruta'), 'siruta table.';
-    cmp_deeply $recipe_table->rectangle, ['A7','C21'];
-    ok $recipe_table->description, 'The SIRUTA data.';
-    ok defined $recipe_table->skiprows, 'table skip rows';
-    ok $recipe_table->logfield, 'siruta';
-    cmp_deeply $recipe_table->headermap, $headermap,  'headermap';
 };
 
 done_testing;

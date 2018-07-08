@@ -74,9 +74,9 @@ sub validate_recipe_sections {
             "The recipe must have a 'config' section with 'source' and 'destination' subsections."
         );
     }
-    if ( !exists $p->{tables} ) {
+    if ( !exists $p->{table} ) {
         hurl destination => __(
-            "The recipe must have a 'tables' section."
+            "The recipe must have a 'table' section."
         );
     }
     return;

@@ -1,6 +1,6 @@
-package App::Transfer::Recipe::Tables::Table;
+package App::Transfer::Recipe::Table;
 
-# ABSTRACT: Recipe section: tables/table
+# ABSTRACT: Recipe section: table
 
 use 5.010001;
 use Moose;
@@ -8,20 +8,18 @@ use Data::Leaf::Walker;
 use App::Transfer::Recipe::Transform::Types;
 use namespace::autoclean;
 
-has 'description' => ( is => 'ro', isa => 'Str' );
+has 'logfield' => ( is => 'ro', isa => 'Str' );
 
-has 'logfield'    => ( is => 'ro', isa => 'Str' );
+has 'name' => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+);
 
 has 'rectangle' => (
     is     => 'ro',
     isa    => 'CoordsArrayFromStr',
     coerce => 1,
-);
-
-has 'skiprows' => (
-    is      => 'ro',
-    isa     => 'Int',
-    default => sub { 0 },
 );
 
 has 'orderby' => (
@@ -58,15 +56,13 @@ sub _build_filter {
 has 'columns' => (
     is       => 'ro',
     isa      => 'HashRef',
-    lazy     => 1,
     default  => sub { {} },
 );
 
-has 'headermap' => (
+has 'header' => (
     is       => 'ro',
-    isa      => 'HashRef',
-    lazy     => 1,
-    default  => sub { {} },
+    isa      => 'ArrayRef',
+    default  => sub { [] },
 );
 
 has 'tempfield' => (
@@ -76,14 +72,11 @@ has 'tempfield' => (
 );
 
 has 'plugins' => (
-    is       => 'ro',
-    isa      => 'HashRef',
-    traits   => ['Hash'],
-    lazy     => 1,
+    is      => 'ro',
+    isa     => 'HashRef',
+    traits  => ['Hash'],
     default => sub { {} },
-    handles  => {
-        get_plugin => 'get',
-    },
+    handles => { get_plugin => 'get' },
 );
 
 __PACKAGE__->meta->make_immutable;
@@ -96,7 +89,7 @@ __END__
 
 =head1 Name
 
-App::Transfer::Recipe::Tables::Table - Recipe section: tables/table/headermap
+App::Transfer::Recipe::Tables::Table - Recipe section: tables/table/header
 
 =head1 Synopsis
 
@@ -106,7 +99,7 @@ App::Transfer::Recipe::Tables::Table - Recipe section: tables/table/headermap
 
 =head1 Description
 
-An object representing the C<headermap> subsection of the C<tables>
+An object representing the C<header> subsection of the C<tables>
 section of the recipe.
 
 =head1 Interface
@@ -122,7 +115,7 @@ object.
 
 =head2 Attributes
 
-=head3 C<description>
+=head3 C<description> !REMOVED!
 
 A description of the table.  Not used, yet.
 
@@ -149,7 +142,7 @@ Example from siruta.xls for the siruta table:
 
     rectangle = A7,C21
 
-=head3 C<skiprows>
+=head3 C<skiprows>  !REMOVED!
 
 The number of rows to skip between the header and the table data.
 Used for the C<xls> reader, when there are empty or unwanted rows
@@ -161,12 +154,12 @@ An attribute holding the C<order> argument for the L<SQL::Abstract>
 C<select> method.  The argument can be a C<Scalar>, a C<HashRef> or an
 <ArrayRef>.
 
-=head3 C<headermap>
+=head3 C<header>
 
-A hash reference representing the C<headermap> subsection of a table
+A hash reference representing the C<header> subsection of a table
 recipe configuration.
 
-The C<headermap> subsection maps the header columns of the input
+The C<header> subsection XXX  maps the header columns of the input
 (source) with the header columns of the output (destination).
 
 =head3 C<columns>
@@ -189,7 +182,7 @@ For example:
         </col_name>
         ...
       </columns>
-      <headermap>
+      <header>
       ...
     </table>
 

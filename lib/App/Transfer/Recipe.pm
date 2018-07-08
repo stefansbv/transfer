@@ -13,7 +13,7 @@ use App::Transfer::Recipe::Load;
 use App::Transfer::Recipe::Header;
 use App::Transfer::Recipe::Src;
 use App::Transfer::Recipe::Dst;
-use App::Transfer::Recipe::Tables;
+use App::Transfer::Recipe::Table;
 use App::Transfer::Recipe::Transform;
 use App::Transfer::Recipe::Datasource;
 
@@ -94,16 +94,27 @@ has 'target' => (
     },
 );
 
-#-- Tables
+#-- Table
 
-has 'tables' => (
+has 'table' => (
     is      => 'ro',
-    isa     => 'App::Transfer::Recipe::Tables',
-    lazy     => 1,
+    isa     => 'App::Transfer::Recipe::Table',
+    lazy    => 1,
     default => sub {
         my $self = shift;
-        return App::Transfer::Recipe::Tables->new(
-            $self->recipe_data->{tables} );
+        my %kv   = %{ $self->recipe_data->{table} };
+        my $cnt  = scalar keys %kv;
+        hurl recipe => __x( "Expecting a table not '{cnt}'!", cnt => $cnt )
+            if $cnt > 1;
+        my ( $name, $meta ) = each %kv;
+        if ( $name and ref $meta ) {
+            my $header = delete $meta->{header}{field};
+            $meta->{header} = $header;
+            return App::Transfer::Recipe::Table->new(
+                name => $name,
+                %{$meta},
+            );
+        }
     },
 );
 
@@ -248,9 +259,9 @@ the C<config> section of the recipe.
 Returns an hash reference representing the C<target> subsection of the
 C<config> section of the recipe.
 
-=head3 C<tables>
+=head3 C<table>
 
-Returns an object instance representing the C<tables> section of the
+Returns an object instance representing the C<table> section of the
 recipe.
 
 =head3 C<transform>
