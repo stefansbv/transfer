@@ -225,7 +225,7 @@ subtest '"file" reader: no options; no config; all from recipe config' => sub {
 };
 
 subtest '"file" reader: input_file option; no config; ignore recipe config' => sub {
-    ok my $recipe_file = path(qw(t recipes invalid recipe-generic.conf)),
+    ok my $recipe_file = path(qw(t recipes recipe-generic.conf)),
         "Recipe file";
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {
