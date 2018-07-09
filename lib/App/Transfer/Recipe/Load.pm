@@ -2,6 +2,7 @@ package App::Transfer::Recipe::Load;
 
 # ABSTRACT: Load a recipe data structure
 
+use 5.014;
 use Moose;
 use MooseX::Types::Path::Tiny qw(File);
 use Try::Tiny;
@@ -9,6 +10,8 @@ use Config::General;
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
+
+use constant SYNTAX_VERSION => 2;
 
 has 'recipe_file' => (
     is       => 'ro',
@@ -61,24 +64,26 @@ has 'load' => (
 sub validate_recipe_sections {
     my ( $self, $p ) = @_;
 
-    if ( !exists $p->{recipe} ) {
-        hurl header => __('The recipe must have a recipe section.');
-    }
-    if ( !exists $p->{config}{source} ) {
-        hurl source => __(
-            "The recipe must have a 'config' section with 'source' and 'destination' subsections."
-        );
-    }
-    if ( !exists $p->{config}{destination} ) {
-        hurl destination => __(
-            "The recipe must have a 'config' section with 'source' and 'destination' subsections."
-        );
-    }
-    if ( !exists $p->{table} ) {
-        hurl destination => __(
-            "The recipe must have a 'table' section."
-        );
-    }
+    hurl header => __("The recipe must have a 'recipe' section.")
+        if !exists $p->{recipe};
+
+    hurl recipe =>
+        __("The recipe must have a valid 'syntaxversion' attribute")
+        if !exists $p->{recipe}{syntaxversion}
+        || $p->{recipe}{syntaxversion} != SYNTAX_VERSION;
+
+    hurl source => __(
+        "The recipe must have a 'config' section with a 'source' subsection."
+    ) if !exists $p->{config}{source};
+
+    hurl destination => __(
+        "The recipe must have a 'config' section with a 'destination' subsection."
+    ) if !exists $p->{config}{destination};
+
+    hurl table => __(
+        "The recipe must have a 'table' section."
+    ) if !exists $p->{table};
+
     return;
 }
 

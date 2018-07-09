@@ -61,8 +61,8 @@ has 'columns' => (
 
 has 'header' => (
     is       => 'ro',
-    isa      => 'ArrayRef',
-    default  => sub { [] },
+    isa      => 'HashRef|ArrayRef',
+    required => 1,
 );
 
 has 'tempfield' => (
@@ -156,11 +156,22 @@ C<select> method.  The argument can be a C<Scalar>, a C<HashRef> or an
 
 =head3 C<header>
 
-A hash reference representing the C<header> subsection of a table
+A hash/array reference representing the C<header> subsection of a table
 recipe configuration.
 
-The C<header> subsection XXX  maps the header columns of the input
+=over
+
+=item B<array>
+
+The C<header> table subsection lists the header columns of the input
+(source).
+
+=item B<hash>
+
+The C<header> table subsection maps the header columns of the input
 (source) with the header columns of the output (destination).
+
+=back
 
 =head3 C<columns>
 

@@ -5,6 +5,10 @@ use Path::Tiny;
 use Test::Most;
 use List::Util qw(first);
 use Locale::TextDomain 1.20 qw(App-Transfer);
+use Locale::Messages qw(bindtextdomain);
+
+bindtextdomain 'App-Transfer' => './.build/latest/share';
+
 use App::Transfer::Recipe;
 
 #-- Invalid recipes
@@ -12,63 +16,67 @@ use App::Transfer::Recipe;
 # Is hard to get an exception from Config::General, it's happy even with
 # text documents...
 subtest 'Not a conf file' => sub {
-    my $recipe_file = path( 't', 'recipes', 'not_a_recipe.ini' );
-    ok my $recipe = App::Transfer::Recipe->new(
-        recipe_file => $recipe_file->stringify,
-    ), 'new recipe instance';
-    throws_ok { $recipe->recipe_data }  'App::Transfer::X',
-        'Should get an exception - not a recipe file';
+    my $recipe_file = path(qw(t recipes invalid not_a_recipe.ini));
+    throws_ok {
+        App::Transfer::Recipe->new(
+            recipe_file => $recipe_file->stringify )
+      } 'App::Transfer::X',
+      'Should get an exception - not a recipe file';
 };
 
 subtest 'Not a recipe file' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe-not_a_recipe.conf' );
-    ok my $recipe = App::Transfer::Recipe->new(
-        recipe_file => $recipe_file->stringify,
-    ), 'new recipe instance';
-    throws_ok { $recipe->header }  'App::Transfer::X',
-        'Should get an exception for missing recipe section';
+    my $recipe_file = path(qw(t recipes invalid recipe-not_a_recipe.conf));
+    throws_ok {
+        App::Transfer::Recipe->new(
+            recipe_file => $recipe_file->stringify )
+      }  'App::Transfer::X',
+      'Should get an exception for missing recipe section';
+    is $@->message, __("The recipe must have a 'recipe' section."),
+        'The message should be from the translation';
 };
 
 subtest 'Recipe header only' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe-header.conf' );
-    ok my $recipe = App::Transfer::Recipe->new(
-        recipe_file => $recipe_file->stringify,
-    ), 'new recipe instance';
-    throws_ok { $recipe->header }  'App::Transfer::X',
-        'Should get an exception for missing recipe config section';
+    my $recipe_file = path(qw(t recipes invalid recipe-header.conf));
+    throws_ok {
+        App::Transfer::Recipe->new(
+            recipe_file => $recipe_file->stringify )
+      } 'App::Transfer::X',
+      'Should get an exception for missing recipe config section';
+    is $@->message, __("The recipe must have a valid 'syntaxversion' attribute"),
+        'The message should be from the translation';
 };
 
 subtest 'Recipe header + config' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe-config.conf' );
-    ok my $recipe = App::Transfer::Recipe->new(
-        recipe_file => $recipe_file->stringify,
-    ), 'new recipe instance';
-    throws_ok { $recipe->source }  'App::Transfer::X',
-        'Should get an exception for missing recipe tables section';
-    throws_ok { $recipe->destination }  'App::Transfer::X',
-        'Should get an exception for missing recipe tables section';
+    my $recipe_file = path(qw(t recipes invalid recipe-config.conf));
+    throws_ok {
+    App::Transfer::Recipe->new(
+       recipe_file => $recipe_file->stringify )
+      } 'App::Transfer::X',
+      'Should get an exception for missing recipe config section';
+    is $@->message, __("The recipe must have a valid 'syntaxversion' attribute"),
+        'The message should be from the translation';
 };
 
 subtest 'Recipe syntax version' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe-wrongversion.conf' );
-    ok my $recipe = App::Transfer::Recipe->new(
-        recipe_file => $recipe_file->stringify,
-    ), 'new recipe instance';
-    throws_ok { $recipe->header }  'App::Transfer::X',
-        'Should get an exception for wrong syntax version';
+    my $recipe_file = path(qw(t recipes invalid recipe-wrongversion.conf));
+    throws_ok {
+        App::Transfer::Recipe->new(
+            recipe_file => $recipe_file->stringify )
+      } 'App::Transfer::X',
+      'Should get an exception for wrong syntax version';
 
-    $recipe_file = path( 't', 'recipes', 'recipe-noversion.conf' );
-    ok $recipe = App::Transfer::Recipe->new(
-        recipe_file => $recipe_file->stringify,
-    ), 'new recipe instance';
-    throws_ok { $recipe->header }  'App::Transfer::X',
-        'Should get an exception for wrong syntax version';
+    $recipe_file = path(qw(t recipes invalid recipe-noversion.conf));
+    throws_ok {
+        App::Transfer::Recipe->new(
+            recipe_file => $recipe_file->stringify )
+      } 'App::Transfer::X',
+      'Should get an exception for wrong syntax version';
 };
 
 #-- Minimum valid recipe
 
 subtest 'Recipe - minimum' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe-min.conf' );
+    my $recipe_file = path(qw(t recipes recipe-min.conf));
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
@@ -78,7 +86,7 @@ subtest 'Recipe - minimum' => sub {
 
     # Header
     is $recipe->header->version, 1, 'recipe version';
-    is $recipe->header->syntaxversion, 1, 'syntax version';
+    is $recipe->header->syntaxversion, 2, 'syntax version';
     is $recipe->header->name, 'Test recipe', 'recipe name';
     is $recipe->header->description, 'Does this and that...', 'description';
 
@@ -103,24 +111,20 @@ subtest 'Recipe - minimum' => sub {
 
 #-- Config section
 
-subtest 'Config section: from xls to db' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe.conf' );
+subtest 'Config section: from file2db - no file' => sub {
+    my $recipe_file = path(qw(t recipes recipe-csv2db.conf));
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
 
     # Source
     isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipe source';
-    is $recipe->source->reader, 'xls', 'has reader xls';
-    is $recipe->source->file, 't/siruta.xls', 'has a file';
-    is $recipe->source->target, undef, 'has no target';
-    is $recipe->source->table, undef, 'has no table';
-    is $recipe->source->date_format, 'dmy', 'has date format';
+    is $recipe->source->reader, 'csv', 'has reader';
+    is $recipe->source->file, '', 'has no file';
 
     # Destination
     isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
     is $recipe->destination->writer, 'db', 'has writer db';
-    is $recipe->destination->file, undef, 'has no file';
     is $recipe->destination->target, 'siruta', 'has target';
     is $recipe->destination->table, 'siruta', 'has table';
 
@@ -130,37 +134,39 @@ subtest 'Config section: from xls to db' => sub {
     is $uri, 'db:firebird://localhost/siruta', 'target uri';
 };
 
-subtest 'Config section: from xls to db - no file' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe4options-2.conf' );
+subtest 'Config section: from db2db' => sub {
+    my $recipe_file = path(qw(t recipes recipe-db2db.conf));
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
+
+    # Source
+    isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipe source';
+    is $recipe->source->reader, 'db', 'has reader xls';
+    is $recipe->source->file, '', 'has no file';
+    is $recipe->source->target, 'target1', 'has target';
+    is $recipe->source->table, 'test_db', 'has table';
+    is $recipe->source->date_format, 'iso', 'has default date format';
+
+    # Destination
     isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
     is $recipe->destination->writer, 'db', 'has writer db';
-    is $recipe->destination->target, 'siruta', 'has target';
-    is $recipe->destination->table, 'siruta', 'has table';
+    is $recipe->destination->target, 'target2', 'has target';
+    is $recipe->destination->table, 'test_db', 'has table';
+
+    # Targets
+    while (my ($name, $uri) = each (%{ $recipe->target })) {
+        like $name, qr/target\d/, 'target name';
+        like $uri, qr/hostname\d/, 'target uri';
+    }
 };
 
-subtest 'Config section: from db to xls' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe4options-1.conf' );
+subtest 'Config section: from db2file' => sub {
+    my $recipe_file = path(qw(t recipes recipe-db2csv.conf));
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
     isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipe source';
-    is $recipe->source->reader, 'db', 'has reader';
-    is $recipe->source->target, 'siruta', 'has target';
-    is $recipe->source->table, 'siruta', 'has table';
-    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
-    is $recipe->destination->writer, 'csv', 'has writer';
-    is $recipe->destination->file, 't/siruta.csv', 'has a file';
-};
-
-subtest 'Config section: from db to csv' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe4options-1.conf' );
-    ok my $recipe = App::Transfer::Recipe->new(
-        recipe_file => $recipe_file->stringify,
-    ), 'new recipe instance';
-    isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipesource';
     is $recipe->source->reader, 'db', 'has reader';
     is $recipe->source->target, 'siruta', 'has target';
     is $recipe->source->table, 'siruta', 'has table';
@@ -171,10 +177,11 @@ subtest 'Config section: from db to csv' => sub {
 
 #-- Tables section
 
-my $header_aref = [qw{id denumire} ];
+my $header_aref = [qw{id denumire}];
+my $header_href = { id => 'id', denumire => 'denumire' };
 
 subtest 'Table section minimum config' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe-table-0.conf' );
+    my $recipe_file = path(qw(t recipes table recipe-0.conf));
     ok my $recipe
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
@@ -184,7 +191,7 @@ subtest 'Table section minimum config' => sub {
 };
 
 subtest 'Table section maximum config' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe-table-1.conf' );
+    my $recipe_file = path(qw(t recipes table recipe-1.conf));
     ok my $recipe
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
@@ -196,7 +203,7 @@ subtest 'Table section maximum config' => sub {
         user   => undef,
     };
     cmp_deeply $recipe->table->filter, $expected, 'table filter';
-    cmp_deeply $recipe->table->header, $header_aref, 'header';
+    cmp_deeply $recipe->table->header, $header_href, 'header';
     cmp_deeply $recipe->table->tempfield, [ 'seria', 'factura' ], 'tempfields';
 
     # Columns
@@ -223,7 +230,7 @@ subtest 'Table section maximum config' => sub {
 };
 
 subtest 'Table section medium config' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe-table-2.conf' );
+    my $recipe_file = path(qw(t recipes table recipe-2.conf));
     ok my $recipe
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
@@ -235,7 +242,7 @@ subtest 'Table section medium config' => sub {
 };
 
 subtest 'Table section complex orderby config' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe-table-3.conf' );
+    my $recipe_file = path(qw(t recipes table recipe-3.conf));
     ok my $recipe
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
@@ -255,7 +262,7 @@ subtest 'Table section complex orderby config' => sub {
 ### XXX Setting a COPY without a REPLACENULL attribute for a row trafo
 ### makes this subtest fail instead of the following... ?!
 subtest 'Column transformation type' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe.conf' );
+    my $recipe_file = path(qw(t recipes recipe.conf));
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
@@ -275,7 +282,7 @@ subtest 'Column transformation type' => sub {
 };
 
 subtest 'Row transformation type' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe.conf' );
+    my $recipe_file = path(qw(t recipes recipe.conf));
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
@@ -371,7 +378,7 @@ subtest 'Row transformation type' => sub {
 #-- Datasource
 
 subtest 'Datasources' => sub {
-    my $recipe_file = path( 't', 'recipes', 'recipe.conf' );
+    my $recipe_file = path(qw(t recipes recipe.conf));
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';

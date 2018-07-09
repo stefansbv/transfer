@@ -9,7 +9,7 @@ use namespace::autoclean;
 
 subtype 'Natural', as 'Int', where { $_ > 0 };
 
-subtype 'NaturalLessThanN', as 'Natural', where { $_ <= 1 },
+subtype 'NaturalLessThanN', as 'Natural', where { $_ <= 2 },
     message { "The number ($_) is not <= 1!" };
 
 subtype 'ArrayRefColStep',

@@ -9,24 +9,10 @@ use App::Transfer::X qw(hurl);
 use App::Transfer::Recipe::Types;
 use namespace::autoclean;
 
-use constant SYNTAX_VERSION => 1;
-
 has 'version'       => ( is => 'ro', isa => 'Natural', required => 1 );
 has 'syntaxversion' => ( is => 'ro', isa => 'NaturalLessThanN', required => 1 );
 has 'name'          => ( is => 'ro', isa => 'Str' );
 has 'description'   => ( is => 'ro', isa => 'Str' );
-
-sub BUILDARGS {
-    my $class = shift;
-    my $p     = shift;
-    hurl recipe =>
-        __x("The recipe must have a valid 'version' attribute")
-            unless length( $p->{version} // '' );
-    hurl recipe =>
-        __x("The recipe must have a valid 'syntaxversion' attribute")
-            unless $p->{syntaxversion} && $p->{syntaxversion} == SYNTAX_VERSION;
-    return $p;
-}
 
 __PACKAGE__->meta->make_immutable;
 

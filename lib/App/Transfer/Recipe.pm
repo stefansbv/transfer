@@ -102,14 +102,16 @@ has 'table' => (
     lazy    => 1,
     default => sub {
         my $self = shift;
-        my %kv   = %{ $self->recipe_data->{table} };
-        my $cnt  = scalar keys %kv;
+        my %kv  = %{ $self->recipe_data->{table} };
+        my $cnt = scalar keys %kv;
         hurl recipe => __x( "Expecting a table not '{cnt}'!", cnt => $cnt )
             if $cnt > 1;
         my ( $name, $meta ) = each %kv;
+        say "table name = $name";
         if ( $name and ref $meta ) {
-            my $header = delete $meta->{header}{field};
-            $meta->{header} = $header;
+            if ( my $header = delete $meta->{header}{field} ) {
+                $meta->{header} = $header;
+            }
             return App::Transfer::Recipe::Table->new(
                 name => $name,
                 %{$meta},
@@ -183,6 +185,12 @@ sub BUILDARGS {
     hurl "Missing 'recipe_file' attribute"
         unless length( $p->{recipe_file} // '' );
     return $p;
+}
+
+sub BUILD {
+    my $self = shift;
+    my $head = $self->header;
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;
