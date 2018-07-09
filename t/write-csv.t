@@ -17,28 +17,31 @@ BEGIN {
     use_ok $CLASS or die;
 }
 
-my $output_file = 't/output.csv';
+my $output_file = 't/output/siruta.csv';
 
 subtest 'CSV OK' => sub {
-    ok my $recipe_file = path( 't', 'recipes', 'recipe-csv-write.conf' ),
-        "recipe file";
+    my $recipe_file = path(qw(t recipes recipe-csv-write.conf));
     my $transfer = App::Transfer->new;
+    isa_ok $transfer, 'App::Transfer', 'transfer';
     my $options_href = { output_file => $output_file, };
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
-    my $options = App::Transfer::Options->new(
+    isa_ok $recipe, 'App::Transfer::Recipe', 'recipe';
+    ok my $options = App::Transfer::Options->new(
         transfer => $transfer,
         recipe   => $recipe,
         options  => $options_href,
         rw_type  => 'writer',
-    );
+    ), 'new options instance';
+    isa_ok $options, 'App::Transfer::Options', 'options';
     ok my $writer = App::Transfer::Writer->load(
         {   transfer => $transfer,
             recipe   => $recipe,
             writer   => 'csv',
             options  => $options,
         } ), 'new writer csv object';
+    isa_ok $writer, 'App::Transfer::Writer', 'writer';
     is $writer->output_file, $output_file, 'csv file name';
     lives_ok { $writer->insert_header } 'insert header';
     my $row = {
@@ -63,6 +66,6 @@ subtest 'CSV OK' => sub {
 
 };
 
-unlink $output_file;
+# unlink $output_file;
 
 done_testing;

@@ -73,10 +73,8 @@ has 'tempfields' => (
     default  => sub {
         my $self   = shift;
         my $table = $self->recipe->destination->table;
-        if ( my $recipe_table = $self->recipe->tables->get_table($table) ) {
-            if ( $recipe_table->can('tempfield') ) {
-                return $recipe_table->tempfield // [];
-            }
+        if ( $table->can('tempfield') ) {
+            return $table->tempfield // [];
         }
         return [];
     },
@@ -705,8 +703,6 @@ sub transfer_db2db {
         if keys %{$table_info} == 0;
 
     # Log field name  XXX logfield can be missing from config?
-    my $tables = $self->recipe->tables;
-    my $tableo = $tables->get_table($dst_table);
     my $logfld = $self->get_logfiled_name($dst_table, $table_info);
 
     my $iter         = $self->_contents_iter; # call before record_count
@@ -750,7 +746,7 @@ sub transfer_db2file {
         unless $src_engine->table_exists($src_table);
 
     my $src_table_info = $src_engine->get_info($src_table);
-    my $dst_table_info = $self->recipe->tables->get_table($dst_table)->columns;
+    my $dst_table_info = $self->recipe->table->columns;
 
     hurl run => __( 'No columns type info retrieved from database!' )
         if keys %{$src_table_info} == 0;
@@ -809,7 +805,7 @@ sub transfer_file2file {
 
     hurl run => __("No input records!") unless $rec_count;
 
-    my $dst_table_info = $self->recipe->tables->get_table($dst_table)->columns;
+    my $dst_table_info = $self->recipe->table->columns;
 
     $self->writer->insert_header;
 
@@ -989,12 +985,9 @@ sub get_logfiled_name {
     my ( $self, $table, $table_info ) = @_;
     my $logfld;
     if ($table) {
-        if ( my $recipe_table = $self->recipe->tables->get_table($table) ) {
-            if ( $recipe_table->can('logfield') ) {
-                return $recipe_table->logfield // '?';
-            }
+        if ( $self->recipe->table->can('logfield') ) {
+            return $self->recipe->table->logfield // '?';
         }
-        $logfld //= '?';
     }
     if ( !$logfld and $table_info ) {
         my @cols = $self->sort_hash_by_pos($table_info);

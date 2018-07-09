@@ -62,48 +62,17 @@ has 'csv_fh' => (
     },
 );
 
-has '_headers' => (
-    is       => 'ro',
-    isa      => 'ArrayRef',
-    traits   => ['Array'],
-    init_arg => undef,
-    lazy     => 1,
-    builder  => '_build_headers',
-    handles  => {
-        get_header  => 'get',
-        all_headers => 'elements',
-    },
-);
-
-sub _build_headers {
-    my $self = shift;
-
-    # Header is the first row
-    my @headers = ();
-    foreach my $name ( $self->recipe->tables->all_table_names ) {
-        my $skip_rows = $self->recipe->tables->get_table($name)->skiprows;
-        my $tempfield = $self->recipe->tables->get_table($name)->tempfield;
-        my $row_count = 0;
-        my $columns = $self->recipe->tables->get_table($name)->columns;
-        my @cols    = $self->sort_hash_by_pos($columns);
-        push @headers, {
-            table  => $name,
-            row    => $row_count,
-            header => \@cols,
-            skip   => $skip_rows,
-            temp   => $tempfield,
-        };
-    }
-    return \@headers;
-}
-
 sub insert_header {
     my $self   = shift;
     my $csv_o  = $self->csv;
     my $out_fh = $self->csv_fh;
-    my $header = $self->get_header(0)->{header};
-    $csv_o->column_names($header);
-    my $status = $csv_o->print( $out_fh, $header );
+    my $header = $self->recipe->table->header;
+    my @field_names
+        = ( ref $header eq 'HASH' )
+        ? keys( %{$header} )
+        : @{$header};
+    $csv_o->column_names(\@field_names);
+    my $status = $csv_o->print( $out_fh, \@field_names );
     $self->emit_error if !$status;
     return;
 }

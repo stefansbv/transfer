@@ -63,7 +63,7 @@ sub _read_rectangle {
     my ($self, $top_cell, $bot_cell) = @_;
 
     my $header = $self->recipe->table->header;
-    
+
     my ($col_min, $row_min) = $self->sheet->cell2cr($top_cell);
     my ($col_max, $row_max) = $self->sheet->cell2cr($bot_cell);
     say "row_min = $row_min  row_max = $row_max" if $self->debug;

@@ -37,9 +37,7 @@ ok my $reader = App::Transfer::Reader->load({
 is $reader->input_file, 't/judete.odt', 'odt file name';
 isa_ok $reader->doc, 'ODF::lpOD::Document', 'doc';
 
-ok my @names = $reader->recipe->tables->all_table_names, 'get table name(s)';
-my @tables = sort @names;
-is_deeply \@tables, [qw{judete}], 'sorted table name(s)';
+is $recipe->table->name, 'judete', 'table name';
 
 # my $hcols_j = [ qw{cod_jud denj fsj mnemonic zona} ];
 # my @expected_headers = (

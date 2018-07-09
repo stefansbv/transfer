@@ -32,45 +32,14 @@ has 'csv' => (
     lazy     => 1,
     init_arg => undef,
     default => sub {
-        return Text::CSV->new(
-            {   sep_char       => ';',
-                always_quote   => 0,
-                binary         => 1,
-                blank_is_undef => 1,
-            }
-        ) || die "Cannot use CSV: " . Text::CSV->error_diag();
+        return Text::CSV->new( {
+            sep_char       => ';',
+            always_quote   => 0,
+            binary         => 1,
+            blank_is_undef => 1,
+        } ) || die "Cannot use CSV: " . Text::CSV->error_diag();
     },
 );
-
-has '_headermap' => (
-    isa      => 'ArrayRef',
-    traits   => ['Array'],
-    init_arg => undef,
-    lazy     => 1,
-    builder  => '_build_headermap',
-    handles  => {
-        get_header  => 'get',
-    },
-);
-
-sub _build_headermap {
-    my $self = shift;
-    my @metadata = ();
-    foreach my $name ( $self->recipe->tables->all_table_names ) {
-        my $headermap = $self->recipe->tables->get_table($name)->headermap;
-        my $skip_rows = $self->recipe->tables->get_table($name)->skiprows;
-        my $tempfield = $self->recipe->tables->get_table($name)->tempfield;
-        my $row_count = 0;
-        push @metadata, {
-            table     => $name,
-            row       => $row_count,
-            headermap => $headermap,
-            skip      => $skip_rows,
-            tempfield => $tempfield,
-        };
-    }
-    return \@metadata;
-}
 
 has _contents => (
     is      => 'ro',
@@ -84,16 +53,17 @@ sub _build_contents {
     my $csv  = $self->csv;
     open my $fh, "<:encoding(utf8)", $self->input_file
         or die "Error opening CSV: $!";
-    my $headermap = $self->get_header(0)->{headermap};
-    my $tempfield = $self->get_header(0)->{tempfield};
+    my $header = $self->recipe->table->header;
+    my $temp   = $self->recipe->table->tempfield;
+
     my @cols   = @{ $csv->getline($fh) };
     my $row    = {};
     my @records;
     $csv->bind_columns( \@{$row}{@cols} );
 
     # Add the temporary fields to the record
-    foreach my $field ( @{$tempfield} ) {
-        $headermap->{$field} = $field;
+    foreach my $field ( @{$temp} ) {
+        $header->{$field} = $field;
     }
 
     # Validate field list
@@ -107,7 +77,7 @@ sub _build_contents {
         say "C: @cols" if $self->debug;
     }
     my @not_found = ();
-    foreach my $col ( keys % {$headermap} ) {
+    foreach my $col ( keys % {$header} ) {
         unless ( any { $col eq $_ } @cols ) {
             push @not_found, $col;
         }
@@ -122,7 +92,7 @@ sub _build_contents {
     while ( $csv->getline($fh) ) {
         my $record = {};
         foreach my $col (@cols) {
-            if ( my $field = $headermap->{$col} ) {
+            if ( my $field = $header->{$col} ) {
                 $record->{$field} = $row->{$col};
             }
         }

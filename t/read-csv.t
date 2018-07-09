@@ -18,7 +18,7 @@ BEGIN {
 }
 
 subtest 'CSV OK' => sub {
-    ok my $recipe_file = path( 't', 'recipes', 'recipe-csv-read.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-csv2db.conf' ),
         "recipe file";
     my $transfer = App::Transfer->new;
     my $options_href = { input_file => 't/siruta.csv', };
@@ -46,7 +46,7 @@ subtest 'CSV OK' => sub {
 };
 
 subtest 'CSV with lc header' => sub {
-    ok my $recipe_file = path( 't', 'recipes', 'recipe-csv-read.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-csv2db.conf' ),
         "recipe file";
     my $transfer = App::Transfer->new;
     my $options_href = { input_file => 't/siruta-lower.csv', };

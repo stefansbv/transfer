@@ -27,39 +27,6 @@ has 'input_file' => (
     },
 );
 
-has '_headermap' => (
-    isa      => 'ArrayRef[HashRef]',
-    traits   => ['Array'],
-    init_arg => undef,
-    lazy     => 1,
-    builder  => '_build_headermap',
-    handles  => {
-        get_header    => 'get',
-        all_headermap => 'elements',
-    },
-);
-
-sub _build_headermap {
-    my $self = shift;
-
-    # Header is the first row
-    my @metadata = ();
-    foreach my $name ( $self->recipe->tables->all_table_names ) {
-        my $headermap = $self->recipe->tables->get_table($name)->headermap;
-        my $skip_rows = $self->recipe->tables->get_table($name)->skiprows;
-        my $tempfield = $self->recipe->tables->get_table($name)->tempfield;
-        my $row_count = 0;
-        push @metadata, {
-            table     => $name,
-            row       => $row_count,
-            headermap => $headermap,
-            skip      => $skip_rows,
-            tempfield => $tempfield,
-        };
-    }
-    return \@metadata;
-}
-
 has _contents => (
     is      => 'ro',
     isa     => 'ArrayRef',
@@ -70,12 +37,13 @@ has _contents => (
 sub _build_contents {
     my $self = shift;
     my $doc  = $self->doc;
-    my $headermap = $self->get_header(0)->{headermap};
-    my $tempfield = $self->get_header(0)->{temp};
+    my $header = $self->recipe->table->header;
+    my $temp   = $self->recipe->table->tempfield;
     my $table = $doc->get_body->get_table;
     my ( $h, $w ) = $table->get_size;
     my $row = $table->get_row(0);
 
+    use Data::Dump; dd $row;
     # Get the field names from the header, compress the text, remove
     # some chars like in the header-map
     # NOTE: get_row_header() get_header() and get_cell_values() does not work
@@ -83,19 +51,17 @@ sub _build_contents {
     for (my $j = 0; $j < $w; $j++) {
         my $cell = $row->get_cell($j) or last CELL;
         my $text = $cell->get_text;
-        $text = lc $self->common_RON->translit($text);
-        ( my $col = $text ) =~ s{[-./\s]}{}gi if defined $text;
-        push @cols, $col;
+        push @cols, $text;
     }
 
     # Add the temporary fields to the record
-    foreach my $field ( @{$tempfield} ) {
-        $headermap->{$field} = $field;
+    foreach my $field ( @{$temp} ) {
+        $header->{$field} = $field;
     }
 
     # Validate field list
     my @not_found = ();
-    foreach my $col ( keys % {$headermap} ) {
+    foreach my $col ( keys % {$header} ) {
         unless ( any { $col eq $_ } @cols ) {
             push @not_found, $col;
         }
@@ -116,7 +82,7 @@ sub _build_contents {
             my $col  = $cols[$j];
             my $cell = $row->get_cell($j) or last CELL;
             my $text = $cell->get_text;
-            if ( my $field = $headermap->{$col} ) {
+            if ( my $field = $header->{$col} ) {
                 $record->{$field} = $text;
             }
         }

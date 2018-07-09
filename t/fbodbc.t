@@ -41,7 +41,7 @@ BEGIN {
     $ENV{TRANSFER_USER_CONFIG}   = 'nonexistent.sys';
 }
 
-ok my $recipe_file = path( 't', 'recipes', 'recipe-db.conf' ), "Recipe file";
+ok my $recipe_file = path( 't', 'recipes', 'recipe-db2db.conf' ), "Recipe file";
 ok my $transfer = App::Transfer->new(
     recipe_file => $recipe_file->stringify,
 ), 'Load a transfer object';

@@ -44,7 +44,7 @@ BEGIN {
     delete $ENV{ISC_PASSWORD};
 }
 
-ok my $recipe_file = path( 't', 'recipes', 'recipe-db.conf' ),
+ok my $recipe_file = path(qw(t recipes recipe-db.conf)),
     "Recipe file for db tests";
 ok my $transfer = App::Transfer->new(
     recipe_file => $recipe_file->stringify,

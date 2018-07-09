@@ -79,10 +79,10 @@ subtest 'DB to DB transfer' => sub {
     # try_ok {$trafo->transfer_db2db} 'transfer file to file';
 };
 
-subtest 'File to file transfer' => sub {
+subtest 'File2file transfer' => sub {
     my $input_options  = { input_file  => path(qw(t siruta.csv)) };
     my $output_options = { output_file => path(qw(t output.csv)) };
-    my $recipe_file    = path( 't', 'recipes', 'recipe-fake.conf' );
+    my $recipe_file    = path(qw(t recipes invalid recipe-fake.conf));
     my $trafo_params   = [ recipe_file => $recipe_file ];
 
     my $transfer = App::Transfer->new;

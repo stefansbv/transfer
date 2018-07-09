@@ -15,7 +15,7 @@ use lib 't/lib';
 binmode STDOUT, ':utf8';
 
 my $uri            = 'db:firebird://@localhost/dbpath';
-my $recipe_file    = path( 't', 'recipes', 'recipe-db.conf' );
+my $recipe_file    = path( 't', 'recipes', 'recipe-db2db.conf' );
 my $trafo_params   = [ recipe_file => $recipe_file ];
 my $input_options  = { input_uri  => $uri };
 my $output_options = { output_uri => $uri };
