@@ -601,7 +601,7 @@ sub transfer_file2db {
     my $table  = $self->recipe->destination->table;
     my $engine = $self->writer->target->engine;
 
-    hurl run => __x( "The table '{table}' does not exists!", table => $table )
+    hurl run => __x( "The table '{table}' does not exists or is not readable!", table => $table )
         unless $engine->table_exists($table);
 
     my $table_info = $engine->get_info($table);
