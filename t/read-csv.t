@@ -31,18 +31,44 @@ subtest 'CSV OK' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
-    ok my $reader = App::Transfer::Reader->load(
-        {   transfer => $transfer,
-            recipe   => $recipe,
-            reader   => 'csv',
-            options  => $options,
-        } ), 'new reader csv object';
+    ok my $reader = App::Transfer::Reader->load( {
+        transfer => $transfer,
+        recipe   => $recipe,
+        reader   => 'csv',
+        options  => $options,
+    } ), 'new reader csv object';
     is $reader->input_file, 't/siruta.csv', 'csv file name';
-    ok my $records = $reader->get_data, 'get data for table';
-    is scalar @{$records}, 18, 'got 18 records';
-    is $records->[0]{obs1}, 'asta', 'tempfield: obs1';
-    is $records->[0]{obs2}, 'este', 'tempfield: obs2';
-    is $records->[0]{obs3}, 'judet', 'tempfield: obs3';
+
+    my $expecting_rec_15 = {
+        siruta => 13515,
+        denloc => "VALEA RUMÂNEŞTILOR",
+        codp   => 115101,
+        jud    => 3,
+        sirsup => 13490,
+        tip    => 10,
+        niv    => 3,
+        med    => 1,
+        fsj    => 3,
+        fsl    => 321696512951, 
+        rang   => "V",
+    };
+
+    ok my $aoh = $reader->_contents, 'get contents';
+    cmp_deeply $aoh->[14], $expecting_rec_15, 'record 15 data looks good';
+
+    ok my $iter = $reader->contents_iter, 'get the iterator';
+    isa_ok $iter, 'MooseX::Iterator::Array', 'iterator';
+
+    my $count = 0;
+    while ( $iter->has_next ) {
+        my $rec = $iter->next;
+        if ($count == 15) {
+            cmp_deeply $rec, $expecting_rec_15, 'record 15 data ok';
+        }
+        $count++;
+    }
+
+    is $reader->record_count, $count, 'counted records match record_count';
 };
 
 subtest 'CSV with lc header' => sub {
@@ -59,14 +85,14 @@ subtest 'CSV with lc header' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
-    ok my $reader = App::Transfer::Reader->load(
-        {   transfer => $transfer,
-            recipe   => $recipe,
-            reader   => 'csv',
-            options  => $options,
-        } ), 'new reader csv object';
+    ok my $reader = App::Transfer::Reader->load( {
+        transfer => $transfer,
+        recipe   => $recipe,
+        reader   => 'csv',
+        options  => $options,
+    } ), 'new reader csv object';
     is $reader->input_file, 't/siruta-lower.csv', 'csv file name';
-    throws_ok { $reader->get_data }
+    throws_ok { $reader->contents_iter }
         qr/\QHeader map <--> CSV file header inconsistency/,
         'Should get an exception for header map - file header inconsistency';
 };

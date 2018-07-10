@@ -4,13 +4,36 @@ package App::Transfer::Reader::fake;
 
 use 5.010;
 use Moose;
+use MooseX::Iterator;
 use namespace::autoclean;
 
 extends 'App::Transfer::Reader';
 
+has _contents => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    lazy    => 1,
+    builder => '_build_contents',
+);
+
+sub _build_contents {
+    my $self = shift;
+    my @records;
+    foreach my $rec ( @{ $self->get_data } ) {
+        push @records, $rec;
+        $self->inc_count;
+    }
+    return \@records;
+}
+
+has 'contents_iter' => (
+    metaclass    => 'Iterable',
+    iterate_over => '_contents',
+);
+
 sub get_data {
     my $self    = shift;
-    my @records = (
+    return [
         {   siruta => 10,
             denloc => "JUDETUL ALBA",
             jud    => 1,
@@ -23,9 +46,7 @@ sub get_data {
             denloc => "ALBA IULIA",
             jud    => 1,
         },
-    );
-    $self->record_count( scalar @records );
-    return \@records;
+    ];
 }
 
 

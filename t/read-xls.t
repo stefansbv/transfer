@@ -9,10 +9,9 @@ use App::Transfer;
 use App::Transfer::Options;
 use App::Transfer::Recipe;
 
-use Data::Dump;
 my $CLASS;
 BEGIN {
-    $CLASS = 'App::Transfer::Reader::spreadsheet';
+    $CLASS = 'App::Transfer::Reader::xls';
     use_ok $CLASS or die;
 }
 
@@ -33,7 +32,7 @@ subtest 'Read the SIRUTA table' => sub {
     ok my $reader = App::Transfer::Reader->load({
         transfer => $transfer,
         recipe   => $recipe,
-        reader   => 'spreadsheet',
+        reader   => 'xls',
         options  => $options,
     }), 'new reader spreadsheet object';
     is $reader->input_file, 't/siruta.xls', 'xls file name';
@@ -58,6 +57,21 @@ subtest 'Read the SIRUTA table' => sub {
 
     ok my $aoh = $reader->_contents, 'get contents';
     cmp_deeply $aoh->[14], $expecting_rec_15, 'record 15 data looks good';
+
+    ok my $iter = $reader->contents_iter, 'get the iterator';
+    isa_ok $iter, 'MooseX::Iterator::Array', 'iterator';
+
+    my $count = 0;
+    while ( $iter->has_next ) {
+        my $rec = $iter->next;
+        if ($count == 15) {
+            cmp_deeply $rec, $expecting_rec_15, 'record 15 data ok';
+        }
+        $count++;
+    }
+
+    is $reader->record_count, $count, 'counted records match record_count';
 };
 
 done_testing;
+

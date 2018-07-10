@@ -38,8 +38,37 @@ subtest 'DBF OK' => sub {
             options  => $options,
         } ), 'new reader dbf object';
     is $reader->input_file, 't/siruta.dbf', 'dbf file name';
-    ok my $records = $reader->get_data, 'get data for table';
-    is scalar @{$records}, 18, 'got 18 records';
+
+    my $expecting_rec_17 = {
+        SIRUTA => 13515,
+        DENLOC => "VALEA RUMANESTILOR",
+        CODP   => 115101,
+        JUD    => 3,
+        SIRSUP => 13490,
+        TIP    => 10,
+        NIV    => 3,
+        MED    => 1,
+        FSJ    => 1,
+        FSL    => 321696512951, 
+        RANG   => "V",
+    };
+
+    ok my $aoh = $reader->_contents, 'get contents';
+    cmp_deeply $aoh->[17], $expecting_rec_17, 'record 17 data looks good';
+
+    ok my $iter = $reader->contents_iter, 'get the iterator';
+    isa_ok $iter, 'MooseX::Iterator::Array', 'iterator';
+
+    my $count = 0;
+    while ( $iter->has_next ) {
+        my $rec = $iter->next;
+        if ($count == 17) {
+            cmp_deeply $rec, $expecting_rec_17, 'record 17 data ok';
+        }
+        $count++;
+    }
+
+    is $reader->record_count, $count, 'counted records match record_count';
 };
 
 subtest 'DBF unknown fields' => sub {
@@ -63,7 +92,7 @@ subtest 'DBF unknown fields' => sub {
             options  => $options,
         } ), 'new reader dbf object';
     is $reader->input_file, 't/siruta.dbf', 'dbf file name';
-    throws_ok { $reader->get_data }
+    throws_ok { $reader->contents_iter }
         qr/\QHeader map <--> DBF file header inconsistency/,
         'Should get an exception for header map - file header inconsistency';
 };

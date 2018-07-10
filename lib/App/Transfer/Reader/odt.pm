@@ -1,8 +1,9 @@
 package App::Transfer::Reader::odt;
 
-# ABSTRACT: Reader for ODT files
+# ABSTRACT: Reader for ODT files EXPERIMENTAL!
 
-use 5.010;
+use 5.014;
+use utf8;
 use Moose;
 use MooseX::Types::Path::Tiny qw(File);
 use MooseX::Iterator;
@@ -10,6 +11,7 @@ use Locale::TextDomain 1.20 qw(App-Transfer);
 use List::Util qw(first any);
 use List::Compare;
 use ODF::lpOD;
+use Lingua::Translit 0.23; # for "Common RON" table
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
@@ -24,6 +26,20 @@ has 'input_file' => (
     default  => sub {
         my $self = shift;
         return $self->options->file;
+    },
+);
+
+has 'doc' => (
+    is       => 'ro',
+    isa      => 'ODF::lpOD::Document',
+    lazy     => 1,
+    init_arg => undef,
+    default => sub {
+        my $self = shift;
+        my $doc  = odf_document->get( $self->input_file->stringify );
+
+        # die "Error:", $parser->error(), ".\n" if !defined $doc;
+        return $doc;
     },
 );
 
@@ -43,7 +59,6 @@ sub _build_contents {
     my ( $h, $w ) = $table->get_size;
     my $row = $table->get_row(0);
 
-    use Data::Dump; dd $row;
     # Get the field names from the header, compress the text, remove
     # some chars like in the header-map
     # NOTE: get_row_header() get_header() and get_cell_values() does not work
@@ -51,7 +66,9 @@ sub _build_contents {
     for (my $j = 0; $j < $w; $j++) {
         my $cell = $row->get_cell($j) or last CELL;
         my $text = $cell->get_text;
-        push @cols, $text;
+        $text = lc $self->common_RON->translit($text);
+        ( my $col = $text ) =~ s{[-./\s]}{}gi if defined $text;
+        push @cols, $col;
     }
 
     # Add the temporary fields to the record
@@ -67,7 +84,7 @@ sub _build_contents {
         }
     }
     hurl field_info => __x(
-        'Header map <--> CSV file header inconsistency. Some columns where not found :"{list}"',
+        'Header map <--> ODT file header inconsistency. Some columns where not found :"{list}"',
         list  => join( ', ', @not_found ),
     ) if scalar @not_found;
 
@@ -86,9 +103,12 @@ sub _build_contents {
                 $record->{$field} = $text;
             }
         }
-        push @records, $record
-            if any { defined($_) } values %{$record};
+        if (any { defined($_) } values %{$record}) { 
+            push @records, $record;
+            $self->inc_count;
+        }
     }
+
     return \@records;
 }
 
@@ -96,32 +116,6 @@ has 'contents_iter' => (
     metaclass    => 'Iterable',
     iterate_over => '_contents',
 );
-
-has 'doc' => (
-    is       => 'ro',
-    isa      => 'ODF::lpOD::Document',
-    lazy     => 1,
-    init_arg => undef,
-    default => sub {
-        my $self = shift;
-        my $doc  = odf_document->get( $self->input_file->stringify );
-
-        # die "Error:", $parser->error(), ".\n" if !defined $doc;
-        return $doc;
-    },
-);
-
-sub get_data {
-    my $self = shift;
-    my $iter = $self->contents_iter;
-    my @records;
-    while ( $iter->has_next ) {
-        my $row = $iter->next;
-        push @records, $row if any { defined($_) } values %{$row};
-    }
-    $self->record_count(scalar @records);
-    return \@records;
-}
 
 __PACKAGE__->meta->make_immutable;
 
@@ -154,20 +148,11 @@ TODO: Add support for more than one table.
 
 A L<Path::Tiny::File> object representing the odt input file.
 
-=head3 C<dst_table>
+=head3 C<doc>
 
-The name of the destination table.
+The L<ODF::lpOD> instance object.
 
-=head3 C<_headermap>
-
-An array reference holding info about each table. TODO!!!
-
-The data-structure is built by iterating over the contents of the
-spreadsheet and searching for the header columns defined in the
-L<headermap> section of the recipe.  When a header is found, the row
-and some other info is recorded.
-
-=head3 C<_record_set>
+=head3 C<_header>
 
 =head3 C<_contents>
 
@@ -177,16 +162,6 @@ An array reference holding the contents of the tables.
 
 A L<MooseX::Iterator> object for the contents of the odt file.
 
-=head3 C<doc>
-
-A L<...> object.
-
 =head2 Instance Methods
-
-=head3 C<get_data>
-
-Return an array reference of hashes, where the hash keys are the names
-of the columns and the values are the values read from the table
-columns. (XXX reformulate).
 
 =cut

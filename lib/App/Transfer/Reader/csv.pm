@@ -77,7 +77,7 @@ sub _build_contents {
         say "C: @cols" if $self->debug;
     }
     my @not_found = ();
-    foreach my $col ( keys % {$header} ) {
+    foreach my $col ( keys %{$header} ) {
         unless ( any { $col eq $_ } @cols ) {
             push @not_found, $col;
         }
@@ -96,8 +96,13 @@ sub _build_contents {
                 $record->{$field} = $row->{$col};
             }
         }
-        push @records, $record
-            if any { defined($_) } values %{$record};
+        if (any { defined($_) } values %{$record}) { 
+            push @records, $record;
+            $self->inc_count;
+        }
+        else {
+            $self->inc_skip;
+        }
     }
     close $fh;
     return \@records;
@@ -107,19 +112,6 @@ has 'contents_iter' => (
     metaclass    => 'Iterable',
     iterate_over => '_contents',
 );
-
-sub get_data {
-    my $self = shift;
-    my $iter = $self->contents_iter;
-    my @records;
-    while ( $iter->has_next ) {
-        my $row = $iter->next;
-        # Only records with at least one defined value
-        push @records, $row if any { defined($_) } values %{$row};
-    }
-    $self->record_count(scalar @records);
-    return \@records;
-}
 
 __PACKAGE__->meta->make_immutable;
 
@@ -160,11 +152,6 @@ A L<Path::Tiny::File> object representing the Excel input file.
 
 A L<Text::CSV> object representing the CSV input file.
 
-=head3 C<_headermap>
-
-An array reference holding info about the table in the file.  The
-data-structure contains the table, row, header and skip attributes.
-
 =head3 C<_contents>
 
 An array reference holding the contents of the file.
@@ -174,10 +161,5 @@ An array reference holding the contents of the file.
 A L<MooseX::Iterator> object for the contents of the CSV file.
 
 =head2 Instance Methods
-
-=head3 C<get_data>
-
-Return an array reference of hash references with the column names as
-keys.
 
 =cut

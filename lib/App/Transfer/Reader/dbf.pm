@@ -59,7 +59,7 @@ sub _build_contents {
     }
 
     my @select_cols = keys %{$header};
-
+    
     # Validate field list
     my @not_found = ();
     foreach my $col (@select_cols) {
@@ -75,8 +75,9 @@ sub _build_contents {
     # Get the data
     my @records;
     my $cursor = $dbf->prepare_select(@select_cols);
-    while (my @rec = $cursor->fetch_hashref) {
-        push @records, @rec;
+    while (my $rec = $cursor->fetch_hashref) {
+        push @records, $rec;
+        $self->inc_count;
     }
     return \@records;
 }
@@ -85,20 +86,6 @@ has 'contents_iter' => (
     metaclass    => 'Iterable',
     iterate_over => '_contents',
 );
-
-sub get_data {
-    my $self = shift;
-    my $iter = $self->contents_iter;
-    my @records;
-    while ( $iter->has_next ) {
-        my $row = $iter->next;
-
-        # Only records with at least one defined value
-        push @records, $row; #  if any { defined($_) } values %{$row};
-    }
-    $self->record_count(scalar @records);
-    return \@records;
-}
 
 __PACKAGE__->meta->make_immutable;
 
@@ -121,25 +108,17 @@ App::Transfer::Reader::dbf - Reader for DBF files
 App::Transfer::Reader::dbf reads a DBF file and builds a AoH data
 structure for the entire contents.
 
-XXX The input file must be in UTF8 format and the output is also UTF8
-to be inserted in the database.
-
 =head1 Interface
 
 =head2 Attributes
 
 =head3 C<input_file>
 
-A L<Path::Tiny::File> object representing the Excel input file.
+A L<Path::Tiny::File> object representing the DBF input file.
 
 =head3 C<dbf>
 
-A L<DBD::XBase> object representing the DBF input file.
-
-=head3 C<_headers>
-
-An array reference holding info about the table in the file.  The
-data-structure contains the table, row, header and skip attributes.
+A L<DBD::XBase> object instance.
 
 =head3 C<_contents>
 
@@ -150,10 +129,5 @@ An array reference holding the contents of the file.
 A L<MooseX::Iterator> object for the contents of the DBF file.
 
 =head2 Instance Methods
-
-=head3 C<get_data>
-
-Return an array reference of hash references with the column names as
-keys.
 
 =cut

@@ -80,6 +80,7 @@ sub _build_contents {
             $record->{ $header->{$col} } = $row->{$col};
         }
         push @records, $record;
+        $self->inc_count;
     }
     return \@records;
 }
@@ -141,25 +142,6 @@ has 'contents_iter' => (
     iterate_over => '_contents',
 );
 
-sub get_data {
-    my $self   = shift;
-    my $table  = $self->src_table;
-    my $engine = $self->target->engine;
-    hurl {
-        ident   => 'reader',
-        exitval => 1,
-        message => __x( 'Table "{table}" does not exists', table => $table ),
-    } unless $engine->table_exists($table);
-    my $iter = $self->contents_iter;
-    my @records;
-    while ( $iter->has_next ) {
-        my $row = $iter->next;
-        push @records, $row;
-    }
-    $self->record_count(scalar @records);
-    return \@records;
-}
-
 __PACKAGE__->meta->make_immutable;
 
 1;
@@ -213,18 +195,6 @@ A L<MooseX::Iterator> object for the contents of the table.
 Return true if the table C<$name> is defined in the recipe (actually
 returns the name of the table or undef).
 
-=head3 C<get_data>
-
-Return an array reference of hashes, where the hash keys are the names
-of the columns and the values are the values read from the table
-columns. (XXX reformulate).
-
 =head3 C<get_fields>
-
-=head3 C<get_data>
-
-Return an array reference of hashes, where the hash keys are the names
-of the columns and the values are the values read from the table
-columns. (XXX reformulate).
 
 =cut

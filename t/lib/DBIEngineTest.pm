@@ -366,8 +366,20 @@ sub run {
         ok my $fields = $trafo->reader->get_fields($table_db), 'table fields';
         is scalar @{$fields}, 2, 'get 2 fields';
 
-        ok my $records = $trafo->reader->get_data, 'get data for table';
-        ok scalar @{$records} > 0, 'get some records';
+        ok my $iter = $trafo->reader->contents_iter, 'get the iterator';
+        isa_ok $iter, 'MooseX::Iterator::Array', 'iterator';
+
+        my $count = 0;
+        while ( $iter->has_next ) {
+            my $rec = $iter->next;
+            cmp_deeply $rec, $records_db->[$count], "record  data";
+            $count++;
+        }
+
+        is $trafo->reader->record_count, $count, 'counted records match record_count';
+
+        # ok my $records = $trafo->reader->get_data, 'get data for table';
+        # ok scalar @{$records} > 0, 'get some records';
 
         my $expected = [
             {   id       => 1,
