@@ -68,7 +68,8 @@ sub validate_recipe_sections {
         if !exists $p->{recipe};
 
     hurl recipe =>
-        __("The recipe must have a valid 'syntaxversion' attribute")
+        __x( "The recipe must have a valid 'syntaxversion' attribute (the current version is {sv})",
+             sv => SYNTAX_VERSION )
         if !exists $p->{recipe}{syntaxversion}
         || $p->{recipe}{syntaxversion} eq ""
         || $p->{recipe}{syntaxversion} != SYNTAX_VERSION;
