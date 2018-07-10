@@ -37,16 +37,32 @@ has 'recipe' => (
 );
 
 has 'record_count' => (
-    is       => 'rw',
-    isa      => 'Int',
-    default => sub { return 0; },
+    traits        => ['Counter'],
+    is            => 'ro',
+    isa           => 'Int',
+    default       => 0,
+    handles       => {
+        inc_count   => 'inc',
+        reset_count => 'reset',
+    },
 );
 
-has 'rows_read' => (
-    is       => 'rw',
-    isa      => 'Int',
-    default => sub { return 0; },
+has 'record_skip' => (
+    traits         => ['Counter'],
+    is             => 'ro',
+    isa            => 'Int',
+    default        => 0,
+    handles        => {
+        inc_skip   => 'inc',
+        reset_skip => 'reset',
+    },
 );
+
+# has 'rows_read' => (
+#     is       => 'rw',
+#     isa      => 'Int',
+#     default => sub { return 0; },
+# );
 
 sub load {
     my ( $class, $p ) = @_;
@@ -84,6 +100,15 @@ sub load {
     # Instantiate and return the reader.
     return $pkg->new($p);
 }
+
+# Transliteration
+has 'common_RON' => (
+    is      => 'ro',
+    isa     => 'Lingua::Translit',
+    default => sub {
+        return Lingua::Translit->new('Common RON');
+    },
+);
 
 __PACKAGE__->meta->make_immutable;
 
