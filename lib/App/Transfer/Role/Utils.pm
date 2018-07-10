@@ -4,6 +4,7 @@ package App::Transfer::Role::Utils;
 
 use 5.0100;
 use utf8;
+use Lingua::Translit 0.23; # for "Common RON" table
 use Moose::Role;
 
 sub sort_hash_by_pos {
@@ -35,6 +36,15 @@ sub io_trafo_type {
     my ($self, $prefix, $sufix) = @_;
     return "${prefix}2${sufix}";
 }
+
+# Transliteration
+has 'common_RON' => (
+    is      => 'ro',
+    isa     => 'Lingua::Translit',
+    default => sub {
+        return Lingua::Translit->new('Common RON');
+    },
+);
 
 no Moose::Role;
 

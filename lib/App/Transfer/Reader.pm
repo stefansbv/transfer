@@ -9,6 +9,9 @@ use App::Transfer::X qw(hurl);
 use Try::Tiny;
 use namespace::autoclean;
 
+with qw(App::Transfer::Role::Utils
+        MooX::Log::Any);
+
 has transfer => (
     is       => 'ro',
     isa      => 'App::Transfer',
@@ -100,15 +103,6 @@ sub load {
     # Instantiate and return the reader.
     return $pkg->new($p);
 }
-
-# Transliteration
-has 'common_RON' => (
-    is      => 'ro',
-    isa     => 'Lingua::Translit',
-    default => sub {
-        return Lingua::Translit->new('Common RON');
-    },
-);
 
 __PACKAGE__->meta->make_immutable;
 
