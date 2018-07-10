@@ -676,7 +676,6 @@ sub transfer_db2db {
     hurl run => __( 'No columns type info retrieved from database!' )
         if keys %{$table_info} == 0;
 
-    # Log field name  XXX logfield can be missing from config?
     my $logfld = $self->get_logfield_name($table_info);
 
     my $iter      = $self->reader->contents_iter; # call before record_count

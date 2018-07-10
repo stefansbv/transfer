@@ -30,6 +30,14 @@ BEGIN {
     bind_textdomain_filter 'App-Transfer' => \&Encode::decode_utf8;
 }
 
+has 'has_logger' => (
+    is      => 'rw',
+    isa     => 'Bool',
+    default => sub {
+        return 0;
+    },
+);
+
 sub _init_logger {
     my $self = shift;
     my $log_fqn = $self->config->log_file_path;
@@ -37,9 +45,10 @@ sub _init_logger {
         Log::Log4perl->init( $log_fqn->stringify );
         say "Log file config is '$log_fqn'.\n" if $self->debug;
         $self->log->info("Logging system initialized");
+        $self->has_logger(1);
     }
     else {
-        warn "Logging is disabled, log file config '$log_fqn' not found.\n";
+        warn "The log file config '$log_fqn' was not found, using a default config.\n";
     }
 }
 
@@ -185,7 +194,18 @@ sub warn_literal {
 
 sub BUILD {
     my $self = shift;
-    $self->_init_logger;
+    if ($self->has_logger) {
+        $self->_init_logger;
+    }
+    else {
+        my $log4p_conf = q(
+            log4perl.rootLogger=DEBUG, SCREEN
+            log4perl.appender.SCREEN=Log::Log4perl::Appender::Screen
+            log4perl.appender.SCREEN.layout=SimpleLayout
+            log4perl.appender.SCREEN.Threshold=INFO
+        );
+        Log::Log4perl->init(\$log4p_conf);
+    }
     return;
 }
 
