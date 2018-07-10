@@ -71,7 +71,7 @@ subtest 'DB to DB transfer' => sub {
     isa_ok $trafo->plugin, ['App::Transfer::Plugin'], 'transfer plugin';
     is $trafo->io_trafo_type('csv', 'db'), 'csv2db', 'csv and db';
     like(
-        dies { $trafo->_contents },
+        dies { $trafo->reader->contents_iter },
         qr/(database|server)( .+)? not (found|available)/,
         'Should have error for missing database'
     );
@@ -93,9 +93,11 @@ subtest 'File2file transfer' => sub {
         @{$trafo_params},
     ), 'new trafo instance';
 
-    ok( lives { $trafo->transfer_file2file }, 'transfer file to file' );
+    is $trafo->get_logfield_name, 'siruta', 'log field name';
+        
+    ok( lives { $trafo->transfer_file2file }, 'transfer file to file' ); 
 
-#    $trafo->type_join($step, $record, $logstr);
+    # $trafo->type_join($step, $record, $logstr);
 
 };
 

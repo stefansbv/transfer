@@ -617,7 +617,7 @@ sub transfer_file2db {
 
     hurl run => __x("Invalid input file specified; use '--if' or fix the source file in the recipe.") unless -f $self->reader_options->file->stringify;
 
-    my $logfld = $self->get_logfiled_name($table_info);
+    my $logfld = $self->get_logfield_name($table_info);
 
     my $iter      = $self->reader->contents_iter; # call before record_count
     my $row_count = 0;
@@ -677,7 +677,7 @@ sub transfer_db2db {
         if keys %{$table_info} == 0;
 
     # Log field name  XXX logfield can be missing from config?
-    my $logfld = $self->get_logfiled_name($table_info);
+    my $logfld = $self->get_logfield_name($table_info);
 
     my $iter      = $self->reader->contents_iter; # call before record_count
     my $row_count = 0;
@@ -726,7 +726,7 @@ sub transfer_db2file {
         if keys %{$src_table_info} == 0;
 
     # Log field name  XXX logfield can be missing from config?
-    my $logfld = $self->get_logfiled_name($src_table_info);
+    my $logfld = $self->get_logfield_name($src_table_info);
 
     my $iter      = $self->reader->contents_iter; # call before record_count
     my $row_count = 0;
@@ -769,7 +769,7 @@ sub transfer_file2file {
 
     hurl run => __x("Invalid input file specified; use '--if' or fix the source file in the recipe.") unless -f $self->reader_options->file->stringify;
 
-    my $logfld = $self->get_logfiled_name();
+    my $logfld = $self->get_logfield_name();
 
     my $iter      = $self->reader->contents_iter; # call before record_count
     my $row_count = 0;
@@ -955,7 +955,7 @@ sub has_temp_field {
     return;
 }
 
-sub get_logfiled_name {
+sub get_logfield_name {
     my ( $self, $table_info ) = @_;
     my $logfld;
     if ( $self->recipe->table->can('logfield') ) {
@@ -1191,7 +1191,7 @@ Remove the temporary fields from the record.
 
 Return true if a field is in the tempfields list.
 
-=head3 get_logfiled_name
+=head3 get_logfield_name
 
 Return the logfield value from the recipe configuration, or the first
 column name from the database table.
