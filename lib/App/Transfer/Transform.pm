@@ -70,7 +70,7 @@ has 'tempfields' => (
     lazy     => 1,
     default  => sub {
         my $self   = shift;
-        my $table = $self->recipe->destination->table;
+        my $table = $self->recipe->table;
         if ( $table->can('tempfield') ) {
             return $table->tempfield // [];
         }
