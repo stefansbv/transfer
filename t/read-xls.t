@@ -16,7 +16,7 @@ BEGIN {
 }
 
 subtest 'Read the SIRUTA table' => sub {
-    ok my $recipe_file = path( 't', 'recipes', 'recipe-ss-siruta.conf' ),
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-xls.conf' ),
         "Recipe file";
     my $transfer = App::Transfer->new;
     my $options_href = { input_file => 't/siruta.xls', verbose => 1, };
