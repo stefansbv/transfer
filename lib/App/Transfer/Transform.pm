@@ -5,7 +5,6 @@ package App::Transfer::Transform;
 use 5.010001;
 use utf8;
 use Moose;
-use MooseX::Iterator;
 use MooseX::Types::Path::Tiny qw(Path File);
 use App::Transfer::X qw(hurl);
 use Locale::TextDomain qw(App-Transfer);
@@ -13,7 +12,6 @@ use Perl6::Form;
 use List::Compare;
 use Progress::Any;
 use Progress::Any::Output 'TermProgressBarColor';
-use Lingua::Translit 0.23; # for "Common RON" table
 use namespace::autoclean;
 
 use App::Transfer::Options;
@@ -190,30 +188,6 @@ has '_trafo_types' => (
     handles => {
         exists_in_type => 'exists',
         get_type       => 'get',
-    },
-);
-
-has '_contents' => (
-    is      => 'ro',
-    isa     => 'ArrayRef',
-    lazy    => 1,
-    default => sub {
-        my $self = shift;
-        return $self->reader->get_data;
-    },
-);
-
-has '_contents_iter' => (
-    metaclass    => 'Iterable',
-    iterate_over => '_contents',
-);
-
-# Transliteration
-has 'common_RON' => (
-    is      => 'ro',
-    isa     => 'Lingua::Translit',
-    default => sub {
-        return Lingua::Translit->new('Common RON');
     },
 );
 
@@ -643,9 +617,9 @@ sub transfer_file2db {
 
     hurl run => __x("Invalid input file specified; use '--if' or fix the source file in the recipe.") unless -f $self->reader_options->file->stringify;
 
-    my $logfld = $self->get_logfiled_name($table, $table_info);
+    my $logfld = $self->get_logfiled_name($table_info);
 
-    my $iter      = $self->_contents_iter; # call before record_count
+    my $iter      = $self->reader->contents_iter; # call before record_count
     my $row_count = 0;
     my $rows_read = $self->reader->rows_read;
     my $rec_count = $self->reader->record_count;
@@ -703,10 +677,10 @@ sub transfer_db2db {
         if keys %{$table_info} == 0;
 
     # Log field name  XXX logfield can be missing from config?
-    my $logfld = $self->get_logfiled_name($dst_table, $table_info);
+    my $logfld = $self->get_logfiled_name($table_info);
 
-    my $iter         = $self->_contents_iter; # call before record_count
-    my $row_count    = 0;
+    my $iter      = $self->reader->contents_iter; # call before record_count
+    my $row_count = 0;
     my $rec_count = $self->reader->record_count;
 
     $self->job_info_work($rec_count);
@@ -752,10 +726,10 @@ sub transfer_db2file {
         if keys %{$src_table_info} == 0;
 
     # Log field name  XXX logfield can be missing from config?
-    my $logfld = $self->get_logfiled_name($src_table, $src_table_info);
+    my $logfld = $self->get_logfiled_name($src_table_info);
 
-    my $iter         = $self->_contents_iter; # call before record_count
-    my $row_count    = 0;
+    my $iter      = $self->reader->contents_iter; # call before record_count
+    my $row_count = 0;
     my $rec_count = $self->reader->record_count;
 
     $self->job_info_work($rec_count);
@@ -797,7 +771,7 @@ sub transfer_file2file {
 
     my $logfld = $self->get_logfiled_name();
 
-    my $iter      = $self->_contents_iter; # call before record_count
+    my $iter      = $self->reader->contents_iter; # call before record_count
     my $row_count = 0;
     my $rec_count = $self->reader->record_count;
 
@@ -982,12 +956,10 @@ sub has_temp_field {
 }
 
 sub get_logfiled_name {
-    my ( $self, $table, $table_info ) = @_;
+    my ( $self, $table_info ) = @_;
     my $logfld;
-    if ($table) {
-        if ( $self->recipe->table->can('logfield') ) {
-            return $self->recipe->table->logfield // '?';
-        }
+    if ( $self->recipe->table->can('logfield') ) {
+        return $self->recipe->table->logfield // '?';
     }
     if ( !$logfld and $table_info ) {
         my @cols = $self->sort_hash_by_pos($table_info);
@@ -1047,10 +1019,6 @@ attribute.
 =head3 info
 
 =head3 _trafo_types
-
-=head3 _contents
-
-=head3 _contents_iter
 
 =head2 INSTANCE METHODS
 
