@@ -42,7 +42,7 @@ subtest 'Recipe header only' => sub {
             recipe_file => $recipe_file->stringify )
       } 'App::Transfer::X',
       'Should get an exception for missing recipe config section';
-    is $@->message, __("The recipe must have a valid 'syntaxversion' attribute"),
+    is $@->message, __("The recipe must have a valid 'syntaxversion' attribute (the current version is 2)"),
         'The message should be from the translation';
 };
 
@@ -53,7 +53,7 @@ subtest 'Recipe header + config' => sub {
        recipe_file => $recipe_file->stringify )
       } 'App::Transfer::X',
       'Should get an exception for missing recipe config section';
-    is $@->message, __("The recipe must have a valid 'syntaxversion' attribute"),
+    is $@->message, __("The recipe must have a valid 'syntaxversion' attribute (the current version is 2)"),
         'The message should be from the translation';
 };
 
