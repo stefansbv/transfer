@@ -13,15 +13,15 @@ with    'App::Transfer::Role::Utils',
         'MooX::Log::Any';
 
 sub insert_header {
-    my $self   = shift;
-    $self->log->info( "header: siruta|denloc|jud" );
+    my $self = shift;
+    $self->log->info( "[fake] insert header: siruta|denloc|jud" );
     return;
 }
 
 sub insert {
     my ( $self, $table, $row ) = @_;
     my $str = dump($row);
-    $self->log->info( "row: $str" );
+    $self->log->info( "[fake] insert row: $str" );
     $self->inc_inserted;
     return;
 }
