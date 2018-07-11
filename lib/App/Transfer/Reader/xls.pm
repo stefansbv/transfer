@@ -39,6 +39,32 @@ has 'worksheet' => (
     },
 );
 
+has 'rectangle' => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        my $rect = $self->recipe->table->rectangle;
+        hurl xls => __ "For the 'xls' reader, the table section must have a 'rectangle' attribute"
+            if not ref $rect;
+        return $rect;
+    },
+);
+
+has 'header' => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        my $head = $self->recipe->table->header;
+        hurl xls => __ "For the 'xls' reader, the table header must have field attributes"
+            if not ref $head eq 'ARRAY';
+        return $head;
+    },
+);
+
 has 'workbook' => (
     is      => 'ro',
     isa     => 'Spreadsheet::Read',
@@ -62,7 +88,7 @@ has 'sheet' => (
 sub _read_rectangle {
     my ($self, $top_cell, $bot_cell) = @_;
 
-    my $header = $self->recipe->table->header;
+    my $header = $self->header;
 
     my ($col_min, $row_min) = $self->sheet->cell2cr($top_cell);
     my ($col_max, $row_max) = $self->sheet->cell2cr($bot_cell);
@@ -96,14 +122,9 @@ has _contents => (
 
 sub _build_contents {
     my $self = shift;
-    if ( my @rect = @{$self->recipe->table->rectangle} ) {
-        my ( $top, $bot ) = @rect;
-        return $self->_read_rectangle( $top, $bot );
-    }
-    else {
-        hurl xls => __
-            "The table section must have a 'rectangle' attribute";
-    }
+    my @rect = @{$self->rectangle};
+    my ( $top, $bot ) = @rect;
+    return $self->_read_rectangle( $top, $bot );
 }
 
 has 'contents_iter' => (
