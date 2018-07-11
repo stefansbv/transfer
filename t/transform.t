@@ -2,7 +2,10 @@ use 5.010;
 use utf8;
 use Test2::V0;
 use Path::Tiny;
-#use Locale::TextDomain qw(App-Transfer);
+use Locale::TextDomain qw(App-Transfer);
+use Locale::Messages qw(bindtextdomain);
+
+bindtextdomain 'App-Transfer' => './.build/latest/share';
 
 use App::Transfer;
 use App::Transfer::Transform;
@@ -10,7 +13,14 @@ use lib 't/lib';
 
 binmode STDOUT, ':utf8';
 
+use Capture::Tiny 0.12 qw(capture_stdout capture_merged);
+
 $ENV{TRANSFER_LOG_CONFIG} = 't/log.conf';
+
+my $trans1 = __('Input:');
+my $trans2 = __('Output:');
+my $trans3 = __('Working:');
+my $trans4 = __('Summary:');
 
 subtest 'DB to DB transfer' => sub {
     my $uri            = 'db:pg://@localhost/__transfertest__';
@@ -29,22 +39,25 @@ subtest 'DB to DB transfer' => sub {
         'new trafo instance';
 
     like(
-        dies { $trafo->job_info_input_file },
-        qr/The file reader must have a valid/,
+        capture_stdout {
+            dies { $trafo->job_info_input_file }
+        }, qr/$trans1/,
         'Should have error for missing file option or configuration'
     );
 
     like(
-        dies { $trafo->job_info_output_file },
-        qr/The file writer must have a valid/,
+        capture_stdout {
+            dies { $trafo->job_info_output_file }
+        },
+        qr/$trans2/,
         'Should have error for missing file option or configuration'
     );
 
-    ok( lives { $trafo->job_info_work },
-        'Should have no error for missing parameters' );
+    like( capture_stdout { $trafo->job_info_work },
+        qr/$trans3/ms, 'job_intro should work');
 
-    ok( lives { $trafo->job_summary },
-        'Should have no error for missing parameters' );
+    like( capture_stdout { $trafo->job_summary },
+        qr/$trans4/ms, 'job_intro should work');
 
     isa_ok $trafo->transfer, ['App::Transfer'], 'is a transfer instance';
     is $trafo->recipe_file,    $recipe_file,    'has recipe file';
@@ -95,7 +108,11 @@ subtest 'File2file transfer' => sub {
 
     is $trafo->get_logfield_name, 'siruta', 'log field name';
         
-    ok( lives { $trafo->transfer_file2file }, 'transfer file to file' ); 
+    like(
+        capture_merged { $trafo->transfer_file2file },
+        qr/$trans1/,
+        'transfer file to file'
+    );
 
     # $trafo->type_join($step, $record, $logstr);
 
