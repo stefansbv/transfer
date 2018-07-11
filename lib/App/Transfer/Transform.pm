@@ -69,7 +69,7 @@ has 'tempfields' => (
     isa      => 'ArrayRef',
     lazy     => 1,
     default  => sub {
-        my $self   = shift;
+        my $self  = shift;
         my $table = $self->recipe->table;
         if ( $table->can('tempfield') ) {
             return $table->tempfield // [];
@@ -531,22 +531,17 @@ sub job_info_output_db {
 }
 
 sub job_info_work {
-    my ($self, $rec_count, $rows_read) = @_;
+    my ($self, $rec_count) = @_;
     $rec_count //= 0;
-    $rows_read = $rec_count;
-    my $start_l   = __ 'Working:';
-    my $record_rr = __ 'source rows read:';
-    my $record_rc = __ 'records prepared:';
+    my $start_l = __ 'Working:';
+    my $count_l = __ 'source records read:';
     print form " -----------------------------";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
        $start_l;
     print form
     "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-       $record_rr,                   $rows_read;
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-       $record_rc,                   $rec_count;
+       $count_l,                    $rec_count;
     return;
 }
 
@@ -621,10 +616,9 @@ sub transfer_file2db {
 
     my $iter      = $self->reader->contents_iter; # call before record_count
     my $row_count = 0;
-    my $rows_read = $self->reader->rows_read;
     my $rec_count = $self->reader->record_count;
 
-    $self->job_info_work($rec_count, $rows_read);
+    $self->job_info_work($rec_count);
 
     hurl run => __("No input records!") unless $rec_count;
 
