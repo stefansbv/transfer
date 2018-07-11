@@ -617,7 +617,7 @@ sub transfer_file2db {
     my $iter      = $self->reader->contents_iter; # call before record_count
     my $row_count = 0;
     my $rec_count = $self->reader->record_count;
-
+say " rec_count = $rec_count";
     $self->job_info_work($rec_count);
 
     hurl run => __("No input records!") unless $rec_count;
@@ -628,6 +628,7 @@ sub transfer_file2db {
     while ( $iter->has_next ) {
         $row_count++;
         my $record = $iter->next;
+        use Data::Dump; dd $record;
         $record    = $self->transformations($record, $table_info, $logfld);
         $self->writer->insert($table, $record);
         $progress->update( message => "Record $row_count|" );

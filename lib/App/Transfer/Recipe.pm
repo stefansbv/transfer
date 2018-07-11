@@ -107,7 +107,6 @@ has 'table' => (
         hurl recipe => __x( "Expecting a table not '{cnt}'!", cnt => $cnt )
             if $cnt > 1;
         my ( $name, $meta ) = each %kv;
-        say "table name = $name";
         if ( $name and ref $meta ) {
             if ( my $header = delete $meta->{header}{field} ) {
                 $meta->{header} = $header;

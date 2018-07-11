@@ -58,19 +58,43 @@ subtest 'Recipe header + config' => sub {
 };
 
 subtest 'Recipe syntax version' => sub {
-    my $recipe_file = path(qw(t recipes invalid recipe-wrongversion.conf));
+    my $recipe_file = path(qw(t recipes versions recipe-wrongversion.conf));
     throws_ok {
         App::Transfer::Recipe->new(
             recipe_file => $recipe_file->stringify )
       } 'App::Transfer::X',
       'Should get an exception for wrong syntax version';
+    is $@->message, __("The recipe must have a valid 'syntaxversion' attribute (the current version is 2)"),
+        'The message should be from the translation';
 
-    $recipe_file = path(qw(t recipes invalid recipe-noversion.conf));
+    $recipe_file = path(qw(t recipes versions recipe-noversion.conf));
     throws_ok {
         App::Transfer::Recipe->new(
             recipe_file => $recipe_file->stringify )
       } 'App::Transfer::X',
       'Should get an exception for wrong syntax version';
+    is $@->message, __("The recipe must have a valid 'syntaxversion' attribute (the current version is 2)"),
+        'The message should be from the translation';
+};
+
+subtest 'Recipe syntax version 1 sections' => sub {
+    my $recipe_file = path(qw(t recipes versions recipe-tables_headermap.conf));
+    throws_ok {
+        App::Transfer::Recipe->new(
+            recipe_file => $recipe_file->stringify )
+      } 'App::Transfer::X',
+      'Should get an exception for wrong syntax version';
+    is $@->message, __("The recipe must have a 'table' section."),
+        'The message should be from the translation';
+
+    $recipe_file = path(qw(t recipes versions recipe-table_headermap.conf));
+    throws_ok {
+        App::Transfer::Recipe->new(
+            recipe_file => $recipe_file->stringify )
+      } 'App::Transfer::X',
+      'Should get an exception for wrong syntax version';
+    is $@->message, __("The v2 recipe table section must have a 'header' attribute instead of 'headermap'"),
+        'The message should be from the translation';
 };
 
 #-- Minimum valid recipe
@@ -102,7 +126,6 @@ subtest 'Recipe - minimum' => sub {
 
     # Table
     ok my $table = $recipe->table, 'table object instance';
-    is $table->name, 'siruta', 'table name';
     is $table->logfield, 'siruta', 'log field name';
     cmp_deeply $table->rectangle, ['A27','E36'], 'rectangle';
     is ref $table->orderby, '', 'table orderby';

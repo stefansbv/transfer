@@ -53,45 +53,53 @@ sub _build_contents {
     my $csv  = $self->csv;
     open my $fh, "<:encoding(utf8)", $self->input_file
         or die "Error opening CSV: $!";
-    my $header = $self->recipe->table->header;
-    my $temp   = $self->recipe->table->tempfield;
 
-    my @cols   = @{ $csv->getline($fh) };
-    my $row    = {};
-    my @records;
-    $csv->bind_columns( \@{$row}{@cols} );
+    my $header = $self->recipe->table->header;
+    my @header_cols = keys %{$header};
+    hurl field_info => __('[EE] Empty header in the recipe file?')
+        if scalar @header_cols == 0;
+
+    my @csv_cols = @{ $csv->getline($fh) };
+    my $row = {};
+    $csv->bind_columns( \@{$row}{@csv_cols} );
 
     # Add the temporary fields to the record
+    my $temp = $self->recipe->table->tempfield;
     foreach my $field ( @{$temp} ) {
         $header->{$field} = $field;
     }
+    @header_cols = keys %{$header};
 
     # Validate field list
-    if ( any { ! defined $_ } @cols ) {
+    if ( any { ! defined $_ } @csv_cols ) {
         hurl field_info => __x(
-            '[EE] At least a column is not defined in list "{list}"',
-            list => join( ', ', @cols ),
+            '[EE] At least a column is not defined in the CSV header list "{list}"',
+            list => join( ', ', @csv_cols ),
         );
     }
     else {
-        say "C: @cols" if $self->debug;
+        say "# CSV header: \n# ", join ', ', @csv_cols if $self->debug;
     }
     my @not_found = ();
-    foreach my $col ( keys %{$header} ) {
-        unless ( any { $col eq $_ } @cols ) {
+    foreach my $col ( @header_cols ) {
+        unless ( any { $col eq $_ } @csv_cols ) {
             push @not_found, $col;
         }
     }
     hurl field_info => __x(
-        'Header map <--> CSV file header inconsistency. Some columns where not found :"{list}"',
+        'Recipe header <--> CSV file header inconsistency.
+           Some columns where not found :"{list}"',
         list  => join( ', ', @not_found ),
     ) if scalar @not_found;
 
+    say "# Header: \n# ", join ', ', @header_cols if $self->debug;
+    
     # Get the data
+    my @records;
   REC:
     while ( $csv->getline($fh) ) {
         my $record = {};
-        foreach my $col (@cols) {
+        foreach my $col (@csv_cols) {
             if ( my $field = $header->{$col} ) {
                 $record->{$field} = $row->{$col};
             }
@@ -105,6 +113,7 @@ sub _build_contents {
         }
     }
     close $fh;
+
     return \@records;
 }
 

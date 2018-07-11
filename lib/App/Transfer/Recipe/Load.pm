@@ -82,9 +82,19 @@ sub validate_recipe_sections {
         "The recipe must have a 'config' section with a 'destination' subsection."
     ) if !exists $p->{config}{destination};
 
-    hurl table => __(
-        "The recipe must have a 'table' section."
-    ) if !exists $p->{table};
+    hurl table => __( "The recipe must have a 'table' section." )
+        if !exists $p->{table};
+
+    hurl recipe =>
+        __x( "The v{sv} recipe 'tables' section was replaced by 'table'",
+             sv => SYNTAX_VERSION )
+        if exists $p->{tables};
+
+    my ( $name, $meta ) = each %{ $p->{table} };
+    hurl recipe =>
+        __x( "The v{sv} recipe table section must have a 'header' attribute instead of 'headermap'",
+             sv => SYNTAX_VERSION )
+        if exists $meta->{headermap};
 
     return;
 }
