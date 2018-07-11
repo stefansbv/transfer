@@ -99,7 +99,7 @@ subtest 'Missing rectangle attribute' => sub {
         options  => $options,
     }), 'new reader spreadsheet object';
     is $reader->input_file, 't/siruta.xls', 'xls file name';
-    is $reader->worksheet,  'Foaie1',       'worksheet name';
+    is $reader->worksheet,  1, 'worksheet number';
     isa_ok $reader->workbook, 'Spreadsheet::Read', 'workbook';
 
     throws_ok { $reader->rectangle } 'App::Transfer::X',

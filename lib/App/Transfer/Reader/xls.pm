@@ -35,7 +35,7 @@ has 'worksheet' => (
     lazy    => 1,
     default => sub {
         my $self = shift;
-        return $self->recipe->source->worksheet;
+        return $self->recipe->source->worksheet // 1;
     },
 );
 
@@ -163,12 +163,16 @@ A L<Path::Tiny::File> object representing the xls input file.
 
 =head3 C<worksheet>
 
-The name of the xls worksheet to read from.  It is a C<tables>
-section attribute in the recipe.
+The name of the xls worksheet to read from.  It is a C<source> section
+attribute in the recipe.  Defaults to 1, the first sheet in the file.
 
 =head3 C<workbook>
 
+The L<Spreadsheet::Read> object instance.
+
 =head3 C<sheet>
+
+The L<Spreadsheet::Read::Sheet> object instance.
 
 =head3 C<_contents>
 
