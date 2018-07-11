@@ -352,7 +352,7 @@ sub run {
             'Should have error for nonexistent table';
         is $@->ident, 'reader',
             'Nonexistent table error ident should be "reader"';
-        is $@->message, __( 'Table "nonexistenttable" does not exists' ),
+        is $@->message, __( 'Table "nonexistenttable" does not exists or is not readable' ),
             'Nonexistent table error should be correct';
 
         ok my $table_r = $trafo->reader->src_table, 'get the table name';
