@@ -98,7 +98,7 @@ sub get_fields {
     hurl {
         ident   => 'reader',
         exitval => 1,
-        message => __x( 'Table "{table}" does not exists or is not readable', table => $table ),
+        message => __x( 'The "{table}" table does not exists or is not readable', table => $table ),
     } unless $engine->table_exists($table);
 
     # The fields from the table ordered by 'pos'
