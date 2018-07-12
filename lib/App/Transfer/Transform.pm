@@ -628,7 +628,6 @@ say " rec_count = $rec_count";
     while ( $iter->has_next ) {
         $row_count++;
         my $record = $iter->next;
-        use Data::Dump; dd $record;
         $record    = $self->transformations($record, $table_info, $logfld);
         $self->writer->insert($table, $record);
         $progress->update( message => "Record $row_count|" );

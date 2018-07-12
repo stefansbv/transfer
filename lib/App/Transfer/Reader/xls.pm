@@ -13,7 +13,7 @@ use Spreadsheet::Read;
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
-use Data::Dump;
+use Data::Dump qw/dump/;
 
 extends 'App::Transfer::Reader';
 
@@ -106,7 +106,7 @@ sub _read_rectangle {
             say "[$index] $field = $value" if $self->debug;
             $rec->{$field} = $value;
         }
-        dd $rec if $self->debug;
+        dump $rec if $self->debug;
         push @aoh, $rec;
         $self->inc_count;
     }
