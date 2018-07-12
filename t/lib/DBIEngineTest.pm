@@ -11,10 +11,15 @@ use strict;
 use warnings;
 use utf8;
 use Locale::TextDomain 1.20 qw(App-Transfer);
+use Locale::Messages qw(bindtextdomain);
+
+bindtextdomain 'App-Transfer' => './.build/latest/share';
+
 use Try::Tiny;
 use Test::Most;
 use Test::MockModule;
 use Log::Log4perl;
+use Capture::Tiny 0.12 qw(capture_stdout capture_merged);
 
 use App::Transfer::Config;
 use App::Transfer::Transform;
@@ -94,14 +99,20 @@ sub run {
         # .../perls/5.24.0t/lib/site_perl/5.24.0/Perl6/Form.pm line 1209
         {
             require Test::NoWarnings;
-            lives_ok { $trafo->job_intro }
-                'Should not have errors';
+            my $trans1 = __('Recipe:');
+            like capture_stdout { $trafo->job_intro },
+                 qr/$trans1/ms,
+                'job intro should work';
 
-            lives_ok { $trafo->job_info_input_db }
-                'Should not have errors';
+            my $trans2 = __('Input:');
+            like capture_stdout { $trafo->job_info_input_db },
+                qr/$trans2/ms,
+                'job info input db should work';
 
-            lives_ok { $trafo->job_info_output_db }
-                'Should not have errors';
+            my $trans3 = __('Output:');
+            like capture_stdout { $trafo->job_info_output_db },
+                qr/$trans3/ms,
+            'job info input db should work';
 
             throws_ok { $trafo->transfer_file2db }
                 'App::Transfer::X',
@@ -352,7 +363,7 @@ sub run {
             'Should have error for nonexistent table';
         is $@->ident, 'reader',
             'Nonexistent table error ident should be "reader"';
-        is $@->message, __( 'Table "nonexistenttable" does not exists or is not readable' ),
+        is $@->message, __( 'The "nonexistenttable" table does not exists or is not readable' ),
             'Nonexistent table error should be correct';
 
         ok my $table_r = $trafo->reader->src_table, 'get the table name';
