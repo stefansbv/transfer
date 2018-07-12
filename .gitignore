@@ -21,3 +21,4 @@ t/output.csv
 *.sql
 LocaleData/
 examples/bipolar-new.csv
+bipolar-out.csv
