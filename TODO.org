@@ -50,3 +50,7 @@ EE: duplicate (id2_statie)
 
 Insert failed: "duplicate (id2_statie)
 " for record "Deda, jud Mures| | | | | |1.3.17.2.| |I| |5370| |1942-12-31| |PodeČ> dalat ;Deda - Ripa de Jos|dale beton armat, km 45+760, l=6.14ml| | | | |55346|40878|5921| | |5370/100520|100520| | | |45.760| | | |B| | | |8761| | "
+
+* TODO [0%]
+ - [ ] Check early if the plugins can be used
+
