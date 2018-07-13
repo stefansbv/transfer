@@ -64,7 +64,8 @@ sub parse_error {
        : $err =~ m/role ($RE{quoted}) does not exist/smi      ? "username:$1"
        : $err =~ m/no route to host/smi                       ? "network"
        : $err =~ m/Key ($RE{balanced}{-parens=>'()'})=($RE{balanced}{-parens=>'()'}) is not present in table ($RE{quoted})/smi    ? "missingfk:$1.$2.$3"
-       : $err =~ m/permission denied for relation/smi         ? "relforbid"
+       : $err =~ m/permission denied for relation (\w+)/smi   ? "relforbid:$1"
+       : $err =~ m/permission denied for sequence (\w+)/smi   ? "seqforbid:$1"
        : $err =~ m/could not connect to server/smi            ? "servererror"
        : $err =~ m/not connected/smi                          ? "notconn"
        :                                                       "unknown";
@@ -267,7 +268,7 @@ sub table_list {
     }
     catch {
         hurl pg =>
-            __x( "XXX Transaction aborted because: {error}", error => $_ );
+            __x( "Transaction aborted because: {error}", error => $_ );
     };
 
     return $table_list;

@@ -252,7 +252,7 @@ sub table_exists {
     catch {
         # XXX Wide character in die at .../Throwable.pm line 75. ???
         hurl firebird =>
-            __x( "XXX Transaction aborted because: {error}", error => $_ );
+            __x( "Transaction aborted because: {error}", error => $_ );
     };
 
     return $val_ret;
@@ -277,7 +277,7 @@ sub table_list {
     }
     catch {
         hurl firebird =>
-            __x( "XXX Transaction aborted because: {error}", error => $_ );
+            __x( "Transaction aborted because: {error}", error => $_ );
     };
 
     return $table_list;
