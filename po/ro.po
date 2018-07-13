@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: App-Transfer 0.001\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-07-12 17:39+0300\n"
-"PO-Revision-Date: 2018-07-12 17:47+0300\n"
+"PO-Revision-Date: 2018-07-12 23:38+0300\n"
 "Last-Translator: Ștefan Suciu <stefan@s2i2.ro>\n"
 "Language-Team: none\n"
 "Language: ro\n"
@@ -61,7 +61,7 @@ msgstr ""
 #: lib/App/Transfer/Options.pm:109
 #, perl-brace-format
 msgid "The file '{file}' was not found!"
-msgstr ""
+msgstr "Fișierul '{file}' nu a fost găsit!"
 
 #: lib/App/Transfer/Options.pm:125
 #, perl-brace-format
@@ -166,7 +166,6 @@ msgid "Failed to load the recipe file '{file}': {error}"
 msgstr ""
 
 #: lib/App/Transfer/Recipe/Load.pm:67
-#, fuzzy
 msgid "The recipe must have a 'recipe' section."
 msgstr "Rețeta trebuie să conțină secțiunea recipe."
 
@@ -178,25 +177,24 @@ msgid ""
 msgstr ""
 
 #: lib/App/Transfer/Recipe/Load.pm:78
-#, fuzzy
 msgid "The recipe must have a 'config' section with a 'source' subsection."
-msgstr "Rețeta trebuie să conțină secțiunea recipe."
+msgstr "Rețeta trebuie să conțină secțiunea 'config' și subsecțiunea 'source'."
 
 #: lib/App/Transfer/Recipe/Load.pm:82
-#, fuzzy
 msgid ""
 "The recipe must have a 'config' section with a 'destination' subsection."
-msgstr "Rețeta trebuie să conțină secțiunea recipe."
+msgstr ""
+"Rețeta trebuie să conțină secțiunea 'config' și subsecțiunea 'destination'."
 
 #: lib/App/Transfer/Recipe/Load.pm:85
-#, fuzzy
 msgid "The recipe must have a 'table' section."
-msgstr "Rețeta trebuie să conțină secțiunea recipe."
+msgstr "Rețeta trebuie să conțină secțiunea 'table'."
 
 #: lib/App/Transfer/Recipe/Load.pm:89
 #, perl-brace-format
 msgid "The v{sv} recipe 'tables' section was replaced by 'table'"
 msgstr ""
+"În versiunea v{sv} a rețetei secțiunea 'tables' a fost înlocuită cu 'table'"
 
 #: lib/App/Transfer/Recipe/Load.pm:95
 #, perl-brace-format
@@ -204,10 +202,12 @@ msgid ""
 "The v{sv} recipe table section must have a 'header' attribute instead of "
 "'headermap'"
 msgstr ""
+"În versiunea v{sv} a rețetei secțiunea 'tables' trebuie să conțină o "
+"secțiune 'table' în loc de 'headermap'"
 
 #: lib/App/Transfer/Recipe/Src.pm:45
 msgid "The source section must have a 'reader' attribute"
-msgstr ""
+msgstr "Secțiunea 'source' trebuie să conțină atributul 'reader'"
 
 #: lib/App/Transfer/Recipe/Transform.pm:58
 #, perl-brace-format
@@ -217,7 +217,7 @@ msgstr ""
 #: lib/App/Transfer/Render.pm:62 lib/App/Transfer/Render.pm:75
 #, perl-brace-format
 msgid "Template error: {error}"
-msgstr ""
+msgstr "Eroare la șablon: {error}"
 
 #: lib/App/Transfer/Render.pm:97
 #, perl-brace-format
@@ -336,7 +336,7 @@ msgstr ""
 #: lib/App/Transfer/Transform.pm:605 lib/App/Transfer/Transform.pm:664
 #: lib/App/Transfer/Transform.pm:713 lib/App/Transfer/Transform.pm:756
 msgid "No input records!"
-msgstr ""
+msgstr "Nu sunt înregistrări!"
 
 #: lib/App/Transfer/Transform.pm:638 lib/App/Transfer/Transform.pm:694
 #, perl-brace-format
@@ -417,7 +417,7 @@ msgstr ""
 #: lib/App/Transfer/Writer/dbf.pm:100
 #, perl-brace-format
 msgid "Wont overwrite existing file: {file}"
-msgstr ""
+msgstr "Nu pot suprascrie fișierul existent: {file}"
 
 #: lib/App/Transfer/Writer/dbf.pm:167
 #, perl-brace-format
