@@ -62,12 +62,14 @@ sub parse_error {
        : $err =~ m/authentication failed .* ($RE{quoted})/smi ? "passname:$1"
        : $err =~ m/no password supplied/smi                   ? "password"
        : $err =~ m/role ($RE{quoted}) does not exist/smi      ? "username:$1"
+       : $err =~ m/role ($RE{quoted}) is not permitted to log in/smi      ? "loginforbid:$1"
        : $err =~ m/no route to host/smi                       ? "network"
        : $err =~ m/Key ($RE{balanced}{-parens=>'()'})=($RE{balanced}{-parens=>'()'}) is not present in table ($RE{quoted})/smi    ? "missingfk:$1.$2.$3"
        : $err =~ m/permission denied for relation (\w+)/smi   ? "relforbid:$1"
        : $err =~ m/permission denied for sequence (\w+)/smi   ? "seqforbid:$1"
        : $err =~ m/could not connect to server/smi            ? "servererror"
        : $err =~ m/not connected/smi                          ? "notconn"
+       : $err =~ m/duplicate key value violates unique constraint ($RE{quoted})/smi   ? "duplicate:$1"
        :                                                       "unknown";
 
     my ( $type, $name ) = split /:/, $message_type, 2;

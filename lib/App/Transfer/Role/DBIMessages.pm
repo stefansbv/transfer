@@ -34,7 +34,8 @@ has '_messages' => (
             username    => 'user name {name} does not exists',
             userpass    => 'authentication failed',
             servererror => 'server not available',
-            missingfk   => 'missing FK in {name}'
+            missingfk   => 'missing FK in {name}',
+            loginforbid => 'the user name {name} is not permitted to log in'
         };
     },
     handles => { get_message => 'get', },
