@@ -98,7 +98,7 @@ sub get_fields {
     hurl {
         ident   => 'reader',
         exitval => 1,
-        message => __x( 'The "{table}" table does not exists or is not readable', table => $table ),
+        message => __x( "The '{table}' table does not exists or is not readable", table => $table ),
     } unless $engine->table_exists($table);
 
     # The fields from the table ordered by 'pos'
@@ -112,7 +112,7 @@ sub get_fields {
         ident   => 'reader',
         exitval => 1,
         message => __x(
-            'Table "{table}" has no header-map in the recipe',
+            "Table '{table}' has no header-map in the recipe",
             table => $dst_table ),
     } unless $recipe_table;
     my $header = $self->recipe->table->header;
@@ -128,7 +128,7 @@ sub get_fields {
         ident   => 'reader',
         exitval => 1,
         message => __x(
-            q{Columns from the map file not found in the "{table}" table: "{list}"},
+            "Columns from the map file not found in the '{table}' table: '{list}'",
             list  => $not_found,
             table => $dst_table,
         ),
