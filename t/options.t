@@ -3,6 +3,10 @@ use strict;
 use warnings;
 use Path::Tiny;
 use Test::Most;
+use Locale::TextDomain 1.20 qw(App-Transfer);
+use Locale::Messages qw(bindtextdomain);
+
+bindtextdomain 'App-Transfer' => './.build/latest/share';
 
 use App::Transfer;
 use App::Transfer::Recipe;
@@ -227,9 +231,10 @@ subtest '"file" reader: no options; no config; all from recipe config' => sub {
 subtest '"file" reader: input_file option; no config; ignore recipe config' => sub {
     ok my $recipe_file = path(qw(t recipes recipe-generic.conf)),
         "Recipe file";
+    my $input_file = path qw(t some other test.xls);
     ok my $transfer = App::Transfer->new, 'new transfer instance';
     ok my $cli_options = {
-        input_file => 't/some/other/test.xls',
+        input_file => $input_file,
     }, 'cli options';
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
@@ -240,8 +245,12 @@ subtest '"file" reader: input_file option; no config; ignore recipe config' => s
         options  => $cli_options,
         rw_type  => 'reader',
     ), 'new options instance';
-    throws_ok { $options->file, path('t', 'some', 'other', 'test.xls') } qr/was not found/,
-        'should get file not found exception';
+    throws_ok { $options->file }
+        'App::Transfer::X',
+      'Should get an exception - not a recipe file';
+    is $@->message, __x("The file '{file}' was not found!", file  => $input_file),
+        'The message should be from the translation';
+
 };
 
 done_testing;

@@ -22,6 +22,8 @@ subtest 'Not a conf file' => sub {
             recipe_file => $recipe_file->stringify )
       } 'App::Transfer::X',
       'Should get an exception - not a recipe file';
+    is $@->message, __("The recipe must have a 'recipe' section."),
+        'The message should be from the translation';
 };
 
 subtest 'Not a recipe file' => sub {
@@ -93,7 +95,7 @@ subtest 'Recipe syntax version 1 sections' => sub {
             recipe_file => $recipe_file->stringify )
       } 'App::Transfer::X',
       'Should get an exception for wrong syntax version';
-    is $@->message, __("The v2 recipe table section must have a 'header' attribute instead of 'headermap'"),
+    is $@->message, __x("The v{sv} recipe table section must have a 'header' attribute instead of 'headermap'", sv => 2),
         'The message should be from the translation';
 };
 
