@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: App-Transfer 0.001\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-12 17:39+0300\n"
-"PO-Revision-Date: 2018-07-12 23:38+0300\n"
+"POT-Creation-Date: 2018-07-13 13:04+0300\n"
+"PO-Revision-Date: 2018-07-13 13:05+0300\n"
 "Last-Translator: Ștefan Suciu <stefan@s2i2.ro>\n"
 "Language-Team: none\n"
 "Language: ro\n"
@@ -36,22 +36,15 @@ msgstr "Motor nespecificat; folosiți --engine sau setați core.engine"
 msgid "{driver} required to manage {engine}"
 msgstr ""
 
-#: lib/App/Transfer/Engine/fbodbc.pm:161 lib/App/Transfer/Engine/fbodbc.pm:190
 #: lib/App/Transfer/Engine/firebird.pm:152
 #: lib/App/Transfer/Engine/firebird.pm:199
-#: lib/App/Transfer/Engine/firebird.pm:228 lib/App/Transfer/Engine/pg.pm:124
+#: lib/App/Transfer/Engine/firebird.pm:228
+#: lib/App/Transfer/Engine/firebird.pm:255
+#: lib/App/Transfer/Engine/firebird.pm:280 lib/App/Transfer/Engine/pg.pm:124
 #: lib/App/Transfer/Engine/pg.pm:178 lib/App/Transfer/Engine/pg.pm:210
-#: lib/App/Transfer/Engine/pg.pm:241
+#: lib/App/Transfer/Engine/pg.pm:241 lib/App/Transfer/Engine/pg.pm:270
 #, perl-brace-format
 msgid "Transaction aborted because: {error}"
-msgstr "Tranzacție abandonată pentru că: {error}"
-
-# Care e problema de am pus XXX?
-#: lib/App/Transfer/Engine/fbodbc.pm:217
-#: lib/App/Transfer/Engine/firebird.pm:255
-#: lib/App/Transfer/Engine/firebird.pm:280 lib/App/Transfer/Engine/pg.pm:270
-#, perl-brace-format
-msgid "XXX Transaction aborted because: {error}"
 msgstr "Tranzacție abandonată pentru că: {error}"
 
 #: lib/App/Transfer/Options.pm:97 lib/App/Transfer/Options.pm:149
@@ -114,18 +107,17 @@ msgstr ""
 
 #: lib/App/Transfer/Reader/db.pm:101
 #, perl-brace-format
-msgid "Table \"{table}\" does not exists or is not readable"
-msgstr ""
+msgid "The '{table}' table does not exists or is not readable"
+msgstr "Tabela '{table}' nu există sau nu poate fi citită!"
 
 #: lib/App/Transfer/Reader/db.pm:115
 #, perl-brace-format
-msgid "Table \"{table}\" has no header-map in the recipe"
-msgstr ""
+msgid "Table '{table}' has no header-map in the recipe"
+msgstr "Tabela '{table}' nu există sau nu poate fi citită!"
 
 #: lib/App/Transfer/Reader/db.pm:131
 #, perl-brace-format
-msgid ""
-"Columns from the map file not found in the \"{table}\" table: \"{list}\""
+msgid "Columns from the map file not found in the '{table}' table: '{list}'"
 msgstr ""
 
 #: lib/App/Transfer/Reader/dbf.pm:71
@@ -313,19 +305,19 @@ msgstr ""
 msgid "The table '{table}' does not exists or is not readable!"
 msgstr "Tabela '{table}' nu există sau nu poate fi citită!"
 
-#: lib/App/Transfer/Transform.pm:585 lib/App/Transfer/Transform.pm:653
-#: lib/App/Transfer/Transform.pm:701
+#: lib/App/Transfer/Transform.pm:585 lib/App/Transfer/Transform.pm:652
+#: lib/App/Transfer/Transform.pm:700
 msgid "No columns type info retrieved from database!"
 msgstr ""
 
-#: lib/App/Transfer/Transform.pm:593 lib/App/Transfer/Transform.pm:742
+#: lib/App/Transfer/Transform.pm:593 lib/App/Transfer/Transform.pm:741
 msgid ""
 "No input file specified; use '--if' or set the source file in the recipe."
 msgstr ""
 "Fișier de intrare nespecificat; folosiți '--if' sau setați fișierul sursă în "
 "rețetă"
 
-#: lib/App/Transfer/Transform.pm:595 lib/App/Transfer/Transform.pm:746
+#: lib/App/Transfer/Transform.pm:595 lib/App/Transfer/Transform.pm:745
 msgid ""
 "Invalid input file specified; use '--if' or fix the source file in the "
 "recipe."
@@ -333,26 +325,26 @@ msgstr ""
 "Fișier de intrare nespecificat; folosiți '--if' sau setați fișierul sursă în "
 "rețetă."
 
-#: lib/App/Transfer/Transform.pm:605 lib/App/Transfer/Transform.pm:664
-#: lib/App/Transfer/Transform.pm:713 lib/App/Transfer/Transform.pm:756
+#: lib/App/Transfer/Transform.pm:605 lib/App/Transfer/Transform.pm:663
+#: lib/App/Transfer/Transform.pm:712 lib/App/Transfer/Transform.pm:755
 msgid "No input records!"
 msgstr "Nu sunt înregistrări!"
 
-#: lib/App/Transfer/Transform.pm:638 lib/App/Transfer/Transform.pm:694
+#: lib/App/Transfer/Transform.pm:637 lib/App/Transfer/Transform.pm:693
 #, perl-brace-format
 msgid "The source table '{table}' does not exists!"
 msgstr ""
 
-#: lib/App/Transfer/Transform.pm:641
+#: lib/App/Transfer/Transform.pm:640
 #, perl-brace-format
 msgid "The destination table '{table}' does not exists!"
 msgstr ""
 
-#: lib/App/Transfer/Transform.pm:649
+#: lib/App/Transfer/Transform.pm:648
 msgid "The source and the destination tables must be different!"
 msgstr ""
 
-#: lib/App/Transfer/Transform.pm:744
+#: lib/App/Transfer/Transform.pm:743
 msgid ""
 "No output file specified; use '--of' or set the destination file in the "
 "recipe."
@@ -360,24 +352,24 @@ msgstr ""
 "Fișier de intrare nespecificat; folosiți '--if' sau setați fișierul sursă în "
 "rețetă"
 
-#: lib/App/Transfer/Transform.pm:838
+#: lib/App/Transfer/Transform.pm:837
 #, perl-brace-format
 msgid "Trafo type {type} not implemented"
 msgstr ""
 
-#: lib/App/Transfer/Transform.pm:856
+#: lib/App/Transfer/Transform.pm:855
 #, perl-brace-format
 msgid ""
 "Field info for '{field}' not found!  Header map config. <--> DB schema "
 "inconsistency"
 msgstr ""
 
-#: lib/App/Transfer/Transform.pm:905
+#: lib/App/Transfer/Transform.pm:904
 #, perl-brace-format
 msgid "Destination table \"{table}\" not found"
 msgstr ""
 
-#: lib/App/Transfer/Transform.pm:912
+#: lib/App/Transfer/Transform.pm:911
 #, perl-brace-format
 msgid ""
 "Destination fields from trafos not found in the \"{table}\" destination "
@@ -423,3 +415,7 @@ msgstr "Nu pot suprascrie fișierul existent: {file}"
 #, perl-brace-format
 msgid "DBF error: {error}"
 msgstr "Eroare DBF: {error}"
+
+# Care e problema de am pus XXX?
+#~ msgid "XXX Transaction aborted because: {error}"
+#~ msgstr "Tranzacție abandonată pentru că: {error}"
