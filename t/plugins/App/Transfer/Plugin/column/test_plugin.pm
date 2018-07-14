@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::test_plugin;
+package App::Transfer::Plugin::column::test_plugin;
 
 # ABSTRACT: test plugin
 

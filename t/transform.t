@@ -81,7 +81,9 @@ subtest 'DB to DB transfer' => sub {
     is $trafo->writer_options, $writer_opts, 'writer options';
     isa_ok $trafo->reader, ['App::Transfer::Reader'], 'transfer reader';
     isa_ok $trafo->writer, ['App::Transfer::Writer'], 'transfer writer';
-    isa_ok $trafo->plugin, ['App::Transfer::Plugin'], 'transfer plugin';
+    isa_ok $trafo->plugin_row, ['App::Transfer::Plugin'], 'transfer plugin';
+    isa_ok $trafo->plugin_column, ['App::Transfer::Plugin'], 'transfer plugin column';
+    isa_ok $trafo->plugin_column_type, ['App::Transfer::Plugin'], 'transfer plugin column type';
     is $trafo->io_trafo_type('csv', 'db'), 'csv2db', 'csv and db';
     like(
         dies { $trafo->reader->contents_iter },

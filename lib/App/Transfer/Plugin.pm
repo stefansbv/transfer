@@ -7,8 +7,9 @@ use Moose;
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use Moose::Util::TypeConstraints;
-use Module::Pluggable::Object min_depth => 666;
+use Module::Pluggable::Object;
 use App::Transfer::Config;
+use Data::Dump qw/dump/;
 use namespace::autoclean;
 
 has 'plugins' => (
@@ -23,10 +24,14 @@ has 'plugin_type' => (
     required => 1,
 );
 
+# Set min/max depth to load modules exclusive from the plugin_type
+# dirs
 sub _build_plugins {
 	my $self = shift;
     return [
         Module::Pluggable::Object->new(
+            min_depth  => 5,
+            max_depth  => 5,
             instantiate => 'new',
             search_path => 'App::Transfer::Plugin',
             search_dirs => [ $self->plugin_type ],

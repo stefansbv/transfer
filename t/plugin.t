@@ -277,15 +277,12 @@ subtest 'Column Transformations' => sub {
                 info => qr/test plugin loaded/
             ]
         );
-        $ttr->do_transform( 'test_plugin', $p );
+        ok $ttr->do_transform( 'test_plugin', $p );
     }
 
     #-- Non existent plugin
     throws_ok { $ttr->do_transform( 'nosuchplugin', $p ) } qr/nosuchplugin/,
         "No plugin for 'nosuchplugin' in 'do_transform'";
-
-    my $values = [ 'Brașov', 'B-dul Saturn', 'nr. 20' ];
-
 };
 
 subtest 'Row Transformations' => sub {
@@ -294,24 +291,28 @@ subtest 'Row Transformations' => sub {
 	meta_ok $ttr, "App::Transfer::Plugin has a 'meta'";
 	has_attribute_ok $ttr, 'plugins', '"plugins"';
 
+	my $values_aref = [ 'Brașov', 'B-dul Saturn', 'nr. 20' ];
+
+    #-- join
     my $p = {
         name   => 'field',
         logstr => 'error',
     };
 
-	my $values = [ 'Brașov', 'B-dul Saturn', 'nr. 20' ];
-
-    #-- join
-    @$p{qw(value separator)} = ( $values, ', ' );
-    ok my $res_join = $ttr->do_transform( 'join_fields', $p ), 'join fields';
-    is $res_join, 'Brașov, B-dul Saturn, nr. 20', 'resulting string';
+    @$p{qw(values_aref separator)} = ( $values_aref, ', ' );
+    ok my $joined = $ttr->do_transform( 'join_fields', $p ), 'join fields';
+    is $joined, 'Brașov, B-dul Saturn, nr. 20', 'resulting string';
 
     #-- split
-    my $value = 'Brașov, B-dul Saturn, nr. 20';
-    @$p{qw(value limit separator)} = ( $value, 5, ',' );
-    ok my @res_split = $ttr->do_transform( 'split_field', $p ), 'split field';
-    is @res_split, @{$values}, 'resulting values';
+    $p = {
+        name   => 'field',
+        logstr => 'error',
+    };
 
+    my $value = 'Brașov, B-dul Saturn, nr. 20';
+    @$p{qw(value limit separator)} = ( $value, 3, ',' );
+    ok my @splited = $ttr->do_transform( 'split_field', $p ), 'split field';
+    cmp_deeply \@splited, $values_aref, 'resulting values';
 };
 
 subtest 'Unknown Plugin Type' => sub {

@@ -10,12 +10,11 @@ with 'MooX::Log::Any';
 
 sub split_field {
     my ( $self, $p ) = @_;
-    my ($text, $limit, $separator )
-        = @$p{qw(text limit separator)};
-    return unless $text;
+    my ($logstr, $field, $value, $limit, $separator)
+        = @$p{qw(logstr field value limit separator)};
+    return unless $value;
     my $regex = qr/\s*$separator\s*/;
-    my @pieces = split $regex, $text, $limit;
-    return \@pieces;
+    return split $regex, $value, $limit;
 }
 
 __PACKAGE__->meta->make_immutable;

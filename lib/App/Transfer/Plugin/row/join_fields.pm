@@ -6,19 +6,13 @@ use 5.010001;
 use Moose;
 use namespace::autoclean;
 
-with 'MooX::Log::Any';
+#with 'MooX::Log::Any';
 
 sub join_fields {
     my ( $self, $p ) = @_;
-    use Data::Dump; dd $p;
-
-    my ( $values, $separator ) = @$p{qw(values separator)};
-    die 'AUCH';
-    use Data::Dump;
-    dd $values;
-    say $separator;
-    return unless ref $values;
-    return join $separator, @{$values};
+    my ( $values_aref, $separator ) = @$p{qw(values_aref separator)};
+    return unless ref $values_aref;
+    return join $separator, @{$values_aref};
 }
 
 __PACKAGE__->meta->make_immutable;

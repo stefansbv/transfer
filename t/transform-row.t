@@ -1,10 +1,11 @@
-use strict;
-use warnings;
 use 5.010;
 use utf8;
 use Test2::V0;
 use Path::Tiny;
 use Locale::TextDomain qw(App-Transfer);
+use Locale::Messages qw(bindtextdomain);
+
+bindtextdomain 'App-Transfer' => './.build/latest/share';
 
 use App::Transfer;
 use App::Transfer::Transform;
@@ -59,7 +60,7 @@ subtest 'join - src fields included in dst' => sub {
 subtest 'split - src fields included in dst' => sub {
     my $step = App::Transfer::Recipe::Transform::Row::Split->new(
         type      => 'split',
-        separator => ", ",
+        separator => ",",
         field_src => 'adresa',
         method    => 'split_field',
         field_dst => [qw{localitate strada numarul}],

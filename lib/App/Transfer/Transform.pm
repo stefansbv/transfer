@@ -194,9 +194,9 @@ has '_trafo_types' => (
 sub type_split {
     my ( $self, $step, $record, $logstr ) = @_;
 
-    my $p;
+    my $p = {};
     $p->{logstr}    = $logstr;
-    $p->{name}      = $step->field_src;
+    $p->{field}     = $step->field_src;
     $p->{value}     = $record->{ $step->field_src };
     $p->{limit}     = $step->limit;
     $p->{separator} = $step->separator;
@@ -227,9 +227,8 @@ sub type_join {
                 "$logstr: join: source field '$field' not found in record");
         }
     }
-    my $p;
+    my $p = {};
     $p->{logstr}      = $logstr;
-    $p->{name}        = $step->field_dst;
     $p->{separator}   = $step->separator;
     $p->{values_aref} = $values_aref;
 
@@ -263,7 +262,7 @@ sub type_copy {
     if ( $step->invalid_regex ) {
         $p->{invalid_regex} = $step->invalid_regex if $step->invalid_regex;
     }
-    my $r = $self->plugin->do_transform( $step->method, $p );
+    my $r = $self->plugin_row->do_transform( $step->method, $p );
 
     if ( ref $r ) {
 
@@ -832,7 +831,7 @@ sub column_trafos {
         $p->{name}   = $field;
         $p->{value}  = $record->{$field};
         foreach my $meth ( @{ $step->method } ) {
-            $p->{value} = $self->plugin_columns->do_transform( $meth, $p );
+            $p->{value} = $self->plugin_column->do_transform( $meth, $p );
         }
         $record->{$field} = $p->{value};
     }
