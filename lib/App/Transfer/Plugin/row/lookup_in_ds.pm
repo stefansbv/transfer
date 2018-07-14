@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::lookup_in_ds;
+package App::Transfer::Plugin::row::lookup_in_ds;
 
 # ABSTRACT: Transfer plugin: lookup in data source
 

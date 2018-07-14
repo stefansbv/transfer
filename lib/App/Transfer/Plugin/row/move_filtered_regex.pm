@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::move_filtered_regex;
+package App::Transfer::Plugin::row::move_filtered_regex;
 
 # ABSTRACT: move filtered with regex
 

@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::lookup_in_dbtable;
+package App::Transfer::Plugin::row::lookup_in_dbtable;
 
 # ABSTRACT: Transfer plugin: lookup in a database table
 

@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::join_fields;
+package App::Transfer::Plugin::row::join_fields;
 
 # ABSTRACT: Transfer plugin for join_fields
 
@@ -10,9 +10,15 @@ with 'MooX::Log::Any';
 
 sub join_fields {
     my ( $self, $p ) = @_;
-    my ( $logstr, $values_aref, $separator ) = @$p{qw(logstr values_aref separator)};
-    return unless ref $values_aref;
-    return join $separator, @{$values_aref};
+    use Data::Dump; dd $p;
+
+    my ( $values, $separator ) = @$p{qw(values separator)};
+    die 'AUCH';
+    use Data::Dump;
+    dd $values;
+    say $separator;
+    return unless ref $values;
+    return join $separator, @{$values};
 }
 
 __PACKAGE__->meta->make_immutable;

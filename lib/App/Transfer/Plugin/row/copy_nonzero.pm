@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::copy_nonzero;
+package App::Transfer::Plugin::row::copy_nonzero;
 
 # ABSTRACT: move filtered
 

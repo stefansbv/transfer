@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::numeric;
+package App::Transfer::Plugin::column_type::numeric;
 
 # ABSTRACT: Transfer plugin for 'numeric' columns
 

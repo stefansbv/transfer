@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::move_filtered;
+package App::Transfer::Plugin::row::move_filtered;
 
 # ABSTRACT: move filtered
 

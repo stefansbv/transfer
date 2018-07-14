@@ -1,6 +1,6 @@
-package App::Transfer::Plugin::trim;
+package App::Transfer::Plugin::column::trim;
 
-# ABSTRACT: Transfer plugin: trim
+# ABSTRACT: Transfer plugin [column]: trim
 
 use 5.010001;
 use Moose;

@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::char;
+package App::Transfer::Plugin::column_type::char;
 
 # ABSTRACT: Transfer plugin for 'char' columns
 

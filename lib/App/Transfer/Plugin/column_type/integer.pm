@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::integer;
+package App::Transfer::Plugin::column_type::integer;
 
 # ABSTRACT: Transfer plugin for 'integer' columns
 

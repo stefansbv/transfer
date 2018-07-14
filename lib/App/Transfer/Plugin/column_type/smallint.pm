@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::smallint;
+package App::Transfer::Plugin::column_type::smallint;
 
 # ABSTRACT: Transfer plugin for 'smallint' columns
 

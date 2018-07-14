@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::date;
+package App::Transfer::Plugin::column_type::date;
 
 # ABSTRACT: Transfer plugin for 'date' columns
 

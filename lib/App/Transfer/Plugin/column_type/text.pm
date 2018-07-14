@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::text;
+package App::Transfer::Plugin::column_type::text;
 
 # ABSTRACT: Transfer plugin for 'text' columns
 

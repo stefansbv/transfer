@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::blob;
+package App::Transfer::Plugin::column_type::blob;
 
 # ABSTRACT: Transfer plugin for 'blob' columns
 

@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::timestamp;
+package App::Transfer::Plugin::column_type::timestamp;
 
 # ABSTRACT: Transfer plugin for 'timestamp' columns
 

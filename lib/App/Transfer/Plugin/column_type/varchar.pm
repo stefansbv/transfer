@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::varchar;
+package App::Transfer::Plugin::column_type::varchar;
 
 # ABSTRACT: Transfer plugin for 'varchar' columns
 
@@ -23,8 +23,9 @@ sub varchar {
     my ( $logstr, $field, $text, $len ) = @$p{qw(logstr name value length)};
     return unless $text;
     my $str_len = length $text;
-    if ($str_len > $len) {
-        $self->log->info("$logstr varchar: $field='$text' overflow ($str_len > $len)");
+    if ( $str_len > $len ) {
+        $self->log->info(
+            "$logstr varchar: $field='$text' overflow ($str_len > $len)");
         return;
     }
     return $self->latin10->translit($text);

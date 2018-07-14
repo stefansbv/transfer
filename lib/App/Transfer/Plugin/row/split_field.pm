@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::split_field;
+package App::Transfer::Plugin::row::split_field;
 
 # ABSTRACT: Transfer plugin for split_field
 
@@ -10,10 +10,12 @@ with 'MooX::Log::Any';
 
 sub split_field {
     my ( $self, $p ) = @_;
-    my ($logstr, $field, $text, $limit, $separator )
-        = @$p{qw(logstr name value limit separator)};
+    my ($text, $limit, $separator )
+        = @$p{qw(text limit separator)};
     return unless $text;
-    return split /\s*$separator\s*/, $text, $limit;
+    my $regex = qr/\s*$separator\s*/;
+    my @pieces = split $regex, $text, $limit;
+    return \@pieces;
 }
 
 __PACKAGE__->meta->make_immutable;
