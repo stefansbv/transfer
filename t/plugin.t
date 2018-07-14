@@ -13,7 +13,7 @@ chdir 't';                          # also load plugins from t/plugins
 
 subtest 'Column Type Transformations' => sub {
 	ok my $ttr = App::Transfer::Plugin->new( plugin_type => 'column_type' ),
-		'New Transform object';
+		'new plugin object';
 	meta_ok $ttr, "App::Transfer::Plugin has a 'meta'";
 	has_attribute_ok $ttr, 'plugins', '"plugins"';
 
@@ -207,7 +207,7 @@ subtest 'Column Type Transformations' => sub {
 
 subtest 'Column Transformations' => sub {
 	ok my $ttr = App::Transfer::Plugin->new( plugin_type => 'column' ),
-		'New Transform object';
+		'new plugin object';
 	meta_ok $ttr, "App::Transfer::Plugin has a 'meta'";
 	has_attribute_ok $ttr, 'plugins', '"plugins"';
 
@@ -287,7 +287,7 @@ subtest 'Column Transformations' => sub {
 
 subtest 'Row Transformations' => sub {
 	ok my $ttr = App::Transfer::Plugin->new( plugin_type => 'row' ),
-		'New Transform object';
+		'new plugin object';
 	meta_ok $ttr, "App::Transfer::Plugin has a 'meta'";
 	has_attribute_ok $ttr, 'plugins', '"plugins"';
 
@@ -315,12 +315,25 @@ subtest 'Row Transformations' => sub {
     cmp_deeply \@splited, $values_aref, 'resulting values';
 };
 
-subtest 'Unknown Plugin Type' => sub {
+subtest 'Unknown plugin type' => sub {
 	throws_ok {
 		App::Transfer::Plugin->new( plugin_type => 'unknown' ),
-			  'New Transform object';
+			  'new plugin object';
 	} qr/Attribute \(plugin_type\) does not pass/,
         'should get plugin_type exception';
+};
+
+subtest 'Old plugin in plugin base dir' => sub {
+    my $method = 'old_plugin';
+    ok my $ttr = App::Transfer::Plugin->new( plugin_type => 'row' ),
+        'new plugin object';
+    my $found = 0;
+    for my $plugin ( @{ $ttr->plugins } ) {
+        if ( $plugin->can($method) ) {
+            $found = 1;
+        }
+    }
+    ok !$found, 'old_plugin not supposed to be found';
 };
 
 done_testing;

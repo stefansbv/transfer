@@ -49,9 +49,6 @@ sub do_transform {
             $found = 1;
             return $plugin->$method($p);
         }
-        else {
-            next;
-        }
     }
     hurl transform => __x( "No plugin for '{method}' in 'do_transform'.",
         method => $method ) if $found == 0;
