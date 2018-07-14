@@ -1,0 +1,20 @@
+<div>
+  <table id="difftable" class="display cell-border" style="width:100%">
+    <thead>
+      <tr>
+        [%- FOREACH field = r.columns %]
+        <th>[% field -%]</th>
+        [%- END %]
+      </tr>
+    </thead>
+    <tbody>
+      [%- FOREACH rec = r.records %]
+      <tr>
+        [%- FOREACH value = rec %]
+        <td>[% value -%]</td>
+        [%- END %]
+      </tr>
+      [%- END %]
+    </tbody>
+  </table>
+</div>

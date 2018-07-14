@@ -1,0 +1,35 @@
+<table [% r.src_table %]>
+  # logfield              = id
+  # rectangle             = A7,C21
+  # <orderby>
+  #   -asc                = [% r.order_field %]
+  # </orderby>
+  # <filter>
+  #   user                = NOT_NULL
+  #   <status>
+  #     !                 = = completed
+  #     -not_like         = pending%
+  #   </status>
+  # </filter>
+  # <columns>
+  #   <id>
+  #     pos               = 1
+  #     name              = id
+  #     type              = integer
+  #     length            = 2
+  #     prec              =
+  #     scale             =
+  #   </id>
+  #   ...
+  # </columns>
+  # tempfield             = name1
+  # tempfield             = name2
+  # <plugins>
+  #   date                = date_german
+  # </plugins>
+  <header>
+  [%- FOREACH field = r.columns %]
+    [% field %]          = [% field -%]
+  [%- END %]
+  </header>
+</table>

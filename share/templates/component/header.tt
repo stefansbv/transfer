@@ -1,7 +1,7 @@
 # Transformation recipe
 <recipe>
   version               = 1
-  syntaxversion         = 1
+  syntaxversion         = 2
   name                  = Name
   description           = Description
 </recipe>

@@ -13,24 +13,12 @@ use App::Transfer::X qw(hurl);
 use Locale::TextDomain qw(App-Transfer);
 use namespace::autoclean;
 
-has 'type' => (
+has 'tmpl_name' => (
     is      => 'ro',
     isa     => 'Str',
     default => sub {
         return 'recipe';
     },
-);
-
-has 'recipe_data' => (
-    is       => 'ro',
-    isa      => 'HashRef',
-    required => 1,
-);
-
-has 'output_file' => (
-    is       => 'ro',
-    isa      => 'Str',
-    required => 1,
 );
 
 has 'output_path' => (
@@ -42,7 +30,7 @@ has 'output_path' => (
     },
 );
 
-has 'templ_path' => (
+has 'tmpl_path' => (
     is       => 'ro',
     isa      => Path,
     required => 1,
@@ -50,52 +38,47 @@ has 'templ_path' => (
 );
 
 sub render {
-    my $self = shift;
-    my $type        = $self->type;
-    my $output_file = $self->output_file;
-
-    my $template = try { $self->get_template }
-    catch {
-        hurl {
-            ident => 'render',
-                exitval => 1,
-                message => __x( 'Template error: {error}', error => $_ ),
-            };
-    };
-
+    my ( $self, $recipe_data, $output_file ) = @_;
+    hurl render => "The output file parameter is required for render."
+        unless $output_file;
     my $tt = Template->new(
-        INCLUDE_PATH => $self->templ_path->stringify,
+        INCLUDE_PATH => $self->tmpl_path->stringify,
         OUTPUT_PATH  => $self->output_path->stringify,
     );
+    my $template = $self->get_template;
+    $tt->process( $template, $recipe_data, $output_file->stringify, binmode => ':utf8' )
+        || hurl {
+            ident => 'render',
+                exitval => 1,
+                message => __x( 'Template error: {error}', error => $tt->error() )a,
+            };
+    return path($self->output_path, $output_file->stringify);
+}
 
-    $tt->process( $template, $self->recipe_data, $output_file, binmode => ':utf8' )
+sub render_str {
+    my ($self, $recipe_data, $output_str) = @_;
+    hurl render => "The output_str parameter is required for render_str."
+        unless ref $output_str;
+    my $tt = Template->new(
+        INCLUDE_PATH => $self->tmpl_path->stringify,
+        OUTPUT_PATH  => $self->output_path->stringify,
+    );
+    my $template = $self->get_template;
+    $tt->process( $template, $recipe_data, $output_str )
         || hurl {
             ident => 'render',
                 exitval => 1,
                 message => __x( 'Template error: {error}', error => $tt->error() ),
             };
 
-    return path($self->output_path, $output_file);
+    return $output_str;
 }
 
 sub get_template {
     my $self = shift;
-    my $type = $self->type;
-    my $template =
-         $type eq q{}      ? $self->template_type_error
-       : $type eq 'recipe' ? 'recipe.tt'
-       :                     $self->template_type_error;
-    return $template;
-}
-
-sub template_type_error {
-    my $self = shift;
-    my $type = $self->type;
-    hurl {
-        ident => 'render',
-            exitval => 1,
-            message => __x "Template error, unknown type: '{type}'", type => $type,
-        };
+    my $name = $self->tmpl_name;
+    $name .= '.tt' unless $name =~ m{\.tt}i;
+    return $name;
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -108,12 +91,7 @@ __END__
 
 =head1 SYNOPSIS
 
-    my $args = {
-        data        => { r => $data },
-        output_file => 'test-render-recipe.conf',
-    };
-    my $atr  = App::Transfer::Render->new($args);
-    my $file = $atr->render;
+
 
 =head1 DESCRIPTION
 
@@ -123,9 +101,9 @@ Generate a file from templates.
 
 =head2 ATTRIBUTES
 
-=head3 type
+=head3 name
 
-Optional type attribute.  The default value is I<recipe> and is the
+Optional name attribute.  The default value is I<recipe> and is the
 only one recognized. :)
 
 =head3 data
@@ -151,9 +129,5 @@ local L<share/templates> dir.
 =head3 get_template
 
 Return the template name.
-
-=head3 template_type_error
-
-Throw an exception in exceptional cases ;)
 
 =cut
