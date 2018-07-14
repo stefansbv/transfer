@@ -443,7 +443,7 @@ sub job_intro {
         $self->recipe->header->description,
     );
 
-    print form "-----------------------------";
+    print " -----------------------------\n";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
        $recipe_l,                                                         $recipe_v;
@@ -458,7 +458,7 @@ sub job_info_input_file {
     my $self = shift;
 
     my $input_l  = __ 'Input:';
-    print form " -----------------------------";
+    print " -----------------------------\n";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
        $input_l;
@@ -479,7 +479,7 @@ sub job_info_output_file {
     my $self = shift;
 
     my $output_l = __ 'Output:';
-    print form " -----------------------------";
+    print " -----------------------------\n";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
        $output_l;
@@ -500,7 +500,7 @@ sub job_info_input_db {
     my ($self, $src_table, $src_db) = @_;
 
     my $input_l  = __ 'Input:';
-    print form " -----------------------------";
+    print " -----------------------------\n";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
        $input_l;
@@ -517,7 +517,7 @@ sub job_info_output_db {
     my ($self, $dst_table, $dst_db) = @_;
 
     my $output_l = __ 'Output:';
-    print form " -----------------------------";
+    print " -----------------------------\n";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
        $output_l;
@@ -535,7 +535,7 @@ sub job_info_work {
     $rec_count //= 0;
     my $start_l = __ 'Working:';
     my $count_l = __ 'source records read:';
-    print form " -----------------------------";
+    print " -----------------------------\n";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
        $start_l;
@@ -550,7 +550,7 @@ sub job_summary {
 
     my $summ_l = __ 'Summary:';
 
-    print form " -----------------------------";
+    print " -----------------------------\n";
     print form
     "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
        $summ_l;
@@ -561,7 +561,7 @@ sub job_summary {
     print form
     "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
        \@o_l,                       \@o_v;
-    print form " -----------------------------";
+    print " -----------------------------\n";
 
     return;
 }
