@@ -25,17 +25,6 @@ has 'src_table' => (
     },
 );
 
-has 'dst_table' => (
-    is       => 'ro',
-    isa      => 'Str',
-    required => 1,
-    lazy     => 1,
-    default => sub {
-        my $self = shift;
-        return $self->recipe->destination->table,
-    },
-);
-
 has 'target' => (
     is      => 'ro',
     isa     => 'App::Transfer::Target',
@@ -102,18 +91,16 @@ sub get_fields {
     } unless $engine->table_exists($table);
 
     # The fields from the table ordered by 'pos'
-    my $fields_href = $engine->get_info($table);
-    my @table_fields = keys %{$fields_href};
+    my $table_fields = $engine->get_columns($table);
 
     # The fields from the header map
-    my $dst_table = $self->dst_table;
     my $recipe_table = $self->recipe->table->name;
     hurl {
         ident   => 'reader',
         exitval => 1,
         message => __x(
             "Table '{table}' has no header-map in the recipe",
-            table => $dst_table ),
+            table => $table ),
     } unless $recipe_table;
     my $header = $self->recipe->table->header;
     my @header_fields
@@ -121,7 +108,7 @@ sub get_fields {
         ? keys %{$header}
         : @{$header};
 
-    my $lc = List::Compare->new( \@table_fields, \@header_fields );
+    my $lc = List::Compare->new( $table_fields, \@header_fields );
     my @fields    = $lc->get_intersection;
     my $not_found = join ' ', $lc->get_complement;
     hurl {
@@ -130,7 +117,7 @@ sub get_fields {
         message => __x(
             "Columns from the map file not found in the '{table}' table: '{list}'",
             list  => $not_found,
-            table => $dst_table,
+            table => $table,
         ),
         } if $not_found;
 
