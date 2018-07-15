@@ -279,7 +279,11 @@ sub input_db_info {
     my $src_engine = $self->src_target->engine;
     my $src_table  = $self->input_table;
     my $src_table_info = $src_engine->get_columns($src_table);
-    return $src_table_info;
+    my @padded;
+    foreach my $field ( @{$src_table_info} ) {
+        push @padded, sprintf "%-10s", $field;
+    }
+    return \@padded;
 }
 
 sub output_file_info {
@@ -294,26 +298,6 @@ sub output_db_info {
     my $dst_table = $self->output_table;
     my $dst_table_info = $dst_engine->get_columns($dst_table);
     return $dst_table_info;
-}
-
-sub table_fields {
-    my ( $self, $src_table_info, $dst_table_info ) = @_;
-    die "Table info is required for 'table_fields'!"
-        unless $src_table_info and $dst_table_info;
-    my $lc = List::Compare->new( '--unsorted', $src_table_info,
-        $dst_table_info );
-    my @l_fields = $lc->get_Lonly;           # TODO: compare in/out fields
-    my @r_fields = $lc->get_Ronly;
-    my @columns  = $lc->get_intersection;
-    if (@columns <= 0) {
-        say "No common fields between the input and output tables.";
-        say " Input fields:";
-        say " ", join ', ', @l_fields;
-        say " ---";
-        say " Output fields:";
-        say " ", join ', ', @r_fields;
-    }
-    return \@columns;
 }
 
 sub generate_recipe {
@@ -331,8 +315,7 @@ sub generate_recipe {
         return;
     }
 
-    my $columns = $self->table_fields(
-        $self->src_table_info, $self->dst_table_info);
+    my $columns  = $self->src_table_info;
     my $src_file = $self->input_file
         ? $self->input_file->stringify
         : undef;
@@ -356,15 +339,15 @@ sub generate_recipe {
         order_field => 'field',
     };
 
+    say "recipe file = ", $recipe_fn->stringify, "\n";;
+
     my $args = {
-        type        => 'recipe',
-        output_file => $recipe_fn->stringify,
-        recipe_data => { r => $data },
+        tmpl_name   => 'recipe',
         output_path => $output_path,
-        templ_path  => $self->config->templ_path,
+        tmpl_path   => $self->config->templ_path,
     };
 
-    App::Transfer::Render->new($args)->render;
+    App::Transfer::Render->new($args)->render( { r => $data }, $recipe_fn);
 
     print "Generating recipe... done\n";
 
