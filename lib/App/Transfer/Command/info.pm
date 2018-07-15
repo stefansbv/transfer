@@ -10,9 +10,7 @@ use Moose::Util::TypeConstraints;
 use Path::Tiny qw[cwd path];
 use Locale::TextDomain qw(App-Transfer);
 use App::Transfer::X qw(hurl);
-#use App::Transfer::Recipe;
 use App::Transfer::Transform;
-#use Perl6::Form;
 use namespace::autoclean;
 
 extends qw(App::Transfer);
@@ -58,9 +56,7 @@ has 'trafo' => (
 
 sub execute {
     my $self = shift;
-
-    $self->job_info;
-    
+    $self->job_info;    
     return;
 }
 
@@ -153,17 +149,19 @@ sub transfer_db2file {
     $self->trafo->job_info_input_db($src_table, $src_db);
     $self->trafo->job_info_output_file;
 
-    hurl run => __x( "The source table '{table}' does not exists!",
-        table => $src_table )
-        unless $src_engine->table_exists($src_table);
+    # hurl run => __x( "The source table '{table}' does not exists!",
+    #     table => $src_table )
+    #     unless $src_engine->table_exists($src_table);
 
-    my $src_table_info = $src_engine->get_info($src_table);
-    my $dst_table_info = $self->recipe->table->columns;
+    # my $src_table_info = $src_engine->get_info($src_table);
+    my $dst_table_info = $self->trafo->recipe->table->columns;
+    my @fields = $self->sort_hash_by_pos($dst_table_info);
+use Data::Dump; dd @fields;
+    
+    # hurl run => __( 'No columns type info retrieved from database!' )
+    #     if keys %{$src_table_info} == 0;
 
-    hurl run => __( 'No columns type info retrieved from database!' )
-        if keys %{$src_table_info} == 0;
-
-    my $logfld = $self->trafo->get_logfield_name($src_table_info);
+    # my $logfld = $self->trafo->get_logfield_name($src_table_info);
 
     return;
 }
