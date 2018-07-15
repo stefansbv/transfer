@@ -120,10 +120,12 @@ has 'reader' => (
     default  => sub {
         my $self = shift;
         return App::Transfer::Reader->load({
-            transfer => $self->transfer,
-            recipe   => $self->recipe,
-            reader   => $self->recipe->source->reader,
-            options  => $self->reader_options,
+            transfer  => $self->transfer,
+            header    => $self->recipe->table->header,
+            tempfield => $self->recipe->table->tempfield,
+            recipe    => $self->recipe,
+            reader    => $self->recipe->source->reader,
+            options   => $self->reader_options,
         });
     },
 );
@@ -700,7 +702,6 @@ sub transfer_db2file {
     my $self = shift;
 
     my $src_table  = $self->recipe->source->table;
-    my $dst_table  = $self->recipe->destination->table;
     my $src_engine = $self->reader->target->engine;
     my $src_db     = $src_engine->database;
 
@@ -717,7 +718,6 @@ sub transfer_db2file {
     hurl run => __( 'No columns type info retrieved from database!' )
         if keys %{$src_table_info} == 0;
 
-    # Log field name  XXX logfield can be missing from config?
     my $logfld = $self->get_logfield_name($src_table_info);
 
     my $iter      = $self->reader->contents_iter; # call before record_count
@@ -728,7 +728,14 @@ sub transfer_db2file {
 
     hurl run => __("No input records!") unless $rec_count;
 
-    $self->writer->insert_header;
+    # Header, sorted if the 'columns' section is available
+    if ( $dst_table_info && ref($dst_table_info) eq 'HASH' ) {
+        my @header_fields = $self->sort_hash_by_pos($dst_table_info);
+        $self->writer->insert_header( \@header_fields );
+    }
+    else {
+        $self->writer->insert_header;
+    }
 
     my $progress = Progress::Any->get_indicator(
         target => $rec_count,
@@ -749,8 +756,6 @@ sub transfer_db2file {
 
 sub transfer_file2file {
     my $self = shift;
-
-    my $dst_table = $self->recipe->destination->table;
 
     $self->job_info_input_file;
     $self->job_info_output_file;
@@ -773,7 +778,14 @@ sub transfer_file2file {
 
     my $dst_table_info = $self->recipe->table->columns;
 
-    $self->writer->insert_header;
+    # Header, sorted if the 'columns' section is available
+    if ( $dst_table_info && ref($dst_table_info) eq 'HASH' ) {
+        my @header_fields = $self->sort_hash_by_pos($dst_table_info);
+        $self->writer->insert_header( \@header_fields );
+    }
+    else {
+        $self->writer->insert_header;
+    }
 
     my $progress;
     if ( $self->show_progress ) {
@@ -806,7 +818,7 @@ sub transformations {
     #--  Logging settings
     my $logidx = $record->{$logfld} ? $record->{$logfld} : '?';
     my $logstr = $self->verbose ? qq{[$logfld=$logidx]} : qq{[$logidx]};
-    
+
     $record = $self->column_trafos( $record, $info, $logstr );
     $record = $self->record_trafos( $record, $info, $logstr );
     $record = $self->column_type_trafos( $record, $info, $logstr )

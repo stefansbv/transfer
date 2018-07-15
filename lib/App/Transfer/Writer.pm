@@ -20,12 +20,6 @@ has transfer => (
     )],
 );
 
-has 'recipe' => (
-    is       => 'ro',
-    isa      => 'App::Transfer::Recipe',
-    required => 1,
-);
-
 has 'options' => (
     is       => 'ro',
     isa      => 'App::Transfer::Options',

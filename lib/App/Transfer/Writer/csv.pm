@@ -11,6 +11,8 @@ use Text::CSV;
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
+use Data::Dump qw/dump/;
+
 extends 'App::Transfer::Writer';
 with    'App::Transfer::Role::Utils';
 
@@ -26,6 +28,12 @@ has 'output_file' => (
         $file .= '.csv' unless $file =~ m{\.csv}i;
         return $file;
     },
+);
+
+has 'header' => (
+    is       => 'ro',
+    isa      => 'HashRef|ArrayRef',
+    required => 1,
 );
 
 has 'csv' => (
@@ -63,15 +71,28 @@ has 'csv_fh' => (
 );
 
 sub insert_header {
-    my $self   = shift;
+    my ($self, $header_fields) = @_;
     my $csv_o  = $self->csv;
     my $out_fh = $self->csv_fh;
-    my $header = $self->recipe->table->header;
-    my @field_names
-        = ( ref $header eq 'HASH' )
-        ? keys( %{$header} )
-        : @{$header};
+    my @field_names;
+    if ( ref $header_fields && @{$header_fields} ) {
+        @field_names = @{$header_fields};
+    }
+    else {
+        my $header = $self->header;
+        @field_names
+            = ( ref $header eq 'HASH' )
+            ? keys( %{$header} )
+            : @{$header};
+    }
+    hurl csv => __(
+        "Empty header for CSV writer"
+    ) if scalar @field_names == 0;
     $csv_o->column_names(\@field_names);
+    if ($self->debug) {
+        say "CSV fields:";
+        dump @field_names;
+    }
     my $status = $csv_o->print( $out_fh, \@field_names );
     $self->emit_error if !$status;
     return;
@@ -81,7 +102,14 @@ sub insert {
     my ( $self, $table, $row ) = @_;
     my $csv_o  = $self->csv;
     my $out_fh = $self->csv_fh;
-    my $status = $csv_o->print_hr( $out_fh, $row );
+    my $status;
+    dump $row;
+    if ( any { $_ } values %{$row} ) {
+        $status = $csv_o->print_hr( $out_fh, $row );
+    }
+    else {
+        $self->inc_skip;
+    }
     if ($status) {
         $self->inc_inserted;
     }

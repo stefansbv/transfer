@@ -28,11 +28,14 @@ subtest 'ODT OK' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
+    ok my $header = $recipe->table->header, 'get the recipe table header';
+    my $tmpfld = $recipe->table->tempfield;
     ok my $reader = App::Transfer::Reader->load( {
-        transfer => $transfer,
-        recipe   => $recipe,
-        reader   => 'odt',
-        options  => $options,
+        transfer  => $transfer,
+        header    => $header,
+        tempfield => $tmpfld,
+        reader    => 'odt',
+        options   => $options,
     } ), 'new reader odt object';
     is $reader->input_file, 't/judete.odt',        'odt file name';
     isa_ok $reader->doc,    'ODF::lpOD::Document', 'doc';
@@ -79,11 +82,14 @@ subtest 'ODT unknown fields' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
+    ok my $header = $recipe->table->header, 'get the recipe table header';
+    my $tmpfld = $recipe->table->tempfield;
     ok my $reader = App::Transfer::Reader->load( {
         transfer => $transfer,
-        recipe   => $recipe,
-        reader   => 'odt',
-        options  => $options,
+        header    => $header,
+        tempfield => $tmpfld,
+        reader    => 'odt',
+        options   => $options,
     } ), 'new reader odt object';
     is $reader->input_file, 't/judete.odt',        'odt file name';
     isa_ok $reader->doc,    'ODF::lpOD::Document', 'doc';

@@ -23,20 +23,22 @@ has transfer => (
     )],
 );
 
+has 'header' => (
+    is       => 'ro',
+    isa      => 'HashRef|ArrayRef',
+    required => 1,
+);
+
+has 'tempfield' => (
+    is      => 'ro',
+    isa     => 'Maybe[ArrayRef]',
+    default => sub { [] },
+);
+
 has 'options' => (
     is       => 'ro',
     isa      => 'App::Transfer::Options',
     required => 1,
-);
-
-has 'recipe' => (
-    is       => 'ro',
-    isa      => 'App::Transfer::Recipe',
-    required => 1,
-    default  => sub {
-        my $self = shift;
-        return $self->options->recipe;
-    },
 );
 
 has 'record_count' => (

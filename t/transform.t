@@ -109,7 +109,7 @@ subtest 'File2file transfer' => sub {
     ), 'new trafo instance';
 
     is $trafo->get_logfield_name, 'siruta', 'log field name';
-        
+
     like(
         capture_merged { $trafo->transfer_file2file },
         qr/$trans1/,

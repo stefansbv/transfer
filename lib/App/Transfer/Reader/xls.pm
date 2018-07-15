@@ -33,36 +33,13 @@ has 'worksheet' => (
     is      => 'ro',
     isa     => 'Str',
     lazy    => 1,
-    default => sub {
-        my $self = shift;
-        return $self->recipe->source->worksheet // 1;
-    },
+    default => sub { 1 },
 );
 
 has 'rectangle' => (
-    is      => 'ro',
-    isa     => 'ArrayRef',
-    lazy    => 1,
-    default => sub {
-        my $self = shift;
-        my $rect = $self->recipe->table->rectangle;
-        hurl xls => __ "For the 'xls' reader, the table section must have a 'rectangle' attribute"
-            if not ref $rect;
-        return $rect;
-    },
-);
-
-has 'header' => (
-    is      => 'ro',
-    isa     => 'ArrayRef',
-    lazy    => 1,
-    default => sub {
-        my $self = shift;
-        my $head = $self->recipe->table->header;
-        hurl xls => __ "For the 'xls' reader, the table header must have field attributes"
-            if not ref $head eq 'ARRAY';
-        return $head;
-    },
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    required => 1,
 );
 
 has 'workbook' => (
@@ -131,6 +108,15 @@ has 'contents_iter' => (
     metaclass    => 'Iterable',
     iterate_over => '_contents',
 );
+
+sub BUILDARGS {
+    my $class = shift;
+    my $p     = shift;
+    hurl xls => __ "For the 'xls' reader, the table section must have a 'rectangle' attribute"
+                unless length( $p->{rectangle} // '' );
+    return $p;
+}
+
 
 __PACKAGE__->meta->make_immutable;
 

@@ -31,11 +31,14 @@ subtest 'CSV OK' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
+    ok my $header = $recipe->table->header, 'get the recipe table header';
+    my $tmpfld = $recipe->table->tempfield;
     ok my $reader = App::Transfer::Reader->load( {
-        transfer => $transfer,
-        recipe   => $recipe,
-        reader   => 'csv',
-        options  => $options,
+        transfer  => $transfer,
+        header    => $header,
+        tempfield => $tmpfld,
+        reader    => 'csv',
+        options   => $options,
     } ), 'new reader csv object';
     is $reader->input_file, 't/siruta.csv', 'csv file name';
 
@@ -49,7 +52,7 @@ subtest 'CSV OK' => sub {
         niv    => 3,
         med    => 1,
         fsj    => 3,
-        fsl    => 321696512951, 
+        fsl    => 321696512951,
         rang   => "V",
     };
 
@@ -85,11 +88,14 @@ subtest 'CSV with lc header' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
+    ok my $header = $recipe->table->header, 'get the recipe table header';
+    my $tmpfld = $recipe->table->tempfield;
     ok my $reader = App::Transfer::Reader->load( {
-        transfer => $transfer,
-        recipe   => $recipe,
-        reader   => 'csv',
-        options  => $options,
+        transfer  => $transfer,
+        header    => $header,
+        tempfield => $tmpfld,
+        reader    => 'csv',
+        options   => $options,
     } ), 'new reader csv object';
     is $reader->input_file, 't/siruta-lower.csv', 'csv file name';
     throws_ok { $reader->contents_iter }

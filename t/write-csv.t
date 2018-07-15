@@ -35,12 +35,13 @@ subtest 'CSV OK' => sub {
         rw_type  => 'writer',
     ), 'new options instance';
     isa_ok $options, 'App::Transfer::Options', 'options';
-    ok my $writer = App::Transfer::Writer->load(
-        {   transfer => $transfer,
-            recipe   => $recipe,
-            writer   => 'csv',
-            options  => $options,
-        } ), 'new writer csv object';
+    ok my $header = $recipe->table->header, 'get the recipe table header';
+    ok my $writer = App::Transfer::Writer->load( {
+        transfer => $transfer,
+        header   => $header,
+        writer   => 'csv',
+        options  => $options,
+    } ), 'new writer csv object';
     isa_ok $writer, 'App::Transfer::Writer', 'writer';
     is $writer->output_file, $output_file, 'csv file name';
     lives_ok { $writer->insert_header } 'insert header';
@@ -63,7 +64,6 @@ subtest 'CSV OK' => sub {
     lives_ok { $writer->finish } 'finish';
     is $writer->records_inserted, 1, 'records inserted: 1';
     is $writer->records_skipped, 0, 'records skipped: 0';
-
 };
 
 # unlink $output_file;

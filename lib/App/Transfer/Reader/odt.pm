@@ -53,8 +53,8 @@ has _contents => (
 sub _build_contents {
     my $self = shift;
     my $doc  = $self->doc;
-    my $header = $self->recipe->table->header;
-    my $temp   = $self->recipe->table->tempfield;
+    my $header = $self->header;
+    my $temp   = $self->tempfield;
     my $table = $doc->get_body->get_table;
     my ( $h, $w ) = $table->get_size;
     my $row = $table->get_row(0);

@@ -10,14 +10,32 @@ use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
 has 'writer' => ( is => 'ro', isa => 'Str', required => 1 );
-
 has 'file'   => ( is => 'ro', isa => 'Str' );
-
 has 'target' => ( is => 'ro', isa => 'Str' );
-
 has 'table' => ( is => 'ro', isa => 'Str' );
-
 has 'structure' => ( is => 'ro', isa => 'Str' );
+
+has 'date_format' => (
+    is       => 'ro',
+    isa      => enum( [qw(dmy mdy iso)] ),
+    default => sub {
+        return 'iso';
+    },
+);
+
+has 'date_sep' => (
+    is      => 'ro',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub {
+        my $self        = shift;
+        my $date_format = $self->date_format;
+        return
+              $date_format eq 'dmy' ? '.'
+            : $date_format eq 'mdy' ? '/'
+            :                         '-';
+    },
+);
 
 sub BUILDARGS {
     my $class = shift;

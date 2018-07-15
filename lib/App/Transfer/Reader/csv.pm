@@ -54,7 +54,7 @@ sub _build_contents {
     open my $fh, "<:encoding(utf8)", $self->input_file
         or die "Error opening CSV: $!";
 
-    my $header = $self->recipe->table->header;
+    my $header = $self->header;
     my @header_cols = keys %{$header};
     hurl field_info => __('[EE] Empty header in the recipe file?')
         if scalar @header_cols == 0;
@@ -64,7 +64,7 @@ sub _build_contents {
     $csv->bind_columns( \@{$row}{@csv_cols} );
 
     # Add the temporary fields to the record
-    my $temp = $self->recipe->table->tempfield;
+    my $temp = $self->tempfield;
     foreach my $field ( @{$temp} ) {
         $header->{$field} = $field;
     }

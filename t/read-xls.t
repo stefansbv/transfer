@@ -34,14 +34,19 @@ subtest 'Read the SIRUTA table' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
+    ok my $header = $recipe->table->header, 'get the recipe table header';
+    my $tempfield = $recipe->table->tempfield;
+    my $rectangle = $recipe->table->rectangle;
     ok my $reader = App::Transfer::Reader->load({
-        transfer => $transfer,
-        recipe   => $recipe,
-        reader   => 'xls',
-        options  => $options,
+        transfer  => $transfer,
+        header    => $header,
+        tempfield => $tempfield,
+        rectangle => $rectangle,
+        reader    => 'xls',
+        options   => $options,
     }), 'new reader spreadsheet object';
     is $reader->input_file, 't/siruta.xls', 'xls file name';
-    is $reader->worksheet,  'Foaie1',       'worksheet name';
+    is $reader->worksheet, 1, 'worksheet name';
     isa_ok $reader->workbook, 'Spreadsheet::Read', 'workbook';
 
     cmp_deeply $reader->rectangle, [ 'A7', 'J21' ],
@@ -92,26 +97,22 @@ subtest 'Missing rectangle attribute' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
-    ok my $reader = App::Transfer::Reader->load({
-        transfer => $transfer,
-        recipe   => $recipe,
-        reader   => 'xls',
-        options  => $options,
-    }), 'new reader spreadsheet object';
-    is $reader->input_file, 't/siruta.xls', 'xls file name';
-    is $reader->worksheet,  1, 'worksheet number';
-    isa_ok $reader->workbook, 'Spreadsheet::Read', 'workbook';
-
-    throws_ok { $reader->rectangle } 'App::Transfer::X',
+    ok my $header = $recipe->table->header, 'get the recipe table header';
+    my $tempfield = $recipe->table->tempfield;
+    my $rectangle = $recipe->table->rectangle;
+    throws_ok {
+        App::Transfer::Reader->load({
+            transfer  => $transfer,
+            header    => $header,
+            tempfield => $tempfield,
+            rectangle => $rectangle,
+            reader    => 'xls',
+            options   => $options,
+        });
+    } 'App::Transfer::X',
         'Should get an exception for missing rectangle attrib';
     is $@->message, __("For the 'xls' reader, the table section must have a 'rectangle' attribute"),
-        'The message should be from the translation';
-
-    throws_ok { $reader->header } 'App::Transfer::X',
-        'Should get an exception for wrong header attrib';
-    is $@->message, __("For the 'xls' reader, the table header must have field attributes"),
         'The message should be from the translation';
 };
 
 done_testing;
-

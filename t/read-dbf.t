@@ -31,12 +31,15 @@ subtest 'DBF OK' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
-    ok my $reader = App::Transfer::Reader->load(
-        {   transfer => $transfer,
-            recipe   => $recipe,
-            reader   => 'dbf',
-            options  => $options,
-        } ), 'new reader dbf object';
+    ok my $header = $recipe->table->header, 'get the recipe table header';
+    my $tmpfld = $recipe->table->tempfield;
+    ok my $reader = App::Transfer::Reader->load( {
+        transfer => $transfer,
+        header    => $header,
+        tempfield => $tmpfld,
+        reader   => 'dbf',
+        options  => $options,
+    } ), 'new reader dbf object';
     is $reader->input_file, 't/siruta.dbf', 'dbf file name';
 
     my $expecting_rec_17 = {
@@ -85,12 +88,15 @@ subtest 'DBF unknown fields' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
-    ok my $reader = App::Transfer::Reader->load(
-        {   transfer => $transfer,
-            recipe   => $recipe,
-            reader   => 'dbf',
-            options  => $options,
-        } ), 'new reader dbf object';
+    ok my $header = $recipe->table->header, 'get the recipe table header';
+    my $tmpfld = $recipe->table->tempfield;
+    ok my $reader = App::Transfer::Reader->load( {
+        transfer => $transfer,
+        header    => $header,
+        tempfield => $tmpfld,
+        reader   => 'dbf',
+        options  => $options,
+    } ), 'new reader dbf object';
     is $reader->input_file, 't/siruta.dbf', 'dbf file name';
     throws_ok { $reader->contents_iter }
         qr/\QHeader map <--> DBF file header inconsistency/,

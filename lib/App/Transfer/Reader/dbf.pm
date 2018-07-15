@@ -50,8 +50,8 @@ sub _build_contents {
     my $self = shift;
     my $dbf  = $self->dbf;
     my @cols = $dbf->field_names; # field_types, field_lengths, field_decimals
-    my $header = $self->recipe->table->header;
-    my $temp   = $self->recipe->table->tempfield;
+    my $header = $self->header;
+    my $temp   = $self->tempfield;
 
     # Add the temporary fields to the record
     foreach my $field ( @{$temp} ) {
@@ -59,7 +59,7 @@ sub _build_contents {
     }
 
     my @select_cols = keys %{$header};
-    
+
     # Validate field list
     my @not_found = ();
     foreach my $col (@select_cols) {
