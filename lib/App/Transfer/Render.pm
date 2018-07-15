@@ -50,7 +50,7 @@ sub render {
         || hurl {
             ident => 'render',
                 exitval => 1,
-                message => __x( 'Template error: {error}', error => $tt->error() )a,
+                message => __x( 'Template error: {error}', error => $tt->error() ),
             };
     return path($self->output_path, $output_file->stringify);
 }
