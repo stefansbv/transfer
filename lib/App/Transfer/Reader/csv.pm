@@ -63,13 +63,6 @@ sub _build_contents {
     my $row = {};
     $csv->bind_columns( \@{$row}{@csv_cols} );
 
-    # Add the temporary fields to the record
-    my $temp = $self->tempfield;
-    foreach my $field ( @{$temp} ) {
-        $header->{$field} = $field;
-    }
-    @header_cols = keys %{$header};
-
     # Validate field list
     if ( any { ! defined $_ } @csv_cols ) {
         hurl field_info => __x(
@@ -91,6 +84,13 @@ sub _build_contents {
            Some columns where not found :"{list}"',
         list  => join( ', ', @not_found ),
     ) if scalar @not_found;
+
+    # Add the temporary fields to the record
+    my $temp = $self->tempfield;
+    foreach my $field ( @{$temp} ) {
+        $header->{$field} = $field;
+    }
+    @header_cols = keys %{$header};
 
     say "# Header: \n# ", join ', ', @header_cols if $self->debug;
     
