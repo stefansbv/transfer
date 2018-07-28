@@ -66,6 +66,6 @@ subtest 'CSV OK' => sub {
     is $writer->records_skipped, 0, 'records skipped: 0';
 };
 
-# unlink $output_file;
+unlink $output_file;
 
 done_testing;
