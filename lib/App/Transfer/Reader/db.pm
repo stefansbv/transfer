@@ -14,15 +14,16 @@ use namespace::autoclean;
 
 extends 'App::Transfer::Reader';
 
-has 'src_table' => (
+has 'table' => (
     is       => 'ro',
     isa      => 'Str',
     required => 1,
-    lazy     => 1,
-    default => sub {
-        my $self = shift;
-        return $self->recipe->source->table,
-    },
+);
+
+has ['orderby', 'filter'] => (
+    is       => 'ro',
+    isa      => 'Maybe[HashRef]',
+    required => 0,
 );
 
 has 'target' => (
@@ -48,12 +49,12 @@ has '_contents' => (
 
 sub _build_contents {
     my $self    = shift;
-    my $table   = $self->src_table;
+    my $table   = $self->table;
     my $engine  = $self->target->engine;
-    my $where   = $self->recipe->table->filter;
-    my $orderby = $self->recipe->table->orderby;
-    my $header  = $self->recipe->table->header;
-    my $temp   = $self->recipe->table->tempfield;
+    my $where   = $self->filter;
+    my $orderby = $self->orderby;
+    my $header  = $self->header;
+    my $temp    = $self->tempfield;
 
     # Add the temporary fields to the record
     foreach my $field ( @{$temp} ) {
@@ -74,12 +75,6 @@ sub _build_contents {
     return \@records;
 }
 
-sub has_table {
-    my ($self, $name) = @_;
-    die "the name parameter is required!" unless defined $name;
-    return $self->recipe->tables->has_table($name);
-}
-
 sub get_fields {
     my ($self, $table) = @_;
 
@@ -94,7 +89,7 @@ sub get_fields {
     my $table_fields = $engine->get_columns($table);
 
     # The fields from the header map
-    my $recipe_table = $self->recipe->table->name;
+    my $recipe_table = $self->table;
     hurl {
         ident   => 'reader',
         exitval => 1,
@@ -102,7 +97,7 @@ sub get_fields {
             "Table '{table}' has no header-map in the recipe",
             table => $table ),
     } unless $recipe_table;
-    my $header = $self->recipe->table->header;
+    my $header = $self->header;
     my @header_fields
         = ( ref $header eq 'HASH' )
         ? keys %{$header}
@@ -176,11 +171,6 @@ An array reference holding the contents of the table.
 A L<MooseX::Iterator> object for the contents of the table.
 
 =head2 Instance Methods
-
-=head3 C<has_table>
-
-Return true if the table C<$name> is defined in the recipe (actually
-returns the name of the table or undef).
 
 =head3 C<get_fields>
 
