@@ -20,9 +20,15 @@ has 'table' => (
     required => 1,
 );
 
-has ['orderby', 'filter'] => (
+has 'orderby' => (
     is       => 'ro',
-    isa      => 'Maybe[HashRef]',
+    isa      => 'Str|ArrayRef|HashRef',
+    required => 0,
+);
+
+has 'filter' => (
+    is       => 'ro',
+    isa      => 'ArrayRef|HashRef',
     required => 0,
 );
 
@@ -49,8 +55,8 @@ has '_contents' => (
 
 sub _build_contents {
     my $self    = shift;
-    my $table   = $self->table;
     my $engine  = $self->target->engine;
+    my $table   = $self->table;
     my $where   = $self->filter;
     my $orderby = $self->orderby;
     my $header  = $self->header;
