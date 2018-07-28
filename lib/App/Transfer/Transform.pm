@@ -122,8 +122,10 @@ has 'reader' => (
         return App::Transfer::Reader->load({
             transfer  => $self->transfer,
             header    => $self->recipe->table->header,
+            table     => $self->recipe->table->name,
             tempfield => $self->recipe->table->tempfield,
-            recipe    => $self->recipe,
+            orderby   => $self->recipe->table->orderby,
+            filter    => $self->recipe->table->filter,
             reader    => $self->recipe->source->reader,
             options   => $self->reader_options,
         });
