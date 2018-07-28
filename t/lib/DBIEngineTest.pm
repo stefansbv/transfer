@@ -34,9 +34,8 @@ use Carp; BEGIN { $SIG{__WARN__} = \&Carp::confess }
 sub run {
     my ( $self, %p ) = @_;
 
-    my $class           = $p{class};
+    my $class        = $p{class};
     my @trafo_params = @{ $p{trafo_params} || [] };
-    #my $mock_transfer   = Test::MockModule->new('App::Transfer');
 
     can_ok $class, qw(
         get_info
@@ -389,9 +388,8 @@ sub run {
 
         is $trafo->reader->record_count, $count, 'counted records match record_count';
 
-        # ok my $records = $trafo->reader->get_data, 'get data for table';
-        # ok scalar @{$records} > 0, 'get some records';
-
+        ###
+        
         my $expected = [
             {   id       => 1,
                 denumire => 'Izvorul Mures',
