@@ -156,7 +156,6 @@ sub transfer_db2file {
     # my $src_table_info = $src_engine->get_info($src_table);
     my $dst_table_info = $self->trafo->recipe->table->columns;
     my @fields = $self->sort_hash_by_pos($dst_table_info);
-use Data::Dump; dd @fields;
     
     # hurl run => __( 'No columns type info retrieved from database!' )
     #     if keys %{$src_table_info} == 0;
