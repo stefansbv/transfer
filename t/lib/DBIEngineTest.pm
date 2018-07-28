@@ -366,7 +366,7 @@ sub run {
         is $@->message, __x( "The '{table}' table does not exists or is not readable", table => 'nonexistenttable' ),
             'Nonexistent table error should be correct';
 
-        ok my $table_r = $trafo->reader->src_table, 'get the table name';
+        ok my $table_r = $trafo->reader->table, 'get the table name';
         is $table_r, $table_db, 'check the table name';
 
         ### XXX Needs another recipe
