@@ -124,11 +124,13 @@ has 'table' => (
 has 'transform' => (
     is      => 'ro',
     isa     => 'App::Transfer::Recipe::Transform',
-    lazy     => 1,
+    lazy    => 1,
     default => sub {
         my $self = shift;
         return App::Transfer::Recipe::Transform->new(
-            $self->recipe_data->{transform} );
+            row    => $self->recipe_data->{transform}{row},
+            column => $self->recipe_data->{transform}{column},
+        );
     },
 );
 
