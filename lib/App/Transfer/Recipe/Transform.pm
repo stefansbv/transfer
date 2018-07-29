@@ -26,14 +26,12 @@ has 'row' => (
     coerce => 1,
 );
 
-around BUILDARGS => sub {
-    my $orig  = shift;
+sub BUILDARGS {
     my $class = shift;
-    my $p     = shift;
+    my $p     = { @_ };
 
-    $p           = {} if !ref $p;
-    $p->{row}    = {} if !exists $p->{row};
-    $p->{column} = {} if !exists $p->{column};
+    $p->{row}    //= {};
+    $p->{column} //= {};
 
     # Check the type of the steps
     my $steps = $p->{row}{step};
@@ -48,7 +46,7 @@ around BUILDARGS => sub {
         }
     }
 
-    return $class->$orig( %{$p} );
+    return $p;
 };
 
 sub validate_type {

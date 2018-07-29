@@ -35,8 +35,7 @@ sub _build_params {
     return $p;
 }
 
-around BUILDARGS => sub {
-    my $orig  = shift;
+sub BUILDARGS {
     my $class = shift;
     my $p     = shift;
 
@@ -45,11 +44,15 @@ around BUILDARGS => sub {
     # always set one of the below attribs togheter with COPY or MOVE.
     my $a = $p->{attributes};
     hurl recipe =>
+        "For the 'copy' step, one of the attributes: REPLACE, REPLACENULL, APPEND or APPENDSRC is required!"
+        unless ( $a->{REPLACE} or $a->{REPLACENULL} or $a->{APPEND}
+        or $a->{APPENDSRC} );
+    hurl recipe =>
         "Attributes: REPLACE, REPLACENULL, APPEND and APPENDSRC are mutually exclusive!"
         unless ( $a->{REPLACE} xor $a->{REPLACENULL} xor $a->{APPEND}
         xor $a->{APPENDSRC} );
 
-    return $class->$orig( %{$p} );
+    return $p;
 };
 
 __PACKAGE__->meta->make_immutable;
