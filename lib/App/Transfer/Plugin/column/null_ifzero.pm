@@ -12,7 +12,7 @@ sub null_ifzero {
     my ($self, $p) = @_;
     my ($logstr, $text ) = @$p{qw(logstr value)};
     return unless defined $text;
-    return if $text == 0;
+    return undef if $text eq '0';
     return $text;
 }
 

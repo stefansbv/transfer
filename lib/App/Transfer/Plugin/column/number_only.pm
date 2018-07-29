@@ -13,7 +13,7 @@ sub number_only {
     my ($text ) = @$p{qw(value)};
     return unless $text;
     $text =~ s{[^\d.]+}{}g;
-    return $text;
+    return $text || undef;
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -47,6 +47,6 @@ Parameters:
 =back
 
 The C<number_only> method returns only the number from the text
-(digits and dots).
+(digits and dots).  Returns undef if there are no numbers.
 
 =cut

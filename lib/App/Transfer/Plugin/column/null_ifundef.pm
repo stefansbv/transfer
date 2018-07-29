@@ -44,7 +44,7 @@ Parameters:
 
 =back
 
-The C<null_ifundef> method return undef for a value == 0 (zero).
-Otherwise returns C<$text>.
+The C<null_ifundef> method return undef for a value eq 'undef' literal
+string.  Otherwise returns C<$text>.
 
 =cut
