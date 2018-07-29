@@ -241,6 +241,29 @@ sub run {
             is $info->{$name}{type}, $type, "type for field '$name' is '$type'";
         }
 
+        throws_ok { $engine->records_aoh }
+            'App::Transfer::X',
+            'Should have error for missing table param';
+        is $@->ident, 'dev', 'Ident should be dev';
+
+        throws_ok { $engine->records_aoh($table) }
+            'App::Transfer::X',
+            'Should have error for missing table param';
+        is $@->ident, 'dev', 'Ident should be dev';
+
+        cmp_deeply $engine->records_aoh($table, $cols), [], 'records AoH';
+
+        throws_ok { $engine->records_aoa }
+            'App::Transfer::X',
+            'Should have error for missing table param';
+        is $@->ident, 'dev', 'Ident should be dev';
+
+        throws_ok { $engine->records_aoa($table) }
+            'App::Transfer::X',
+            'Should have error for missing table param';
+        is $@->ident, 'dev', 'Ident should be dev';
+
+        cmp_deeply $engine->records_aoa($table, $cols), [], 'records AoA';
 
         ######################################################################
         # Test the DB writer and prepare test tables
@@ -348,9 +371,9 @@ sub run {
 
         ok $engine->dbh->do($ddl), "create '$table_import' table";
 
-        throws_ok { $trafo->validate_destination }
-            'App::Transfer::X',
-            'Should have error for destination fields not found';
+###     # throws_ok { $trafo->validate_destination }
+        #     'App::Transfer::X',
+        #     'Should have error for destination fields not found';
 
 
         ######################################################################
@@ -389,7 +412,7 @@ sub run {
         is $trafo->reader->record_count, $count, 'counted records match record_count';
 
         ###
-        
+
         my $expected = [
             {   id       => 1,
                 denumire => 'Izvorul Mures',
