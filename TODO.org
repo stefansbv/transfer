@@ -3,4 +3,5 @@
  - [ ] Check early if the plugins can be used
  - [X] Add tests for copy type
  - [ ] Add tests for batch type
+ - [ ] The transform.t test fails if there is no DBD::Pg module
 
