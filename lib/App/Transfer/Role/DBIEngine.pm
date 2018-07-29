@@ -55,14 +55,14 @@ sub insert {
 sub lookup {
     my ($self, $table, $fields, $where, $attribs) = @_;
 
-	# if ( $attribs->{IGNORECASE} ) {
-	# 	say 'IGNORECASE=true' if $self->debug;
-	# 	my $where_new = {};
-	# 	while ( my ( $key, $value ) = each( %{$where} ) ) {
-	# 		$where_new->{"upper($key)"} = $value;
-	# 	}
-	# 	$where = $where_new;
-	# }
+    # if ( $attribs->{IGNORECASE} ) {
+    #   say 'IGNORECASE=true' if $self->debug;
+    #   my $where_new = {};
+    #   while ( my ( $key, $value ) = each( %{$where} ) ) {
+    #       $where_new->{"upper($key)"} = $value;
+    #   }
+    #   $where = $where_new;
+    # }
 
     my ( $sql, @bind ) = $self->sql->select( $table, $fields, $where );
     my @records;
@@ -81,8 +81,9 @@ sub lookup {
 
 sub records_aoa {
     my ($self, $table, $fields, $where) = @_;
-    die "The 'table' parameter is required" unless $table;
-    $fields //= '*';                         # or all fields
+    hurl dev => 'The "table" parameter is required' unless $table;
+    hurl dev => 'The "fields" array ref parameter is required'
+        unless ref $fields;
     my $ary_ref;
     try {
         my ( $stmt, @bind ) = $self->sql->select( $table, $fields, $where );
@@ -96,8 +97,9 @@ sub records_aoa {
 
 sub records_aoh {
     my ($self, $table, $fields, $where, $orderby) = @_;
-    die "The 'table' parameter is required" unless $table;
-    $fields //= '*';                         # or all fields
+    hurl dev => 'The "table" parameter is required' unless $table;
+    hurl dev => 'The "fields" array ref parameter is required'
+        unless ref $fields;
     my ( $sql, @bind ) = $self->sql->select( $table, $fields, $where, $orderby );
     my @records;
     try {
