@@ -35,7 +35,7 @@ subtest 'DB to DB transfer' => sub {
         input_options  => $input_options,
         output_options => $output_options,
         @{$trafo_params},
-        ),
+    ),
         'new trafo instance';
 
     like(
