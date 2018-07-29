@@ -38,19 +38,24 @@ __END__
 
 =encoding utf8
 
-=head1 Name
+=head1 NAME
 
 App::Transfer::Recipe::Transform::Row::Split - Row transformation step - split
 
-=head1 Synopsis
+=head1 SYNOPSIS
 
-   my $steps = App::Transfer::Recipe::Transform::Row::Split->new(
-      $self->recipe_data->{step},
-   );
+  my $step = App::Transfer::Recipe::Transform::Row::Split->new(
+      type      => 'split',
+      separator => ",",
+      field_src => 'address',
+      method    => 'split_field',
+      field_dst => [qw{locality street number}],
+  );
+  $trafo->type_split( $step, $record, $logstr );
 
 Where the C<step> type is C<split>.
 
-=head1 Description
+=head1 DESCRIPTION
 
 An object representing a C<row> recipe transformations C<step> section
 with the type attribute set to C<split>.
@@ -61,27 +66,16 @@ A recipe step example:
   <step>
     type                = split
     separator           = ,
-    field_src           = adresa
+    field_src           = addres
     method              = split_field
-    field_dst           = localitate
-    field_dst           = strada
-    field_dst           = numarul
+    field_dst           = locality
+    field_dst           = street
+    field_dst           = number
   </step>
 
-=head1 Interface
+=head1 INTERFACE
 
-=head3 C<new>
-
-Instantiates and returns an
-L<App::Transfer::Recipe::Transform::Row::Copy> object.
-
-   my $steps = App::Transfer::Recipe::Transform::Row::Copy->new(
-      $self->recipe_data->{step},
-   );
-
-Where the C<step> type is C<copy>.
-
-=head2 Attributes
+=head2 ATTRIBUTES
 
 =head3 C<field_src>
 
@@ -98,8 +92,6 @@ XXX Test with a string destination.
 The separator to be used by the C<split> Perl function.
 
 =head3 C<attributes>
-
-XXX To do.
 
 Attributes to alter the behavior of the transformation.
 
@@ -126,34 +118,12 @@ split
 The number of destination fields, used as the third parameter for the
 C<split> function.
 
-=head3 C<params>
+=head2 INSTANCE METHODS
 
-Returns a hash reference with all the attributes.
+=head3 C<new>
 
-=head1 Author
-
-Ștefan Suciu <stefan@s2i2.ro>
-
-=head1 License
-
-Copyright (c) 2014-2015 Ștefan Suciu
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Instantiates and returns an
+L<App::Transfer::Recipe::Transform::Row::Split> object, where the
+C<step> type is C<split>.
 
 =cut
