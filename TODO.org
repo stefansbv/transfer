@@ -1,56 +1,6 @@
----
-record (before insert):
-{
-  adresa         => "Deda, jud Mures",
-  an_reinoire    => undef,
-  cadastru       => undef,
-  cf_dist_ax     => undef,
-  cf_dist_linie  => undef,
-  chelt_realiz   => undef,
-  cod_clasif     => "1.3.17.2.",
-  cod_clasif_pub => undef,
-  cod_iop        => "I",
-  cod_locatar    => undef,
-  cod_subunit    => 5370,
-  codp           => undef,
-  data_pif       => "1942-12-31",
-  denum_activ    => undef,
-  denum_conta    => "Pode\x{21B} dalat ;Deda - Ripa de Jos",
-  descriere      => "dale beton armat, km 45+760, l=6.14ml",
-  dnf            => undef,
-  doc1_poza      => undef,
-  doc2_poza      => undef,
-  doc_fisa       => undef,
-  id1_statie     => 55346,
-  id2_statie     => 40878,
-  id_af          => 5921,
-  id_sectie_cir  => undef,
-  linia_cf       => undef,
-  nr_inv_n       => "5370/100520",
-  nr_inv_suf     => 100520,
-  nr_inv_v       => undef,
-  nr_mfp         => undef,
-  obs            => undef,
-  poz1_km        => "45.760",
-  poz2_km        => undef,
-  poz_sd         => undef,
-  siruta         => undef,
-  stare_teh      => "B",
-  subunit        => undef,
-  teren_priv     => undef,
-  teren_pub      => undef,
-  val_inv        => 8761,
-  vecinatati     => undef,
-  zona_cf        => undef,
-}
----
-DBIError: DBD::Pg::st execute failed: ERROR:  insert or update on table "active_fixe_pub" violates foreign key constraint "fk_active_fixe_pub_id2_statie"
-DETAIL:  Key (id2_statie)=(40878) is not present in table "statii_nou".
-EE: duplicate (id2_statie)
 
-Insert failed: "duplicate (id2_statie)
-" for record "Deda, jud Mures| | | | | |1.3.17.2.| |I| |5370| |1942-12-31| |PodeČ> dalat ;Deda - Ripa de Jos|dale beton armat, km 45+760, l=6.14ml| | | | |55346|40878|5921| | |5370/100520|100520| | | |45.760| | | |B| | | |8761| | "
-
-* TODO [0%]
+* TODO [33%]
  - [ ] Check early if the plugins can be used
+ - [X] Add tests for copy type
+ - [ ] Add tests for batch type
 
