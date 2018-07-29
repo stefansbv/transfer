@@ -293,7 +293,7 @@ sub type_copy {
         elsif ( $attributes->{REPLACENULL} ) {
             if ( exists $r->{$field_dst} ) {
                 $record->{$field_dst} = $r->{$field_dst}
-                    if not defined $r->{$field_dst};
+                    if not defined $record->{$field_dst};
             }
         }
 
@@ -301,9 +301,6 @@ sub type_copy {
         if ( $attributes->{MOVE} ) {
             $record->{$field_src} = undef;
         }
-    }
-    else {
-        # TODO: XXX else what?
     }
 
     return $record;
@@ -1048,13 +1045,16 @@ Join two or more fields into one, with a separator.
 =head3 type_copy
 
 A method best used to cleanup columns about to be normalized.  Using
-the C<move_filtered> plug-in, the values not found in a data-source
+the C<move_filtered> plug-in, the values not found in a C<datasource>
 valid list are moved to the destination column.  Attributes can be
 used to alter the format of the destination value.
 
+If the C<datasource> attribute is not set, than all values are
+considered to be valid.
+
 Example recipe (from the tests, subtest f.):
 
-  <transform            row>
+  <transform row>
     <step>
       type                = copy
       datasource          = status
@@ -1087,7 +1087,7 @@ Input records:
       { status => "Shipped",        id => 6 },
   ];
 
-Resulted records:
+Resulting records:
 
   my $expected_4f = [
       { id => 1, status => "Cancelled" },
