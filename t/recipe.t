@@ -282,10 +282,8 @@ subtest 'Table section complex orderby config' => sub {
     cmp_deeply $recipe->table->header, $header_aref, 'header';
 };
 
-#-- Transform
+#-- Transform section
 
-### XXX Setting a COPY without a REPLACENULL attribute for a row trafo
-### makes this subtest fail instead of the following... ?!
 subtest 'Column transformation type' => sub {
     my $recipe_file = path(qw(t recipes recipe.conf));
     ok my $recipe = App::Transfer::Recipe->new(
