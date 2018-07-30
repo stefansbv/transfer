@@ -65,19 +65,6 @@ subtest 'DB to DB transfer' => sub {
     is $trafo->output_options, $output_options, 'has output options';
     isa_ok $trafo->recipe, ['App::Transfer::Recipe'], 'is a transfer recipe';
     is $trafo->tempfields, [], 'no tempfields';
-    my $reader_opts = {
-        transfer => $trafo->transfer,
-        recipe   => $trafo->recipe,
-        options  => { input_uri => $uri },
-        rw_type  => 'reader',
-    };
-
-    my $writer_opts = {
-        transfer => $trafo->transfer,
-        recipe   => $trafo->recipe,
-        options  => { output_uri => $uri },
-        rw_type  => 'writer',
-    };
 
     isa_ok $trafo->reader, ['App::Transfer::Reader'], 'transfer reader';
     isa_ok $trafo->writer, ['App::Transfer::Writer'], 'transfer writer';
