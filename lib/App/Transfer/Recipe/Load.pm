@@ -31,18 +31,19 @@ has 'load' => (
         my $file = $self->recipe_file;
         my $conf = try {
             Config::General->new(
-                -UTF8       => 1,
-                -ForceArray => 1,
-                -ConfigFile => $file,
-                -FlagBits   => {
+                -UTF8            => 1,
+                -ForceArray      => 1,
+                -ConfigFile      => $file,
+                -IncludeRelative => 1,
+                -FlagBits        => {
                     attributes => {
-                        APPEND      => 1,
-                        APPENDSRC   => 1,
-                        COPY        => 1,
-                        MOVE        => 1,
-                        REPLACE     => 1,
-                        REPLACENULL => 1,
-                        IGNORECASE  => 1,
+                        APPEND          => 1,
+                        APPENDSRC       => 1,
+                        COPY            => 1,
+                        MOVE            => 1,
+                        REPLACE         => 1,
+                        REPLACENULL     => 1,
+                        IGNORECASE      => 1,
                         IGNOREDIACRITIC => 1,
                     },
                 },
