@@ -59,9 +59,21 @@ has 'columns' => (
     default  => sub { {} },
 );
 
-has 'header' => (
+has 'src_header' => (
     is       => 'ro',
-    isa      => 'HashRef|ArrayRef',
+    isa      => 'ArrayRef',
+    required => 1,
+);
+
+has 'dst_header' => (
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    required => 1,
+);
+
+has 'header_map' => (
+    is       => 'ro',
+    isa      => 'HashRef',
     required => 1,
 );
 

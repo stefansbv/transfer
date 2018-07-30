@@ -1,15 +1,20 @@
 use 5.010;
-use strict;
-use warnings;
+use utf8;
+use Test2::V0;
 use Path::Tiny;
-use Test::Most;
-use List::Util qw(first);
-use Locale::TextDomain 1.20 qw(App-Transfer);
+use Locale::TextDomain qw(App-Transfer);
 use Locale::Messages qw(bindtextdomain);
 
 bindtextdomain 'App-Transfer' => './.build/latest/share';
 
 use App::Transfer::Recipe;
+
+my $trans1 = __ "The recipe must have a 'recipe' section.";
+my $trans2 = __ "The recipe must have a valid 'syntaxversion' attribute (the current version is 2)";
+my $trans3 = __ "The recipe must have a 'table' section.";
+my $trans4 = __x("The v{sv} recipe table section must have a 'header' attribute instead of 'headermap'", sv => 2);
+
+my $bag1 = bag { item 'id'; item 'denumire'; end; },
 
 #-- Invalid recipes
 
@@ -17,86 +22,94 @@ use App::Transfer::Recipe;
 # text documents...
 subtest 'Not a conf file' => sub {
     my $recipe_file = path(qw(t recipes invalid not_a_recipe.ini));
-    throws_ok {
-        App::Transfer::Recipe->new(
-            recipe_file => $recipe_file->stringify )
-      } 'App::Transfer::X',
-      'Should get an exception - not a recipe file';
-    is $@->message, __("The recipe must have a 'recipe' section."),
-        'The message should be from the translation';
+    like(
+        dies {
+            App::Transfer::Recipe->new(
+                recipe_file => $recipe_file->stringify )
+          },
+        qr/$trans1/,
+        'Should get an exception - not a valid recipe file'
+    );
 };
 
 subtest 'Not a recipe file' => sub {
     my $recipe_file = path(qw(t recipes invalid recipe-not_a_recipe.conf));
-    throws_ok {
-        App::Transfer::Recipe->new(
-            recipe_file => $recipe_file->stringify )
-      }  'App::Transfer::X',
-      'Should get an exception for missing recipe section';
-    is $@->message, __("The recipe must have a 'recipe' section."),
-        'The message should be from the translation';
+    like(
+        dies {
+            App::Transfer::Recipe->new(
+                recipe_file => $recipe_file->stringify )
+          },
+        qr/$trans1/,
+        'Should get an exception - not a valid recipe file'
+    );
 };
 
 subtest 'Recipe header only' => sub {
     my $recipe_file = path(qw(t recipes invalid recipe-header.conf));
-    throws_ok {
-        App::Transfer::Recipe->new(
-            recipe_file => $recipe_file->stringify )
-      } 'App::Transfer::X',
-      'Should get an exception for missing recipe config section';
-    is $@->message, __("The recipe must have a valid 'syntaxversion' attribute (the current version is 2)"),
-        'The message should be from the translation';
+    like(
+        dies {
+            App::Transfer::Recipe->new(
+                recipe_file => $recipe_file->stringify )
+          },
+        qr/\Q$trans2/sm,
+        'Should get an exception - not a valid recipe file'
+    );
 };
 
 subtest 'Recipe header + config' => sub {
     my $recipe_file = path(qw(t recipes invalid recipe-config.conf));
-    throws_ok {
-    App::Transfer::Recipe->new(
-       recipe_file => $recipe_file->stringify )
-      } 'App::Transfer::X',
-      'Should get an exception for missing recipe config section';
-    is $@->message, __("The recipe must have a valid 'syntaxversion' attribute (the current version is 2)"),
-        'The message should be from the translation';
+    like(
+        dies {
+            App::Transfer::Recipe->new(
+                recipe_file => $recipe_file->stringify )
+          },
+        qr/\Q$trans2/sm,
+        'Should get an exception - not a valid recipe file'
+    );
 };
 
 subtest 'Recipe syntax version' => sub {
     my $recipe_file = path(qw(t recipes versions recipe-wrongversion.conf));
-    throws_ok {
-        App::Transfer::Recipe->new(
-            recipe_file => $recipe_file->stringify )
-      } 'App::Transfer::X',
-      'Should get an exception for wrong syntax version';
-    is $@->message, __("The recipe must have a valid 'syntaxversion' attribute (the current version is 2)"),
-        'The message should be from the translation';
+    like(
+        dies {
+            App::Transfer::Recipe->new(
+                recipe_file => $recipe_file->stringify )
+          },
+        qr/\Q$trans2/sm,
+        'Should get an exception - not a valid recipe file'
+    );
 
     $recipe_file = path(qw(t recipes versions recipe-noversion.conf));
-    throws_ok {
-        App::Transfer::Recipe->new(
-            recipe_file => $recipe_file->stringify )
-      } 'App::Transfer::X',
-      'Should get an exception for wrong syntax version';
-    is $@->message, __("The recipe must have a valid 'syntaxversion' attribute (the current version is 2)"),
-        'The message should be from the translation';
+    like(
+        dies {
+            App::Transfer::Recipe->new(
+                recipe_file => $recipe_file->stringify )
+          },
+        qr/\Q$trans2/sm,
+        'Should get an exception - not a valid recipe file'
+    );
 };
 
 subtest 'Recipe syntax version 1 sections' => sub {
     my $recipe_file = path(qw(t recipes versions recipe-tables_headermap.conf));
-    throws_ok {
-        App::Transfer::Recipe->new(
-            recipe_file => $recipe_file->stringify )
-      } 'App::Transfer::X',
-      'Should get an exception for wrong syntax version';
-    is $@->message, __("The recipe must have a 'table' section."),
-        'The message should be from the translation';
+    like(
+        dies {
+            App::Transfer::Recipe->new(
+                recipe_file => $recipe_file->stringify )
+          },
+        qr/$trans3/,
+        'Should get an exception - not a valid recipe file'
+    );
 
     $recipe_file = path(qw(t recipes versions recipe-table_headermap.conf));
-    throws_ok {
-        App::Transfer::Recipe->new(
-            recipe_file => $recipe_file->stringify )
-      } 'App::Transfer::X',
-      'Should get an exception for wrong syntax version';
-    is $@->message, __x("The v{sv} recipe table section must have a 'header' attribute instead of 'headermap'", sv => 2),
-        'The message should be from the translation';
+    like(
+        dies {
+            App::Transfer::Recipe->new(
+                recipe_file => $recipe_file->stringify )
+          },
+        qr/$trans4/,
+        'Should get an exception - not a valid recipe file'
+    );
 };
 
 #-- Minimum valid recipe
@@ -106,9 +119,9 @@ subtest 'Recipe - minimum' => sub {
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
-    lives_ok { $recipe->header } 'Should get the header section';
-    lives_ok { $recipe->source } 'Should get the config source section';
-    lives_ok { $recipe->destination } 'Should get the config destination section';
+    is $recipe->header, D(), 'Should get the header section';
+    is $recipe->source, D(), 'Should get the config source section';
+    is $recipe->destination, D(), 'Should get the config destination section';
 
     # Header
     is $recipe->header->version, 1, 'recipe version';
@@ -117,10 +130,10 @@ subtest 'Recipe - minimum' => sub {
     is $recipe->header->description, 'Does this and that...', 'description';
 
     # Config
-    isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipe source';
+    isa_ok $recipe->source, ['App::Transfer::Recipe::Src'], 'recipe source';
     is $recipe->source->reader, 'xls', 'has reader xls';
     is $recipe->source->file, 't/siruta.xls', 'has a file';
-    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
+    isa_ok $recipe->destination, ['App::Transfer::Recipe::Dst'], 'recipe destination';
     is $recipe->destination->writer, 'db', 'has writer db';
     is $recipe->destination->target, 'siruta', 'has target';
     is $recipe->destination->table, 'siruta', 'has table';
@@ -129,9 +142,13 @@ subtest 'Recipe - minimum' => sub {
     # Table
     ok my $table = $recipe->table, 'table object instance';
     is $table->logfield, 'siruta', 'log field name';
-    cmp_deeply $table->rectangle, ['A27','E36'], 'rectangle';
+    is $table->rectangle, ['A27','E36'], 'rectangle';
     is ref $table->orderby, '', 'table orderby';
-    cmp_deeply $table->header, [qw(siruta denloc codp)], 'header';
+    my $fields = [qw(siruta denloc codp)];
+    is $table->src_header, $fields, 'source header';
+    is $table->dst_header, $fields, 'destination header';
+    my %h_map = map { $_ => $_ } @{$fields};
+    is $table->header_map, \%h_map, 'header map';
 };
 
 #-- Config section
@@ -143,12 +160,12 @@ subtest 'Config section: from file2db - no file' => sub {
     ), 'new recipe instance';
 
     # Source
-    isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipe source';
+    isa_ok $recipe->source, ['App::Transfer::Recipe::Src'], 'recipe source';
     is $recipe->source->reader, 'csv', 'has reader';
     is $recipe->source->file, '', 'has no file';
 
     # Destination
-    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
+    isa_ok $recipe->destination, ['App::Transfer::Recipe::Dst'], 'recipe destination';
     is $recipe->destination->writer, 'db', 'has writer db';
     is $recipe->destination->target, 'siruta', 'has target';
     is $recipe->destination->table, 'siruta', 'has table';
@@ -166,7 +183,7 @@ subtest 'Config section: from db2db' => sub {
     ), 'new recipe instance';
 
     # Source
-    isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipe source';
+    isa_ok $recipe->source, ['App::Transfer::Recipe::Src'], 'recipe source';
     is $recipe->source->reader, 'db', 'has reader xls';
     is $recipe->source->file, '', 'has no file';
     is $recipe->source->target, 'target1', 'has target';
@@ -174,7 +191,7 @@ subtest 'Config section: from db2db' => sub {
     is $recipe->source->date_format, 'iso', 'has default date format';
 
     # Destination
-    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
+    isa_ok $recipe->destination, ['App::Transfer::Recipe::Dst'], 'recipe destination';
     is $recipe->destination->writer, 'db', 'has writer db';
     is $recipe->destination->target, 'target2', 'has target';
     is $recipe->destination->table, 'test_db', 'has table';
@@ -191,11 +208,11 @@ subtest 'Config section: from db2file' => sub {
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
-    isa_ok $recipe->source, 'App::Transfer::Recipe::Src', 'recipe source';
+    isa_ok $recipe->source, ['App::Transfer::Recipe::Src'], 'recipe source';
     is $recipe->source->reader, 'db', 'has reader';
     is $recipe->source->target, 'siruta', 'has target';
     is $recipe->source->table, 'siruta', 'has table';
-    isa_ok $recipe->destination, 'App::Transfer::Recipe::Dst', 'recipe destination';
+    isa_ok $recipe->destination, ['App::Transfer::Recipe::Dst'], 'recipe destination';
     is $recipe->destination->writer, 'csv', 'has writer';
     is $recipe->destination->file, 't/siruta.csv', 'has a file';
 };
@@ -212,7 +229,9 @@ subtest 'Table section minimum config' => sub {
         ), 'new recipe instance';
 
     is $recipe->table->logfield, 'id', 'log field name';
-    cmp_deeply $recipe->table->header, $header_aref, 'header';
+    is $recipe->table->src_header, $header_aref, 'source header';
+    is $recipe->table->dst_header, $header_aref, 'destination header';
+    is $recipe->table->header_map, $header_href, 'header map';
 };
 
 subtest 'Table section maximum config' => sub {
@@ -222,14 +241,17 @@ subtest 'Table section maximum config' => sub {
         ), 'new recipe instance';
 
     ok $recipe->table->logfield, 'log field name';
-    cmp_deeply $recipe->table->orderby, [qw(id denumire)], 'table orderby';
+    is $recipe->table->orderby, [qw(id denumire)], 'table orderby';
     my $expected = {
         status => { "!" => "= completed", "-not_like" => "pending%" },
         user   => undef,
     };
-    cmp_deeply $recipe->table->filter, $expected, 'table filter';
-    cmp_deeply $recipe->table->header, $header_href, 'header';
-    cmp_deeply $recipe->table->tempfield, [ 'seria', 'factura' ], 'tempfields';
+    is $recipe->table->filter, $expected, 'table filter';
+    is $recipe->table->tempfield, [ 'seria', 'factura' ], 'tempfields';
+
+    is $recipe->table->src_header, $bag1, 'source header';
+    is $recipe->table->dst_header, $bag1, 'destination header';
+    is $recipe->table->header_map, $header_href, 'header map';
 
     # Columns
     my $info = {
@@ -251,7 +273,7 @@ subtest 'Table section maximum config' => sub {
         },
     };
     ok my $cols = $recipe->table->columns, 'get columns list';
-    cmp_deeply $cols, $info, 'columns info';
+    is $cols, $info, 'columns info';
 };
 
 subtest 'Table section medium config' => sub {
@@ -261,9 +283,12 @@ subtest 'Table section medium config' => sub {
         ), 'new recipe instance';
 
     ok $recipe->table->logfield, 'log field name';
-    cmp_deeply $recipe->table->orderby, { -asc => 'denumire' }, 'table orderby';
-    cmp_deeply $recipe->table->header, $header_aref,  'header';
-    cmp_deeply $recipe->table->tempfield, [ 'seria' ], 'tempfields';
+    is $recipe->table->orderby, { -asc => 'denumire' }, 'table orderby';
+    is $recipe->table->tempfield, [ 'seria' ], 'tempfields';
+
+    is $recipe->table->src_header, $header_aref, 'source header';
+    is $recipe->table->dst_header, $header_aref, 'destination header';
+    is $recipe->table->header_map, $header_href, 'header map';
 };
 
 subtest 'Table section complex orderby config' => sub {
@@ -273,13 +298,16 @@ subtest 'Table section complex orderby config' => sub {
         ), 'new recipe instance';
 
     ok $recipe->table->logfield, 'log field name';
-    cmp_deeply $recipe->table->orderby, [
+    is $recipe->table->orderby, [
         { -asc  => "colA" },
         { -desc => "colB" },
         { -asc  => [ "colC", "colD" ] },
     ], 'table orderby';
     is $recipe->table->get_plugin('date'), 'date_german', 'plugin for date';
-    cmp_deeply $recipe->table->header, $header_aref, 'header';
+
+    is $recipe->table->src_header, $header_aref, 'source header';
+    is $recipe->table->dst_header, $header_aref, 'destination header';
+    is $recipe->table->header_map, $header_href, 'header map';
 };
 
 #-- Transform section
@@ -299,7 +327,7 @@ subtest 'Column transformation type' => sub {
         ok $step->can('field'), 'the step has field';
         ok $step->can('method'), 'the step has methods';
         is $step->field, $field, qq(the field is $field');
-        cmp_deeply $step->method, $method, qq(the methods: "@$method");
+        is $step->method, $method, qq(the methods: "@$method");
         $idx++;
     }
 };
@@ -310,6 +338,20 @@ subtest 'Row transformation type' => sub {
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
     ok my $trafos_row = $recipe->transform->row, 'row trafos';
+
+    my $bags_fdst = [
+        bag { item 'cod'; item 'denloc'; end; },
+        bag { item 'cod'; item 'denloc'; end; },
+        bag { item 'siruta'; item 'denloc'; end; },
+        bag { item 'siruta'; end; },
+    ];
+
+    my $bags_f = [
+        bag { item 'localitate'; item 'siruta'; end; },
+        bag { item 'localitate'; item 'siruta'; end; },
+        bag { item 'localitate'; item 'siruta'; end; },
+        bag { item 'siruta'; end; },
+    ];
 
     # Expected result in the recipe order
     my $expected_lookupdb = [
@@ -352,6 +394,9 @@ subtest 'Row transformation type' => sub {
     ];
 
     foreach my $step ( @{$trafos_row} ) {
+        my $bag_dst = shift $bags_fdst;
+        my $bag_f   = shift $bags_f;
+
         ok my $type = $step->type, 'step type';
         ok my $field_src = $step->field_src,  'src field(s)';
         ok my $field_dst = $step->field_dst,  'dst field(s)';
@@ -381,17 +426,17 @@ subtest 'Row transformation type' => sub {
         }
         if ( $type eq 'lookupdb' ) {
             my $expected = shift @{$expected_lookupdb};
+            # dd $expected->{field_dst};
             is $field_src, $expected->{field_src},
                 'lookupdb src field string';
-            cmp_bag $field_dst, $expected->{field_dst},
-                'lookupdb dst fields array';
+            is $field_dst, $bag_dst, 'lookupdb dst fields array';
             is $step->table, $expected->{table},
                 'lookupdb datasource table';
             is $step->hints, $expected->{hints}, 'lookupdb hints';
-            cmp_deeply $step->field_src_map, $expected->{field_src_map},
+            is $step->field_src_map, $expected->{field_src_map},
                 'source field mapping';
-            cmp_bag $step->fields, $expected->{fields},
-                'lookup fields list';
+            # dd $expected->{fields};
+            is $step->fields, $bag_f, 'lookup fields list';
             is $step->where_fld, $expected->{where_fld},
                 'lookupdb where field';
         }

@@ -108,9 +108,19 @@ has 'table' => (
             if $cnt > 1;
         my ( $name, $meta ) = each %kv;
         if ( $name and ref $meta ) {
-            if ( my $header = delete $meta->{header}{field} ) {
-                $meta->{header} = $header;
+            if ( exists $meta->{header}{field} ) {
+                my $header = delete $meta->{header}{field};
+                $meta->{src_header} = $header;
+                $meta->{dst_header} = $header;
+                $meta->{header_map} = { map { $_ => $_ } @{$header} };
             }
+            else {
+                my $header = delete $meta->{header};
+                @{ $meta->{src_header} } = keys   %{$header};
+                @{ $meta->{dst_header} } = values %{$header};
+                $meta->{header_map} = $header;
+            }
+            # use Data::Printer; p $meta;
             return App::Transfer::Recipe::Table->new(
                 name => $name,
                 %{$meta},
