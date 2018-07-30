@@ -42,7 +42,7 @@ subtest 'DB to DB transfer' => sub {
         capture_stdout {
             dies { $trafo->job_info_input_file }
         }, qr/$trans1/,
-        'Should have error for missing file option or configuration'
+        'Should have error for missing input file option or configuration'
     );
 
     like(
@@ -50,14 +50,14 @@ subtest 'DB to DB transfer' => sub {
             dies { $trafo->job_info_output_file }
         },
         qr/$trans2/,
-        'Should have error for missing file option or configuration'
+        'Should have error for missing output file option or configuration'
     );
 
     like( capture_stdout { $trafo->job_info_work },
         qr/$trans3/ms, 'job_intro should work');
 
     like( capture_stdout { $trafo->job_summary },
-        qr/$trans4/ms, 'job_intro should work');
+        qr/$trans4/ms, 'job_summary should work');
 
     isa_ok $trafo->transfer, ['App::Transfer'], 'is a transfer instance';
     is $trafo->recipe_file,    $recipe_file,    'has recipe file';
@@ -71,14 +71,14 @@ subtest 'DB to DB transfer' => sub {
         options  => { input_uri => $uri },
         rw_type  => 'reader',
     };
-    is $trafo->reader_options, $reader_opts, 'reader options';
+
     my $writer_opts = {
         transfer => $trafo->transfer,
         recipe   => $trafo->recipe,
         options  => { output_uri => $uri },
         rw_type  => 'writer',
     };
-    is $trafo->writer_options, $writer_opts, 'writer options';
+
     isa_ok $trafo->reader, ['App::Transfer::Reader'], 'transfer reader';
     isa_ok $trafo->writer, ['App::Transfer::Writer'], 'transfer writer';
     isa_ok $trafo->plugin_row, ['App::Transfer::Plugin'], 'transfer plugin';
