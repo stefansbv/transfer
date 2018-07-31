@@ -58,7 +58,7 @@ has 'recipe' => (
     default => sub {
         my $self = shift;
         return App::Transfer::Recipe->new(
-            recipe_file     => $self->recipe_file->stringify,
+            recipe_file => $self->recipe_file->stringify,
         );
     },
 );
@@ -172,6 +172,78 @@ has 'plugin_row' => (
     lazy    => 1,
     default => sub {
         return App::Transfer::Plugin->new( plugin_type => 'row' );
+    },
+);
+
+has 'src_header' => (
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    lazy     => 1,
+    default => sub {
+        my $self = shift;
+        return $self->recipe->table->src_header;
+    },
+);
+
+has 'dst_header' => (
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    lazy     => 1,
+    default => sub {
+        my $self = shift;
+        return $self->recipe->table->dst_header;
+    },
+);
+
+has '_header_map' => (
+    traits  => ['Hash'],
+    is      => 'ro',
+    isa     => 'HashRef',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        return $self->recipe->table->header_map;
+    },
+    handles => {
+        has_no_map  => 'is_empty',
+        num_fields  => 'count',
+        field_pairs => 'kv',
+    },
+);
+
+has '_columns_info' => (
+    traits  => ['Hash'],
+    is      => 'ro',
+    isa     => 'HashRef',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        return $self->recipe->table->columns;
+    },
+    handles => {
+        has_no_columns_info => 'is_empty',
+        get_column_info     => 'get',
+        num_columns_info    => 'count',
+        column_info_pairs   => 'kv',
+    },
+);
+
+has 'ordered_dst_header' => (
+    traits   => ['Array'],
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    lazy     => 1,
+    default  => sub {
+        my $self = shift;
+        my $info = {};
+        for my $pair ( $self->column_info_pairs ) {
+            $info->{ $pair->[0] } = $pair->[1];
+        }
+        my @fields = $self->sort_hash_by_pos($info);
+        return \@fields;
+    },
+    handles  => {
+        all_ordered_fields => 'elements',
     },
 );
 
@@ -623,8 +695,8 @@ sub transfer_file2db {
     hurl run => __("No input records!") unless $rec_count;
 
     ###
-    my $header_map = $self->reader->header_map;
-    use Data::Dump; dd $header_map;
+    # my $header_map = $self->reader->header_map;
+    # use Data::Dump; dd $header_map;
 
     my $progress = Progress::Any->get_indicator(
         target => $rec_count,
@@ -775,31 +847,18 @@ sub transfer_file2file {
     my $row_count = 0;
     my $rec_count = $self->reader->record_count;
 
-    $self->job_info_work($rec_count);
-
     hurl run => __("No input records!") unless $rec_count;
 
-    use Data::Dump;
-    my $dst_table_info = $self->recipe->table->columns;
-    # dd $dst_table_info;
+    $self->job_info_work($rec_count);
 
-    ###
-    my $header_src = $self->recipe->table->src_header;
-    my $header_dst = $self->recipe->table->dst_header;
-    my $header_map = $self->recipe->table->header_map;
-    my $header_col = $self->recipe->table->columns;
-    dd $header_src;
-    dd $header_dst;
-    dd $header_map;
-    dd $header_col;
+    my $dst_table_info = $self->recipe->table->columns;
 
     # Header, sorted if the 'columns' section is available
-    if ( $dst_table_info && ref($dst_table_info) eq 'HASH' ) {
-        my @header_fields = $self->sort_hash_by_pos($dst_table_info);
-        $self->writer->insert_header( \@header_fields );
+    if ( $self->has_no_columns_info ) {
+        $self->writer->insert_header;
     }
     else {
-        $self->writer->insert_header;
+        $self->writer->insert_header( $self->all_ordered_fields );
     }
 
     my $progress;
@@ -809,6 +868,7 @@ sub transfer_file2file {
     while ( $iter->has_next ) {
         $row_count++;
         my $record = $iter->next;
+        $record    = $self->map_fields_src_to_dst($record);
         $record    = $self->transformations($record, $dst_table_info, $logfld);
         $self->writer->insert('table', $record );
         $progress->update( message => "Record $row_count|" ) if $self->show_progress;
@@ -827,6 +887,15 @@ sub transfer_file2file {
     return;
 }
 
+sub map_fields_src_to_dst {
+    my ( $self, $rec, $h_map ) = @_;
+    my $new = {};
+    for my $pair ( $self->field_pairs ) {
+        $new->{ $pair->[0] } = $rec->{ $pair->[1] };
+    }
+    return $new;
+}
+
 sub transformations {
     my ($self, $record, $info, $logfld) = @_;
 
@@ -834,9 +903,9 @@ sub transformations {
     my $logidx = $record->{$logfld} ? $record->{$logfld} : '?';
     my $logstr = $self->verbose ? qq{[$logfld=$logidx]} : qq{[$logidx]};
 
-    $record = $self->column_trafos( $record, $info, $logstr );
-    $record = $self->record_trafos( $record, $info, $logstr );
-    $record = $self->column_type_trafos( $record, $info, $logstr )
+    $record = $self->column_trafos( $record, $logstr );
+    $record = $self->record_trafos( $record, $logstr );
+    $record = $self->column_type_trafos( $record, $logstr )
         if $self->recipe->out_type eq 'db';  # TODO allow for other
                                              # trafo types
 
@@ -846,13 +915,12 @@ sub transformations {
 }
 
 sub column_trafos {
-    my ($self, $record, $info, $logstr) = @_;
+    my ($self, $record, $logstr) = @_;
 
     #--  Custom per field transformations from the recipe
 
     foreach my $step ( @{ $self->recipe->transform->column } ) {
         my $field = $step->field;
-        # my $info  = $info->{$field};
         my $p;
         $p->{logstr} = $logstr;
         $p->{name}   = $field;
@@ -866,7 +934,7 @@ sub column_trafos {
 }
 
 sub record_trafos {
-    my ($self, $record, $info, $logstr) = @_;
+    my ($self, $record, $logstr) = @_;
 
     #--  Transformations per record (row)
 
@@ -885,7 +953,7 @@ sub record_trafos {
 }
 
 sub column_type_trafos {
-    my ( $self, $record, $info, $logstr ) = @_;
+    my ( $self, $record, $logstr ) = @_;
 
     #--  Transformations per field type
 
@@ -894,6 +962,8 @@ sub column_type_trafos {
 
     while ( my ( $field, $value ) = each( %{$record} ) ) {
         next if $self->has_temp_field($field);
+
+        my $info = $self->get_column_info($field);
 
         hurl field_info => __x(
             "Field info for '{field}' not found!  Header map config. <--> DB schema inconsistency",
