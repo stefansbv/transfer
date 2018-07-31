@@ -394,8 +394,8 @@ subtest 'Row transformation type' => sub {
     ];
 
     foreach my $step ( @{$trafos_row} ) {
-        my $bag_dst = shift $bags_fdst;
-        my $bag_f   = shift $bags_f;
+        my $bag_dst = shift @{$bags_fdst};
+        my $bag_f   = shift @{$bags_f};
 
         ok my $type = $step->type, 'step type';
         ok my $field_src = $step->field_src,  'src field(s)';
