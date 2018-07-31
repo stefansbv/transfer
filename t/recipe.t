@@ -14,7 +14,7 @@ my $trans2 = __ "The recipe must have a valid 'syntaxversion' attribute (the cur
 my $trans3 = __ "The recipe must have a 'table' section.";
 my $trans4 = __x("The v{sv} recipe table section must have a 'header' attribute instead of 'headermap'", sv => 2);
 
-my $bag1 = bag { item 'id'; item 'denumire'; end; },
+my $bag1 = bag { item 'id'; item 'denumire'; end; };
 
 #-- Invalid recipes
 
