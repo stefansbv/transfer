@@ -121,7 +121,7 @@ has 'reader' => (
         my $self = shift;
         return App::Transfer::Reader->load({
             transfer  => $self->transfer,
-            header    => $self->recipe->table->header,
+            header    => $self->recipe->table->src_header,
             table     => $self->recipe->table->name,
             tempfield => $self->recipe->table->tempfield,
             orderby   => $self->recipe->table->orderby,
@@ -141,7 +141,7 @@ has 'writer' => (
         my $self = shift;
         return App::Transfer::Writer->load({
             transfer => $self->transfer,
-            recipe   => $self->recipe,
+            header   => $self->recipe->table->dst_header,
             writer   => $self->recipe->destination->writer,
             options  => $self->writer_options,
         });
@@ -191,7 +191,7 @@ has '_trafo_types' => (
     },
     handles => {
         exists_in_type => 'exists',
-        get_type       => 'get',
+        apply_trafo    => 'get',
     },
 );
 
@@ -622,6 +622,10 @@ sub transfer_file2db {
 
     hurl run => __("No input records!") unless $rec_count;
 
+    ###
+    my $header_map = $self->reader->header_map;
+    use Data::Dump; dd $header_map;
+
     my $progress = Progress::Any->get_indicator(
         target => $rec_count,
     );
@@ -775,7 +779,19 @@ sub transfer_file2file {
 
     hurl run => __("No input records!") unless $rec_count;
 
+    use Data::Dump;
     my $dst_table_info = $self->recipe->table->columns;
+    # dd $dst_table_info;
+
+    ###
+    my $header_src = $self->recipe->table->src_header;
+    my $header_dst = $self->recipe->table->dst_header;
+    my $header_map = $self->recipe->table->header_map;
+    my $header_col = $self->recipe->table->columns;
+    dd $header_src;
+    dd $header_dst;
+    dd $header_map;
+    dd $header_col;
 
     # Header, sorted if the 'columns' section is available
     if ( $dst_table_info && ref($dst_table_info) eq 'HASH' ) {
@@ -858,7 +874,7 @@ sub record_trafos {
         my $type = $step->type;
         my $p    = {};
         if ( $type and $self->exists_in_type($type) ) {
-            $record = $self->get_type($type)->( $self, $step, $record, $logstr );
+            $record = $self->apply_trafo($type)->( $self, $step, $record, $logstr );
         }
         else {
             hurl trafo_type =>

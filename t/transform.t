@@ -30,14 +30,15 @@ subtest 'DB to DB transfer' => sub {
     my $trafo_params   = [ recipe_file => $recipe_file ];
 
     my $transfer = App::Transfer->new;
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
     ok my $trafo = App::Transfer::Transform->new(
         transfer       => $transfer,
         input_options  => $input_options,
         output_options => $output_options,
         @{$trafo_params},
-    ),
-        'new trafo instance';
-
+    ), 'new trafo instance';
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+    
     like(
         capture_stdout {
             dies { $trafo->job_info_input_file }
@@ -79,6 +80,7 @@ subtest 'DB to DB transfer' => sub {
     );
     # TODO: other subtest for this:
     # try_ok {$trafo->transfer_db2db} 'transfer file to file';
+    # header_map
 };
 
 subtest 'File2file transfer' => sub {
@@ -88,21 +90,24 @@ subtest 'File2file transfer' => sub {
     my $trafo_params   = [ recipe_file => $recipe_file ];
 
     my $transfer = App::Transfer->new;
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
     ok my $trafo = App::Transfer::Transform->new(
         transfer       => $transfer,
         input_options  => $input_options,
         output_options => $output_options,
         @{$trafo_params},
     ), 'new trafo instance';
-
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+    
     is $trafo->get_logfield_name, 'siruta', 'log field name';
 
+    my $merged;
     like(
-        capture_merged { $trafo->transfer_file2file },
+        $merged = capture_merged { $trafo->transfer_file2file },
         qr/$trans1/,
         'transfer file to file'
     );
-
+    diag $merged;
     # $trafo->type_join($step, $record, $logstr);
 
 };
