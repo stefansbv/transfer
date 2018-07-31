@@ -3,7 +3,7 @@ App/Transfer
 Ștefan Suciu
 2015-03-02
 
-WARNING: This is work in progres...
+WARNING: This is (still) work in progres...
 
 
 Description
@@ -12,8 +12,10 @@ Description
 Transfer is a CLI application written in Perl.
 
 The concept is simple, read a table data from a source, optionally
-make some transformation and transfer it to the destination table.
-Currently (for v0.18) the source can be a file in XLS or CSV format or
+make some transformation on each record and transfer the record to the
+destination.
+
+Currently XXX (v0.18) the source can be a file in XLS or CSV format or
 a database table.  The destination can be a database table.
 
 The required configurations for the transformations are hold in files
@@ -34,35 +36,39 @@ using the source table field names as keys.
 
 A headermap example:
 
-    <headermap>
-      Codjudeţ                = cod_jud
-      Denumirejudeț           = denj
-      FactorDeSortarePeJudețe = fsj
-      MNEMONIC                = mnemonic
-      ZONA                    = zona
-    </headermap>
+``` conf
+<headermap>
+  Codjudeţ                = cod_jud
+  Denumirejudeț           = denj
+  FactorDeSortarePeJudețe = fsj
+  MNEMONIC                = mnemonic
+  ZONA                    = zona
+</headermap>
+```
 
 A resulting data structure example:
 
-    [
-      {
-        cod_jud  => 1,
-        denj     => 'ALBA',
-        fsj      => 1,
-        mnemonic => 'AB',
-        zona     => '7',
-      },
-      ...
-      {
-        cod_jud  => 42,
-        denj     => 'GIURGIU',
-        fsj      => 19,
-        mnemonic => 'GR',
-        zona     => '3',
-      },
-    ]
+``` perl
+[
+  {
+    cod_jud  => 1,
+    denj     => 'ALBA',
+    fsj      => 1,
+    mnemonic => 'AB',
+    zona     => '7',
+  },
+  ...
+  {
+    cod_jud  => 42,
+    denj     => 'GIURGIU',
+    fsj      => 19,
+    mnemonic => 'GR',
+    zona     => '3',
+  },
+]
+```
 
-Note: This would be nice to be a lazy data structure...
+Note: This would be nice to be a lazy reading of the data structure...
 
 
 The Writers
@@ -92,14 +98,13 @@ separating the required data along with its header.
 
 ## The Header (recipe) Section ##
 
-```
-<recipe>
-  version               = 1
-  syntaxversion         = 1
-  name                  = Test recipe
-  description           = Does this and that...
-</recipe>
-```
+    <recipe>
+      version               = 1
+      syntaxversion         = 1
+      name                  = Test recipe
+      description           = Does this and that...
+    </recipe>
+
 
 ### The recipe attributes ###
 
@@ -115,20 +120,20 @@ table         :: The destination table name.
 An example for a complete file =to=> database transfer recipe config
 section:
 
-```
-<config>
-  <source>
-    reader        = excel
-    file          = siruta.xls
-  </source>
+    ``` conf
+    <config>
+      <source>
+        reader        = excel
+        file          = siruta.xls
+      </source>
 
-  <destination>
-    writer        = db
-    target        = siruta
-    table         = siruta
-  </destination>
-</config>
-```
+      <destination>
+        writer        = db
+        target        = siruta
+        table         = siruta
+      </destination>
+    </config>
+    ```
 
 The file, target and table attributes are optional in the recipe files
 but must be provided from the application configuration or from the
@@ -144,124 +149,119 @@ In the *App::Transfer* recipe file:
 
 The target configuration is like this:
 
-```
-<target siruta>
-  uri           = db:firebird://user:pass@localhost//home/fbdb/siruta.fdb
-</target>
-```
+    <target siruta>
+      uri           = db:firebird://user:pass@localhost//home/fbdb/siruta.fdb
+    </target>
+
 
 Alternatively, in the *App::Transfer* configuration files (transfer.conf):
 
-```
-[target "siruta"]
-        uri = db:firebird://user:pass@localhost//home/fbdb/siruta.fdb
-```
+    [target "siruta"]
+            uri = db:firebird://user:pass@localhost//home/fbdb/siruta.fdb
 
-## The Tables Section ##
+
+## The Table Section ##
 
 The main purpose of this section is to configure the mappings between
 the source and the destination fields.
 
 There is a specific and required configuration for the *xls* reader:
-worksheet.
+*worksheet*.
 
-
-```
-<tables>
-  worksheet             = Foaie1
-  <table siruta>
-    description         = SIRUTA
-    skiprows            = 1
-    logfield            = siruta
-    <headermap>
-       CodSIRUTA        = siruta
-       DenumireLocalitate = denloc
-       CodPostal        = codp
-       CodDeJudet       = jud
-       CodForTutelar(unitateaadminierarhicsuperioara) = sirsup
-       CodTipLocalitate = tip
-       CodNivel         = niv
-       CodMediu(1URBAN3RURAL) = med
-       FactorDeSortarePeJudete = fsj
-       FactorDeSortareInOrdineAlfabeticaALocalitatilor = fsl
-       Rang             = rang
-    </headermap>
-  </table>
-  <table judete>
-    ...
-  </table>
-</tables>
+``` conf
+<table siruta>
+  worksheet                  = Foaie1
+  logfield                   = siruta
+  <header>
+     CodSIRUTA               = siruta
+     DenumireLocalitate      = denloc
+     CodPostal               = codp
+     CodDeJudet              = jud
+     CodForTutelar           = sirsup
+     CodTipLocalitate        = tip
+     CodNivel                = niv
+     CodMediu                = med
+     FactorSortarePeJudete   = fsj
+     FactorDeSortareAlfaLoc  = fsl
+     Rang             = rang
+  </header>
+</table>
 ```
 
 Order by examples.
 
-{ orderby => ["colA", "colB"] }
-orderby   colA
-orderby   colB
+    ``` perl
+    { orderby => ["colA", "colB"] }
+    ```
 
-{ orderby => { -asc => "colA" } }
-<orderby>
-    -asc   colA
-</orderby>
+    ``` conf
+    orderby = colA
+    orderby = colB
+    ```
 
-{ orderby => { -desc => "colB" } }
-<orderby>
-    -desc   colB
-</orderby>
+    { orderby => { -asc => "colA" } }
 
-{ orderby => ["colA", { -asc => "colB" }] }
-orderby   colA
-<orderby>
-    -asc   colB
-</orderby>
+    <orderby>
+        -asc   colA
+    </orderby>
 
-{ orderby => { -asc => ["colA", "colB"] } }
-<orderby>
-    -asc   colA
-    -asc   colB
-</orderby>
+    { orderby => { -desc => "colB" } }
 
-{
-  orderby => [
-    { -asc => "colA" },
-    { -desc => "colB" },
-    { -asc => ["colC", "colD"] },
-  ],
-}
-<orderby>
-    -asc   colA
-</orderby>
-<orderby>
-    -desc   colB
-</orderby>
-<orderby>
-    -asc   colC
-    -asc   colD
-</orderby>
+    <orderby>
+        -desc   colB
+    </orderby>
+
+    { orderby => ["colA", { -asc => "colB" }] }
+
+    orderby   colA
+    <orderby>
+        -asc   colB
+    </orderby>
+
+    { orderby => { -asc => ["colA", "colB"] } }
+
+    <orderby>
+        -asc   colA
+        -asc   colB
+    </orderby>
+
+    {
+      orderby => [
+        { -asc => "colA" },
+        { -desc => "colB" },
+        { -asc => ["colC", "colD"] },
+      ],
+    }
+    <orderby>
+        -asc   colA
+    </orderby>
+    <orderby>
+        -desc   colB
+    </orderby>
+    <orderby>
+        -asc   colC
+        -asc   colD
+    </orderby>
 
 
-Plugins for column type can clean-up, transform and validate all
+The *column_type* plugins can clean-up, transform and validate all
 fields of the respective type.
 
+NOTE: This feature is for the DB writer and is work in progress to
+      implement it to the file writers.
 
 
+## Plugins ##
 
-*** Plugins
+``` conf
+<source>
+  reader              = csv
+  file                = lista-facturi-salubritate.csv
+  date_format         = dmy
+</source>
+```
 
-  <source>
-    reader              = csv
-    file                = lista-facturi-salubritate.csv
-    date_format         = dmy
-  </source>
-
-
-
-BUG!
-
-The table attribute is required for the destination config and must be
-the same name as one of tables->table section names, so the export to
-files feature does not really work!
+### TODO ###
 
 Test cases:
-
-- date field with other data in it (ex: UNDETERMINED)
+  - date field with other data in it (ex: UNDETERMINED)
