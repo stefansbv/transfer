@@ -31,7 +31,8 @@ subtest 'CSV OK' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
-    ok my $header = $recipe->table->header, 'get the recipe table header';
+    ok my $header = $recipe->table->src_header, 'get the recipe table header';
+
     my $tmpfld = $recipe->table->tempfield;
     ok my $reader = App::Transfer::Reader->load( {
         transfer  => $transfer,
@@ -43,17 +44,17 @@ subtest 'CSV OK' => sub {
     is $reader->input_file, 't/siruta.csv', 'csv file name';
 
     my $expecting_rec_15 = {
-        siruta => 13515,
-        denloc => "VALEA RUMÂNEŞTILOR",
-        codp   => 115101,
-        jud    => 3,
-        sirsup => 13490,
-        tip    => 10,
-        niv    => 3,
-        med    => 1,
-        fsj    => 3,
-        fsl    => 321696512951,
-        rang   => "V",
+        SIRUTA => 13515,
+        DENLOC => "VALEA RUMÂNEŞTILOR",
+        CODP   => 115101,
+        JUD    => 3,
+        SIRSUP => 13490,
+        TIP    => 10,
+        NIV    => 3,
+        MED    => 1,
+        FSJ    => 3,
+        FSL    => 321696512951,
+        RANG   => "V",
     };
 
     ok my $aoh = $reader->_contents, 'get contents';
@@ -88,7 +89,7 @@ subtest 'CSV with lc header' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
-    ok my $header = $recipe->table->header, 'get the recipe table header';
+    ok my $header = $recipe->table->src_header, 'get the recipe table header';
     my $tmpfld = $recipe->table->tempfield;
     ok my $reader = App::Transfer::Reader->load( {
         transfer  => $transfer,

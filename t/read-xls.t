@@ -34,7 +34,7 @@ subtest 'Read the SIRUTA table' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
-    ok my $header = $recipe->table->header, 'get the recipe table header';
+    ok my $header = $recipe->table->src_header, 'get the recipe table header';
     my $tempfield = $recipe->table->tempfield;
     my $rectangle = $recipe->table->rectangle;
     ok my $reader = App::Transfer::Reader->load({
@@ -97,7 +97,7 @@ subtest 'Missing rectangle attribute' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
-    ok my $header = $recipe->table->header, 'get the recipe table header';
+    ok my $header = $recipe->table->src_header, 'get the recipe table header';
     my $tempfield = $recipe->table->tempfield;
     my $rectangle = $recipe->table->rectangle;
     throws_ok {

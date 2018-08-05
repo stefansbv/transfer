@@ -51,11 +51,11 @@ has _contents => (
 );
 
 sub _build_contents {
-    my $self = shift;
-    my $doc  = $self->doc;
+    my $self   = shift;
+    my $doc    = $self->doc;
     my $header = $self->header;
-    my $temp   = $self->tempfield;
-    my $table = $doc->get_body->get_table;
+    my $table  = $doc->get_body->get_table;
+
     my ( $h, $w ) = $table->get_size;
     my $row = $table->get_row(0);
 
@@ -72,13 +72,12 @@ sub _build_contents {
     }
 
     # Add the temporary fields to the record
-    foreach my $field ( @{$temp} ) {
-        $header->{$field} = $field;
-    }
+    my $temp = $self->tempfield;
+    push @{$header}, @{$temp} if ref $temp eq 'ARRAY';
 
     # Validate field list
     my @not_found = ();
-    foreach my $col ( keys % {$header} ) {
+    foreach my $col ( @{$header} ) {
         unless ( any { $col eq $_ } @cols ) {
             push @not_found, $col;
         }
@@ -88,7 +87,7 @@ sub _build_contents {
         list  => join( ', ', @not_found ),
     ) if scalar @not_found;
 
-    my @records;
+    my @aoh;
 
   ROW:
     for ( my $i = 1; $i < $h; $i++ ) {
@@ -96,20 +95,20 @@ sub _build_contents {
         my $record = {};
       CELL:
         for ( my $j = 0; $j < $w; $j++ ) {
-            my $col  = $cols[$j];
+            #my $col  = $cols[$j];
             my $cell = $row->get_cell($j) or last CELL;
             my $text = $cell->get_text;
-            if ( my $field = $header->{$col} ) {
+            if ( my $field = $header->[$j] ) {
                 $record->{$field} = $text;
             }
         }
         if (any { defined($_) } values %{$record}) { 
-            push @records, $record;
+            push @aoh, $record;
             $self->inc_count;
         }
     }
 
-    return \@records;
+    return \@aoh;
 }
 
 has 'contents_iter' => (

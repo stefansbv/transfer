@@ -61,24 +61,14 @@ sub _build_contents {
     my $orderby = $self->orderby;
     my $header  = $self->header;
     my $temp    = $self->tempfield;
-
+    my $fields  = $self->validate_header_fields($table);
+    
     # Add the temporary fields to the record
-    foreach my $field ( @{$temp} ) {
-        $header->{$field} = $field;
-    }
+    push @{$header}, @{$temp} if ref $temp eq 'ARRAY';
 
-    my $fields  = $self->get_fields($table);
-    my $ah_ref  = $engine->records_aoh( $table, $fields, $where, $orderby );
-    my @records;
-    foreach my $row ( @{$ah_ref} ) {
-        my $record = {};
-        foreach my $col ( @{$fields} ) {
-            $record->{ $header->{$col} } = $row->{$col};
-        }
-        push @records, $record;
-        $self->inc_count;
-    }
-    return \@records;
+    my $ah_ref = $engine->records_aoh( $table, $fields, $where, $orderby );
+    $self->record_count( scalar @{$ah_ref} );
+    return $ah_ref;
 }
 
 sub get_fields {
@@ -92,37 +82,28 @@ sub get_fields {
     } unless $engine->table_exists($table);
 
     # The fields from the table ordered by 'pos'
-    my $table_fields = $engine->get_columns($table);
+    my $fields = $engine->get_columns($table);
 
-    # The fields from the header map
-    my $recipe_table = $self->table;
-    hurl {
-        ident   => 'reader',
-        exitval => 1,
-        message => __x(
-            "Table '{table}' has no header-map in the recipe",
-            table => $table ),
-    } unless $recipe_table;
+    return $fields;
+}
+
+sub validate_header_fields {
+    my ($self, $table) = @_;
     my $header = $self->header;
-    my @header_fields
-        = ( ref $header eq 'HASH' )
-        ? keys %{$header}
-        : @{$header};
-
-    my $lc = List::Compare->new( $table_fields, \@header_fields );
-    my @fields    = $lc->get_intersection;
+    my $fields = $self->get_fields($table);
+    my $lc        = List::Compare->new( $fields, $header );
+    my @fields_cm = $lc->get_intersection;
     my $not_found = join ' ', $lc->get_complement;
     hurl {
         ident   => 'reader',
         exitval => 1,
         message => __x(
-            "Columns from the map file not found in the '{table}' table: '{list}'",
+            "Columns from the header not found in the '{table}' table: '{list}'",
             list  => $not_found,
             table => $table,
         ),
-        } if $not_found;
-
-    return \@fields;
+    } if $not_found;
+    return \@fields_cm;
 }
 
 has 'contents_iter' => (

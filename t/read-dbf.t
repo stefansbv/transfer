@@ -31,7 +31,7 @@ subtest 'DBF OK' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
-    ok my $header = $recipe->table->header, 'get the recipe table header';
+    ok my $header = $recipe->table->src_header, 'get the recipe table header';
     my $tmpfld = $recipe->table->tempfield;
     ok my $reader = App::Transfer::Reader->load( {
         transfer => $transfer,
@@ -88,7 +88,7 @@ subtest 'DBF unknown fields' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
-    ok my $header = $recipe->table->header, 'get the recipe table header';
+    ok my $header = $recipe->table->src_header, 'get the recipe table header';
     my $tmpfld = $recipe->table->tempfield;
     ok my $reader = App::Transfer::Reader->load( {
         transfer => $transfer,

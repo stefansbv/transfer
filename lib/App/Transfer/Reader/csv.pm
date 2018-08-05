@@ -55,9 +55,8 @@ sub _build_contents {
         or die "Error opening CSV: $!";
 
     my $header = $self->header;
-    my @header_cols = keys %{$header};
     hurl field_info => __('[EE] Empty header in the recipe file?')
-        if scalar @header_cols == 0;
+        if scalar @{$header} == 0;
 
     my @csv_cols = @{ $csv->getline($fh) };
     my $row = {};
@@ -74,7 +73,7 @@ sub _build_contents {
         say "# CSV header: \n# ", join ', ', @csv_cols if $self->debug;
     }
     my @not_found = ();
-    foreach my $col ( @header_cols ) {
+    foreach my $col ( @{$header} ) {
         unless ( any { $col eq $_ } @csv_cols ) {
             push @not_found, $col;
         }
@@ -87,25 +86,16 @@ sub _build_contents {
 
     # Add the temporary fields to the record
     my $temp = $self->tempfield;
-    foreach my $field ( @{$temp} ) {
-        $header->{$field} = $field;
-    }
-    @header_cols = keys %{$header};
+    push @{$header}, @{$temp} if ref $temp eq 'ARRAY';
 
-    say "# Header: \n# ", join ', ', @header_cols if $self->debug;
+    say "# Header: \n# ", join ', ', @{$header} if $self->debug;
     
     # Get the data
-    my @records;
+    my @aoh;
   REC:
     while ( $csv->getline($fh) ) {
-        my $record = {};
-        foreach my $col (@csv_cols) {
-            if ( my $field = $header->{$col} ) {
-                $record->{$field} = $row->{$col};
-            }
-        }
-        if (any { defined($_) } values %{$record}) { 
-            push @records, $record;
+        if (any { defined($_) } values %{$row}) { 
+            push @aoh, $row;
             $self->inc_count;
         }
         else {
@@ -113,8 +103,7 @@ sub _build_contents {
         }
     }
     close $fh;
-
-    return \@records;
+    return \@aoh;
 }
 
 has 'contents_iter' => (

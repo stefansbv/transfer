@@ -51,18 +51,15 @@ sub _build_contents {
     my $dbf  = $self->dbf;
     my @cols = $dbf->field_names; # field_types, field_lengths, field_decimals
     my $header = $self->header;
-    my $temp   = $self->tempfield;
 
     # Add the temporary fields to the record
-    foreach my $field ( @{$temp} ) {
-        $header->{$field} = $field;
-    }
-
-    my @select_cols = keys %{$header};
+    # Add the temporary fields to the record
+    my $temp = $self->tempfield;
+    push @{$header}, @{$temp} if ref $temp eq 'ARRAY';
 
     # Validate field list
     my @not_found = ();
-    foreach my $col (@select_cols) {
+    foreach my $col ( @{$header} ) {
         unless ( any { $col eq $_ } @cols ) {
             push @not_found, $col;
         }
@@ -73,13 +70,13 @@ sub _build_contents {
     ) if scalar @not_found;
 
     # Get the data
-    my @records;
-    my $cursor = $dbf->prepare_select(@select_cols);
+    my @aoh;
+    my $cursor = $dbf->prepare_select(@{$header});
     while (my $rec = $cursor->fetch_hashref) {
-        push @records, $rec;
+        push @aoh, $rec;
         $self->inc_count;
     }
-    return \@records;
+    return \@aoh;
 }
 
 has 'contents_iter' => (

@@ -28,7 +28,8 @@ subtest 'ODT OK' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
-    ok my $header = $recipe->table->header, 'get the recipe table header';
+    ok my $header = $recipe->table->src_header, 'get the recipe table header';
+    use Data::Dump; dd $header;
     my $tmpfld = $recipe->table->tempfield;
     ok my $reader = App::Transfer::Reader->load( {
         transfer  => $transfer,
@@ -43,11 +44,11 @@ subtest 'ODT OK' => sub {
     is $recipe->table->name, 'judete', 'table name';
 
     my $expecting_rec_41 = {
-        cod_jud  => 42,
-        denj     => "GIURGIU",
-        fsj      => 19,
-        mnemonic => "GR",
-        zona     => 3
+        codjudet        => 42,
+        denumirejudet   => "GIURGIU",
+        factordesortare => 19,
+        mnemonic        => "GR",
+        zona            => 3
     };
 
     ok my $aoh = $reader->_contents, 'get contents';
@@ -82,7 +83,7 @@ subtest 'ODT unknown fields' => sub {
         options  => $options_href,
         rw_type  => 'reader',
     );
-    ok my $header = $recipe->table->header, 'get the recipe table header';
+    ok my $header = $recipe->table->src_header, 'get the recipe table header';
     my $tmpfld = $recipe->table->tempfield;
     ok my $reader = App::Transfer::Reader->load( {
         transfer => $transfer,

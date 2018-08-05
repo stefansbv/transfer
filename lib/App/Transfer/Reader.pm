@@ -25,7 +25,7 @@ has transfer => (
 
 has 'header' => (
     is       => 'ro',
-    isa      => 'HashRef|ArrayRef',
+    isa      => 'ArrayRef',
     required => 1,
 );
 
@@ -43,7 +43,7 @@ has 'options' => (
 
 has 'record_count' => (
     traits        => ['Counter'],
-    is            => 'ro',
+    is            => 'rw',
     isa           => 'Int',
     default       => 0,
     handles       => {
