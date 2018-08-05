@@ -73,7 +73,7 @@ sub _build_contents {
 
     # Add the temporary fields to the record
     my $temp = $self->tempfield;
-    push @{$header}, @{$temp} if ref $temp eq 'ARRAY';
+    push @cols, @{$temp} if ref $temp eq 'ARRAY';
 
     # Validate field list
     my @not_found = ();
@@ -89,18 +89,18 @@ sub _build_contents {
 
     my @aoh;
 
+    # It returns the field names from the table header ( from @cols ),
+    # should $header be used?
   ROW:
     for ( my $i = 1; $i < $h; $i++ ) {
         my $row = $table->get_row($i) or last ROW;
         my $record = {};
       CELL:
         for ( my $j = 0; $j < $w; $j++ ) {
-            #my $col  = $cols[$j];
-            my $cell = $row->get_cell($j) or last CELL;
-            my $text = $cell->get_text;
-            if ( my $field = $header->[$j] ) {
-                $record->{$field} = $text;
-            }
+            my $field = $cols[$j];
+            my $cell  = $row->get_cell($j) or last CELL;
+            my $text  = $cell->get_text;
+            $record->{$field} = $text;
         }
         if (any { defined($_) } values %{$record}) { 
             push @aoh, $record;

@@ -35,7 +35,7 @@ subtest 'CSV OK' => sub {
         rw_type  => 'writer',
     ), 'new options instance';
     isa_ok $options, 'App::Transfer::Options', 'options';
-    ok my $header = $recipe->table->header, 'get the recipe table header';
+    ok my $header = $recipe->table->dst_header, 'get the recipe table header';
     ok my $writer = App::Transfer::Writer->load( {
         transfer => $transfer,
         header   => $header,
