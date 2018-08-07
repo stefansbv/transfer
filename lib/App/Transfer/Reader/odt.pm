@@ -15,6 +15,15 @@ use Lingua::Translit 0.23; # for "Common RON" table
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
+# Fix for: Unknown method DESTROY
+# from https://rt.cpan.org/Public/Bug/Display.html?id=97977
+{
+    package
+        ODF::lpOD::Element;
+    no warnings 'once';
+    *DESTROY = sub {} unless defined &DESTROY;
+}
+
 extends 'App::Transfer::Reader';
 
 has 'input_file' => (
