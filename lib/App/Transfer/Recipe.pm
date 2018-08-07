@@ -123,6 +123,10 @@ has 'table' => (
             @{ $meta->{dst_header} } = values %{$header};
             $meta->{header_map} = $header;
         }
+        if ( exists $meta->{columns}{name} ) {
+            my $cols = delete $meta->{columns}{name};
+            $meta->{columns} = $cols;
+        }
         return App::Transfer::Recipe::Table->new(
             %{$meta},
         );
@@ -152,7 +156,7 @@ sub is_deprecated_table_config {
     my @kys = keys %{$kv};
     my $cnt = scalar @kys;
     if ( $cnt == 1) {
-        warn "Deprecated table name (@kys) in config";
+        warn "Deprecated name attribute (@kys) for the table section in the recipe\n";
         return $kys[0];
     }
     else {

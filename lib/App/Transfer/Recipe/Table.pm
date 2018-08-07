@@ -49,8 +49,7 @@ sub _build_filter {
 
 has 'columns' => (
     is       => 'ro',
-    isa      => 'HashRef',
-    default  => sub { {} },
+    isa      => 'HashRef|ArrayRef',
 );
 
 has 'src_header' => (

@@ -236,7 +236,7 @@ subtest 'Table section minimum config' => sub {
     is $recipe->table->header_map, $header_href, 'header map';
 };
 
-subtest 'Table section maximum config' => sub {
+subtest 'Table section maximum config - columns info' => sub {
     my $recipe_file = path(qw(t recipes table recipe-1.conf));
     ok my $recipe
         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
@@ -312,6 +312,29 @@ subtest 'Table section complex orderby config' => sub {
     is $recipe->table->src_header, $header_aref, 'source header';
     is $recipe->table->dst_header, $header_aref, 'destination header';
     is $recipe->table->header_map, $header_href, 'header map';
+};
+
+subtest 'Table section - columns array' => sub {
+    my $recipe_file = path(qw(t recipes table recipe-4.conf));
+    ok my $recipe
+        = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
+        ), 'new recipe instance';
+
+    ok $recipe->table->logfield, 'log field name';
+    is $recipe->table->orderby, [qw(id denumire)], 'table orderby';
+    my $expected = {
+        status => { "!" => "= completed", "-not_like" => "pending%" },
+        user   => undef,
+    };
+    is $recipe->table->filter, $expected, 'table filter';
+    is $recipe->table->tempfield, [ 'seria', 'factura' ], 'tempfields';
+
+    is $recipe->table->src_header, $bag1, 'source header';
+    is $recipe->table->dst_header, $bag1, 'destination header';
+    is $recipe->table->header_map, $header_href, 'header map';
+
+    ok my $cols = $recipe->table->columns, 'get columns list';
+    is $cols, $header_aref, 'columns list';
 };
 
 #-- Transform section
