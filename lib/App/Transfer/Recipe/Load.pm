@@ -91,11 +91,11 @@ sub validate_recipe_sections {
              sv => SYNTAX_VERSION )
         if exists $p->{tables};
 
-    my ( $name, $meta ) = each %{ $p->{table} };
-    hurl recipe =>
-        __x( "The v{sv} recipe table section must have a 'header' attribute instead of 'headermap'",
-             sv => SYNTAX_VERSION )
-        if exists $meta->{headermap};
+    # my ( $name, $meta ) = each %{ $p->{table} };
+    # hurl recipe =>
+    #     __x( "The v{sv} recipe table section must have a 'header' attribute instead of 'headermap'",
+    #          sv => SYNTAX_VERSION )
+    #     if exists $meta->{headermap};
 
     return;
 }

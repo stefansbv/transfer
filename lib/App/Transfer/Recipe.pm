@@ -4,6 +4,7 @@ package App::Transfer::Recipe;
 
 use 5.010001;
 use Moose;
+use List::Util qw(any);
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
@@ -102,32 +103,67 @@ has 'table' => (
     lazy    => 1,
     default => sub {
         my $self = shift;
-        my %kv  = %{ $self->recipe_data->{table} };
-        my $cnt = scalar keys %kv;
-        hurl recipe => __x( "Expecting a table not '{cnt}'!", cnt => $cnt )
-            if $cnt > 1;
-        my ( $name, $meta ) = each %kv;
-        if ( $name and ref $meta ) {
-            if ( exists $meta->{header}{field} ) {
-                my $header = delete $meta->{header}{field};
-                $meta->{src_header} = $header;
-                $meta->{dst_header} = $header;
-                $meta->{header_map} = { map { $_ => $_ } @{$header} };
-            }
-            else {
-                my $header = delete $meta->{header};
-                @{ $meta->{src_header} } = keys   %{$header};
-                @{ $meta->{dst_header} } = values %{$header};
-                $meta->{header_map} = $header;
-            }
-            # use Data::Printer; p $meta;
-            return App::Transfer::Recipe::Table->new(
-                name => $name,
-                %{$meta},
-            );
+        my $meta;
+        my %kv = %{ $self->recipe_data->{table} };
+        if ( my $name = $self->is_deprecated_table_config( \%kv ) ) {
+            $meta = $kv{$name};
         }
+        else {
+            $meta = \%kv;
+        }
+        if ( exists $meta->{header}{field} ) {
+            my $header = delete $meta->{header}{field};
+            $meta->{src_header} = $header;
+            $meta->{dst_header} = $header;
+            $meta->{header_map} = { map { $_ => $_ } @{$header} };
+        }
+        else {
+            my $header = delete $meta->{header};
+            @{ $meta->{src_header} } = keys   %{$header};
+            @{ $meta->{dst_header} } = values %{$header};
+            $meta->{header_map} = $header;
+        }
+        return App::Transfer::Recipe::Table->new(
+            %{$meta},
+        );
     },
 );
+
+has 'key_list' => (
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    default  => sub {
+        return [
+            qw{
+                columns
+                header
+                filter
+                orderby
+                tempfield
+                logfield
+                rectangle
+                }
+        ];
+    },
+);
+
+sub is_deprecated_table_config {
+    my ($self, $kv) = @_;
+    my @kys = keys %{$kv};
+    my $cnt = scalar @kys;
+    if ( $cnt == 1) {
+        warn "Deprecated table name (@kys) in config";
+        return $kys[0];
+    }
+    else {
+        foreach my $name (@kys) {
+            if ( any { $_ eq $name } @{$self->key_list} ) {
+                return;                      # found an attribute name
+            }
+        }
+        hurl recipe => __x( "Expecting a table not '{cnt}'!", cnt => $cnt );
+    }
+}
 
 #-- Transformations
 

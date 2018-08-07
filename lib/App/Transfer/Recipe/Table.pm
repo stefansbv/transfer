@@ -10,12 +10,6 @@ use namespace::autoclean;
 
 has 'logfield' => ( is => 'ro', isa => 'Str' );
 
-has 'name' => (
-    is       => 'ro',
-    isa      => 'Str',
-    required => 1,
-);
-
 has 'rectangle' => (
     is     => 'ro',
     isa    => 'CoordsArrayFromStr',

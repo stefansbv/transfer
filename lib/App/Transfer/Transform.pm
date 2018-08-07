@@ -122,7 +122,7 @@ has 'reader' => (
         return App::Transfer::Reader->load({
             transfer  => $self->transfer,
             header    => $self->recipe->table->src_header,
-            table     => $self->recipe->table->name,
+            table     => $self->recipe->source->table,
             tempfield => $self->recipe->table->tempfield,
             orderby   => $self->recipe->table->orderby,
             filter    => $self->recipe->table->filter,

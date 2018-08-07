@@ -41,8 +41,6 @@ subtest 'ODT OK' => sub {
     is $reader->input_file, 't/judete.odt',        'odt file name';
     isa_ok $reader->doc,    'ODF::lpOD::Document', 'doc';
 
-    is $recipe->table->name, 'judete', 'table name';
-
     my $expecting_rec_41 = {
         codjudet        => 42,
         denumirejudet   => "GIURGIU",
@@ -94,8 +92,6 @@ subtest 'ODT unknown fields' => sub {
     } ), 'new reader odt object';
     is $reader->input_file, 't/judete.odt',        'odt file name';
     isa_ok $reader->doc,    'ODF::lpOD::Document', 'doc';
-
-    is $recipe->table->name, 'judete', 'table name';
 
     throws_ok { $reader->contents_iter }
         qr/\QHeader map <--> ODT file header inconsistency/,
