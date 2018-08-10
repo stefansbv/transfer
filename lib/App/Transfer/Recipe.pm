@@ -97,25 +97,53 @@ has 'target' => (
 
 #-- Table
 
+has 'recipe_data_table' => (
+    is        => 'ro',
+    isa       => 'HashRef',
+    lazy      => 1,
+    default   => sub {
+        my $self = shift;
+        my %kv = %{ $self->recipe_data->{table} };
+        if ( my $name = $self->is_deprecated_table_config( \%kv ) ) {
+            return $kv{$name};
+        }
+        else {
+            return \%kv;
+        }
+    },
+);
+
+has '_field_list' => (
+    is      => 'ro',
+    traits  => ['Array'],
+    isa     => 'ArrayRef',
+    lazy    => 1,
+    default   => sub {
+        my $self = shift;
+        my $meta = $self->recipe_data_table;
+        if ( exists $meta->{header}{field} ) {
+            return $meta->{header}{field};
+        }
+        return [];
+    },
+    handles => {
+        has_field_list => 'count',
+        field_list     => 'elements',
+    },
+);
+
 has 'table' => (
     is      => 'ro',
     isa     => 'App::Transfer::Recipe::Table',
     lazy    => 1,
     default => sub {
         my $self = shift;
-        my $meta;
-        my %kv = %{ $self->recipe_data->{table} };
-        if ( my $name = $self->is_deprecated_table_config( \%kv ) ) {
-            $meta = $kv{$name};
-        }
-        else {
-            $meta = \%kv;
-        }
-        if ( exists $meta->{header}{field} ) {
-            my $header = delete $meta->{header}{field};
-            $meta->{src_header} = $header;
-            $meta->{dst_header} = $header;
-            $meta->{header_map} = { map { $_ => $_ } @{$header} };
+        my $meta = $self->recipe_data_table;
+        if ( $self->has_field_list ) {
+            my @header = $self->field_list;
+            $meta->{src_header} = \@header;
+            $meta->{dst_header} = \@header;
+            $meta->{header_map} = { map { $_ => $_ } @header };
         }
         else {
             my $header = delete $meta->{header};

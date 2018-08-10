@@ -150,6 +150,12 @@ subtest 'Recipe - minimum' => sub {
     is $table->dst_header, $fields, 'destination header';
     my %h_map = map { $_ => $_ } @{$fields};
     is $table->header_map, \%h_map, 'header map';
+
+    # Helper
+    is $recipe->key_list->[0], 'columns', 'recipe tabel key list';
+    is $recipe->has_field_list, T(), 'has field list';
+    ok my @field_list = $recipe->field_list, 'get the field list';
+    is \@field_list, $fields, 'the field list';
 };
 
 #-- Config section
@@ -234,6 +240,11 @@ subtest 'Table section minimum config' => sub {
     is $recipe->table->src_header, $header_aref, 'source header';
     is $recipe->table->dst_header, $header_aref, 'destination header';
     is $recipe->table->header_map, $header_href, 'header map';
+
+    # Helper
+    is $recipe->has_field_list, T(), 'has field list';
+    ok my @field_list = $recipe->field_list, 'get the field list';
+    is \@field_list, $header_aref, 'the field list';
 };
 
 subtest 'Table section maximum config - columns info' => sub {
@@ -276,6 +287,9 @@ subtest 'Table section maximum config - columns info' => sub {
     };
     ok my $cols = $recipe->table->columns, 'get columns list';
     is $cols, $info, 'columns info';
+
+    # Helper
+    is $recipe->has_field_list, F(), 'has field list';
 };
 
 subtest 'Table section medium config' => sub {
@@ -292,6 +306,11 @@ subtest 'Table section medium config' => sub {
     is $recipe->table->src_header, $header_aref, 'source header';
     is $recipe->table->dst_header, $header_aref, 'destination header';
     is $recipe->table->header_map, $header_href, 'header map';
+
+    # Helper
+    is $recipe->has_field_list, T(), 'has field list';
+    ok my @field_list = $recipe->field_list, 'get the field list';
+    is \@field_list, $header_aref, 'the field list';
 };
 
 subtest 'Table section complex orderby config' => sub {
@@ -312,6 +331,11 @@ subtest 'Table section complex orderby config' => sub {
     is $recipe->table->src_header, $header_aref, 'source header';
     is $recipe->table->dst_header, $header_aref, 'destination header';
     is $recipe->table->header_map, $header_href, 'header map';
+
+    # Helper
+    is $recipe->has_field_list, T(), 'has field list';
+    ok my @field_list = $recipe->field_list, 'get the field list';
+    is \@field_list, $header_aref, 'the field list';
 };
 
 subtest 'Table section - columns array' => sub {
@@ -335,6 +359,9 @@ subtest 'Table section - columns array' => sub {
 
     ok my $cols = $recipe->table->columns, 'get columns list';
     is $cols, $header_aref, 'columns list';
+
+    # Helper
+    is $recipe->has_field_list, F(), 'has field list';
 };
 
 #-- Transform section
