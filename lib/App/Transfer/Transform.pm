@@ -20,6 +20,8 @@ use App::Transfer::Reader;
 use App::Transfer::Writer;
 use App::Transfer::Plugin;
 
+use Data::Dump qw/dump/;
+
 with qw(App::Transfer::Role::Utils
         MooX::Log::Any);
 
@@ -185,6 +187,7 @@ has 'src_header' => (
     },
 );
 
+
 has 'dst_header' => (
     is       => 'ro',
     isa      => 'ArrayRef',
@@ -192,6 +195,35 @@ has 'dst_header' => (
     default => sub {
         my $self = shift;
         return $self->recipe->table->dst_header;
+    },
+);
+
+has 'header_lc' => (
+    is      => 'ro',
+    isa     => 'List::Compare',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        return List::Compare->new( $self->src_header, $self->dst_header );
+    },
+);
+
+# - is header-map from array?  ( $self->recipe->has_field_list; )
+#   - yes -> all the same fields
+#   - no  -> if header-map is from hash, are the fields all the same?
+#
+# - does the recipe table columns match the destination field names?
+# $self->header_lc->is_LequivalentR
+has 'has_common_headers' => (
+    is      => 'ro',
+    isa     => 'Bool',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        if ( $self->recipe->has_field_list ) {
+            return 1;
+        }
+        return $self->header_lc->is_LequivalentR;
     },
 );
 
@@ -218,7 +250,10 @@ has '_columns_info' => (
     lazy    => 1,
     default => sub {
         my $self = shift;
-        return $self->recipe->table->columns;
+        my $cols = $self->recipe->table->columns;
+        say "Recipe columns:";
+        dump $cols;
+        return $cols;
     },
     handles => {
         has_no_columns_info => 'is_empty',
@@ -283,7 +318,7 @@ sub type_split {
     foreach my $value (@values) {
         my $field = ${ $step->field_dst }[$i];
         $record->{$field} = $value;
-        $i++
+        $i++;
     }
 
     return $record;
@@ -643,207 +678,64 @@ sub job_summary {
 sub job_transfer {
     my $self = shift;
 
-    my $in_type  = $self->recipe->in_type;
-    my $out_type = $self->recipe->out_type;
+    my $src_type  = $self->recipe->in_type;
+    my $dst_type = $self->recipe->out_type;
 
-    # Change input/output type from CLI options
-    $in_type  = 'file' if $self->input_options->{input_file};
-    $out_type = 'file' if $self->output_options->{output_file};
+    say "$src_type -> $dst_type";
 
-    my $io_type = $self->io_trafo_type($in_type, $out_type);
-    my $meth    = "transfer_$io_type";
-    if ( $self->can($meth) ) {
-        $self->$meth;                        # execute the transfer
+    # validations...
+
+    my $meth_src = "transfer_src_$src_type";
+    my $iter;
+    if ( $self->can($meth_src) ) {
+        $iter = $self->$meth_src;                       # read the source
     }
     else {
-        hurl run => __x( "\nUnimplemented reader-writer combo: '{type}'!",
-            type => $io_type );
+        hurl run =>
+            __x( "\nUnimplemented reader: '{type}'!", type => $src_type );
     }
-    return;
-}
 
-sub transfer_file2db {
-    my $self = shift;
-
-    my $table  = $self->recipe->destination->table;
-    my $engine = $self->writer->target->engine;
-
-    hurl run => __x( "The table '{table}' does not exists or is not readable!", table => $table )
-        unless $engine->table_exists($table);
-
-    my $table_info = $engine->get_info($table);
-    hurl run => __ 'No columns type info retrieved from database!'
-        if keys %{$table_info} == 0;
-
-    $self->job_info_input_file;
-    $self->job_info_output_db($table, $engine->database);
-
-    $self->validate_destination;
-
-    hurl run => __x("No input file specified; use '--if' or set the source file in the recipe.") unless $self->reader_options->file;
-
-    hurl run => __x("Invalid input file specified; use '--if' or fix the source file in the recipe.") unless -f $self->reader_options->file->stringify;
-
-    my $logfld = $self->get_logfield_name($table_info);
-
-    my $iter      = $self->reader->contents_iter; # call before record_count
-    my $row_count = 0;
-    my $rec_count = $self->reader->record_count;
-
-    $self->job_info_work($rec_count);
-
-    hurl run => __("No input records!") unless $rec_count;
-
-    ###
-    # my $header_map = $self->reader->header_map;
-    # use Data::Dump; dd $header_map;
-
-    my $progress = Progress::Any->get_indicator(
-        target => $rec_count,
-    );
-    while ( $iter->has_next ) {
-        $row_count++;
-        my $record = $iter->next;
-        $record    = $self->transformations($record, $table_info, $logfld);
-        $self->writer->insert($table, $record);
-        $progress->update( message => "Record $row_count|" );
-
-        #last;                                # DEBUG
-    }
-    $progress->finish;
-
-    return;
-}
-
-sub transfer_db2db {
-    my $self = shift;
-
-    my $src_table  = $self->recipe->source->table;
-    my $dst_table  = $self->recipe->destination->table;
-    my $src_engine = $self->reader->target->engine;
-    my $dst_engine = $self->writer->target->engine;
-    my $src_db     = $src_engine->database;
-    my $dst_db     = $dst_engine->database;
-
-    $self->job_info_input_db($src_table, $src_db);
-    $self->job_info_output_db($dst_table, $dst_db);
-
-    hurl run => __x( "The source table '{table}' does not exists!",
-        table => $src_table )
-        unless $src_engine->table_exists($src_table);
-    hurl run => __x( "The destination table '{table}' does not exists!",
-        table => $dst_table )
-        unless $dst_engine->table_exists($dst_table);
-
-    $self->validate_destination;
-
-    # XXX Have to also check the host
-    hurl run =>
-        __( 'The source and the destination tables must be different!' )
-        if ( $src_table eq $dst_table ) and ( $src_db eq $dst_db );
-
-    my $table_info = $dst_engine->get_info($dst_table);
-    hurl run => __( 'No columns type info retrieved from database!' )
-        if keys %{$table_info} == 0;
-
-    my $logfld = $self->get_logfield_name($table_info);
-
-    my $iter      = $self->reader->contents_iter; # call before record_count
-    my $row_count = 0;
-    my $rec_count = $self->reader->record_count;
-
-    $self->job_info_work($rec_count);
-
-    hurl run => __("No input records!") unless $rec_count;
-
-    my $progress = Progress::Any->get_indicator(
-        target => $rec_count,
-    );
-    while ( $iter->has_next ) {
-        $row_count++;
-        my $record = $iter->next;
-        $record    = $self->transformations($record, $table_info, $logfld);
-        $self->writer->insert($dst_table, $record);
-        $progress->update( message => "Record $row_count|" );
-
-        #last;                   # DEBUG
-    }
-    $progress->finish;
-
-    return;
-}
-
-sub transfer_db2file {
-    my $self = shift;
-
-    my $src_table  = $self->recipe->source->table;
-    my $src_engine = $self->reader->target->engine;
-    my $src_db     = $src_engine->database;
-
-    $self->job_info_input_db($src_table, $src_db);
-    $self->job_info_output_file;
-
-    hurl run => __x( "The source table '{table}' does not exists!",
-        table => $src_table )
-        unless $src_engine->table_exists($src_table);
-
-    my $src_table_info = $src_engine->get_info($src_table);
-    my $dst_table_info = $self->recipe->table->columns;
-
-    hurl run => __( 'No columns type info retrieved from database!' )
-        if keys %{$src_table_info} == 0;
-
-    my $logfld = $self->get_logfield_name($src_table_info);
-
-    my $iter      = $self->reader->contents_iter; # call before record_count
-    my $row_count = 0;
-    my $rec_count = $self->reader->record_count;
-
-    $self->job_info_work($rec_count);
-
-    hurl run => __("No input records!") unless $rec_count;
-
-    # Header, sorted if the 'columns' section is available
-    if ( $dst_table_info && ref($dst_table_info) eq 'HASH' ) {
-        my @header_fields = $self->sort_hash_by_pos($dst_table_info);
-        $self->writer->insert_header( \@header_fields );
+    my $meth_dst = "transfer_dst_$dst_type";
+    if ( $self->can($meth_dst) ) {
+        $self->$meth_dst($iter);        # write to the destination source
     }
     else {
-        $self->writer->insert_header;
+        hurl run =>
+            __x( "\nUnimplemented writer: '{type}'!", type => $dst_type );
     }
-
-    my $progress = Progress::Any->get_indicator(
-        target => $rec_count,
-    );
-    while ( $iter->has_next ) {
-        $row_count++;
-        my $record = $iter->next;
-        $record    = $self->transformations($record, $dst_table_info, $logfld);
-        $self->writer->insert(undef, $record);
-        $progress->update( message => "Record $row_count|" );
-
-        #last;                   # DEBUG
-    }
-    $progress->finish;
 
     return;
 }
 
-sub transfer_file2file {
+sub transfer_src_file {
     my $self = shift;
 
     $self->job_info_input_file;
+
+    hurl run => __x(
+        "No input file specified; use '--if' or set the source file in the recipe."
+    ) unless $self->reader_options->file;
+
+    hurl run => __x(
+        "Invalid input file specified; use '--if' or fix the source file in the recipe."
+    ) unless -f $self->reader_options->file->stringify;
+
+    my $iter = $self->reader->contents_iter;    # call before record_count
+
+    return $iter;
+}
+
+sub transfer_dst_file {
+    my ($self, $iter) = @_;
+
     $self->job_info_output_file;
 
-    hurl run => __x("No input file specified; use '--if' or set the source file in the recipe.") unless $self->reader_options->file;
-
-    hurl run => __x("No output file specified; use '--of' or set the destination file in the recipe.") unless $self->writer_options->file;
-
-    hurl run => __x("Invalid input file specified; use '--if' or fix the source file in the recipe.") unless -f $self->reader_options->file->stringify;
+    hurl run => __x(
+        "No output file specified; use '--of' or set the destination file in the recipe."
+    ) unless $self->writer_options->file;
 
     my $logfld = $self->get_logfield_name();
 
-    my $iter      = $self->reader->contents_iter; # call before record_count
     my $row_count = 0;
     my $rec_count = $self->reader->record_count;
 
@@ -886,6 +778,234 @@ sub transfer_file2file {
 
     return;
 }
+
+# sub transfer_file2db {
+#     my $self = shift;
+
+#     my $table  = $self->recipe->destination->table;
+#     my $engine = $self->writer->target->engine;
+
+#     hurl run => __x( "The table '{table}' does not exists or is not readable!", table => $table )
+#         unless $engine->table_exists($table);
+
+#     my $table_info = $engine->get_info($table);
+#     hurl run => __ 'No columns type info retrieved from database!'
+#         if keys %{$table_info} == 0;
+
+#     $self->job_info_input_file;
+#     $self->job_info_output_db($table, $engine->database);
+
+#     $self->validate_destination;
+
+#     hurl run => __x("No input file specified; use '--if' or set the source file in the recipe.") unless $self->reader_options->file;
+
+#     hurl run => __x("Invalid input file specified; use '--if' or fix the source file in the recipe.") unless -f $self->reader_options->file->stringify;
+
+#     my $logfld = $self->get_logfield_name($table_info);
+
+#     my $iter      = $self->reader->contents_iter; # call before record_count
+#     my $row_count = 0;
+#     my $rec_count = $self->reader->record_count;
+
+#     $self->job_info_work($rec_count);
+
+#     hurl run => __("No input records!") unless $rec_count;
+
+#     ###
+#     # my $header_map = $self->reader->header_map;
+#     # use Data::Dump; dd $header_map;
+
+#     my $progress = Progress::Any->get_indicator(
+#         target => $rec_count,
+#     );
+#     while ( $iter->has_next ) {
+#         $row_count++;
+#         my $record = $iter->next;
+#         $record    = $self->map_fields_src_to_dst($record);
+#         $record    = $self->transformations($record, $table_info, $logfld);
+#         $self->writer->insert($table, $record);
+#         $progress->update( message => "Record $row_count|" );
+
+#         #last;                                # DEBUG
+#     }
+#     $progress->finish;
+
+#     return;
+# }
+
+# sub transfer_db2db {
+#     my $self = shift;
+
+#     my $src_table  = $self->recipe->source->table;
+#     my $dst_table  = $self->recipe->destination->table;
+#     my $src_engine = $self->reader->target->engine;
+#     my $dst_engine = $self->writer->target->engine;
+#     my $src_db     = $src_engine->database;
+#     my $dst_db     = $dst_engine->database;
+
+#     $self->job_info_input_db($src_table, $src_db);
+#     $self->job_info_output_db($dst_table, $dst_db);
+
+#     hurl run => __x( "The source table '{table}' does not exists!",
+#         table => $src_table )
+#         unless $src_engine->table_exists($src_table);
+#     hurl run => __x( "The destination table '{table}' does not exists!",
+#         table => $dst_table )
+#         unless $dst_engine->table_exists($dst_table);
+
+#     $self->validate_destination;
+
+#     # XXX Have to also check the host
+#     hurl run =>
+#         __( 'The source and the destination tables must be different!' )
+#         if ( $src_table eq $dst_table ) and ( $src_db eq $dst_db );
+
+#     my $table_info = $dst_engine->get_info($dst_table);
+#     hurl run => __( 'No columns type info retrieved from database!' )
+#         if keys %{$table_info} == 0;
+
+#     my $logfld = $self->get_logfield_name($table_info);
+
+#     my $iter      = $self->reader->contents_iter; # call before record_count
+#     my $row_count = 0;
+#     my $rec_count = $self->reader->record_count;
+
+#     $self->job_info_work($rec_count);
+
+#     hurl run => __("No input records!") unless $rec_count;
+
+#     my $progress = Progress::Any->get_indicator(
+#         target => $rec_count,
+#     );
+#     while ( $iter->has_next ) {
+#         $row_count++;
+#         my $record = $iter->next;
+#         $record    = $self->map_fields_src_to_dst($record);
+#         $record    = $self->transformations($record, $table_info, $logfld);
+#         $self->writer->insert($dst_table, $record);
+#         $progress->update( message => "Record $row_count|" );
+
+#         #last;                   # DEBUG
+#     }
+#     $progress->finish;
+
+#     return;
+# }
+
+# sub transfer_db2file {
+#     my $self = shift;
+
+#     my $src_table  = $self->recipe->source->table;
+#     my $src_engine = $self->reader->target->engine;
+#     my $src_db     = $src_engine->database;
+
+#     $self->job_info_input_db($src_table, $src_db);
+#     $self->job_info_output_file;
+
+#     hurl run => __x( "The source table '{table}' does not exists!",
+#         table => $src_table )
+#         unless $src_engine->table_exists($src_table);
+
+#     my $src_table_info = $src_engine->get_info($src_table);
+#     my $dst_table_info = $self->recipe->table->columns;
+
+#     hurl run => __( 'No columns type info retrieved from database!' )
+#         if keys %{$src_table_info} == 0;
+
+#     my $logfld = $self->get_logfield_name($src_table_info);
+
+#     my $iter      = $self->reader->contents_iter; # call before record_count
+#     my $row_count = 0;
+#     my $rec_count = $self->reader->record_count;
+
+#     $self->job_info_work($rec_count);
+
+#     hurl run => __("No input records!") unless $rec_count;
+
+#     # Header, sorted if the 'columns' section is available
+#     if ( $dst_table_info && ref($dst_table_info) eq 'HASH' ) {
+#         my @header_fields = $self->sort_hash_by_pos($dst_table_info);
+#         $self->writer->insert_header( \@header_fields );
+#     }
+#     else {
+#         $self->writer->insert_header;
+#     }
+
+#     my $progress = Progress::Any->get_indicator(
+#         target => $rec_count,
+#     );
+#     while ( $iter->has_next ) {
+#         $row_count++;
+#         my $record = $iter->next;
+#         $record    = $self->map_fields_src_to_dst($record);
+#         $record    = $self->transformations($record, $dst_table_info, $logfld);
+#         $self->writer->insert(undef, $record);
+#         $progress->update( message => "Record $row_count|" );
+
+#         #last;                   # DEBUG
+#     }
+#     $progress->finish;
+
+#     return;
+# }
+
+# sub transfer_file2file {
+#     my $self = shift;
+
+#     $self->job_info_input_file;
+#     $self->job_info_output_file;
+
+#     hurl run => __x("No input file specified; use '--if' or set the source file in the recipe.") unless $self->reader_options->file;
+
+#     hurl run => __x("No output file specified; use '--of' or set the destination file in the recipe.") unless $self->writer_options->file;
+
+#     hurl run => __x("Invalid input file specified; use '--if' or fix the source file in the recipe.") unless -f $self->reader_options->file->stringify;
+
+#     my $logfld = $self->get_logfield_name();
+
+#     my $iter      = $self->reader->contents_iter; # call before record_count
+#     my $row_count = 0;
+#     my $rec_count = $self->reader->record_count;
+
+#     hurl run => __("No input records!") unless $rec_count;
+
+#     $self->job_info_work($rec_count);
+
+#     my $dst_table_info = $self->recipe->table->columns;
+
+#     # Header, sorted if the 'columns' section is available
+#     if ( $self->has_no_columns_info ) {
+#         $self->writer->insert_header;
+#     }
+#     else {
+#         $self->writer->insert_header( $self->all_ordered_fields );
+#     }
+
+#     my $progress;
+#     if ( $self->show_progress ) {
+#         $progress = Progress::Any->get_indicator( target => $rec_count );
+#     }
+#     while ( $iter->has_next ) {
+#         $row_count++;
+#         my $record = $iter->next;
+#         $record    = $self->map_fields_src_to_dst($record);
+#         $record    = $self->transformations($record, $dst_table_info, $logfld);
+#         $self->writer->insert('table', $record );
+#         $progress->update( message => "Record $row_count|" ) if $self->show_progress;
+
+#         #last;                                # DEBUG
+#     }
+
+#     if ( $self->writer->can('finish') ) {
+#         print "Call finish..." if $self->debug;
+#         $self->writer->finish;
+#         print " done\n" if $self->debug;
+#     }
+
+#     $progress->finish if $self->show_progress;
+
+#     return;
+# }
 
 sub map_fields_src_to_dst {
     my ( $self, $rec, $h_map ) = @_;
@@ -992,11 +1112,13 @@ sub validate_destination {
 
     my %fields_all;
 
+    # Collect fields from column trafos
     foreach my $step ( @{ $self->recipe->transform->column } ) {
         my $dest = $step->field;
         $fields_all{$dest} = 1;
     }
 
+    # Collect fields from row trafos
     foreach my $step ( @{ $self->recipe->transform->row } ) {
         my $dest = $step->field_dst;
         if (ref $dest eq 'ARRAY') {
@@ -1210,6 +1332,9 @@ Print info about the curent job.
 =head3 job_summary
 
 =head3 job_transfer
+
+The dispatch method for the different input - output combinations
+transformation to be executed.
 
 =head3 transfer_file2db
 
