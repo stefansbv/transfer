@@ -9,37 +9,95 @@ WARNING: This is (still) work in progres...
 Description
 -----------
 
-Transform and transfer data between files and databases using recipes.
-
 Transfer is a CLI application written in Perl.
 
 The concept is simple, read a table data from a source, optionally
 make some transformation on each record and transfer the record to the
 destination.
 
+Currently XXX (v0.18) the source can be a file in XLS or CSV format or
+a database table.  The destination can be a database table.
+
 The required configurations for the transformations are hold in files
 named `recipes`.
+
+
+The Readers
+-----------
+
+The readers are Perl modules designed to read the data from the source
+tables and store it into an array of hash references (AoH) using the
+field names from the header as keys.
+
+The header attribute (array reference) holds the list of the fields in
+the desired order.
+
+The reader doesn't (need to) know about the recipe and the header map.
+
+A resulting data structure example:
+
+``` perl
+[
+  {
+    cod_jud  => 1,
+    denj     => 'ALBA',
+    fsj      => 1,
+    mnemonic => 'AB',
+    zona     => '7',
+  },
+  ...
+  {
+    cod_jud  => 42,
+    denj     => 'GIURGIU',
+    fsj      => 19,
+    mnemonic => 'GR',
+    zona     => '3',
+  },
+]
+```
+
+Note: This would be nice to be a lazy reading of the data structure...
+
+
+The Writers
+-----------
+
+The writers are Perl modules designed to write the data from an array
+of hash references (AoH) using the field names from the header as
+keys to the specific output.
+
+Currently implemented writers:
+
+- db (PostgreSQL)
+- csv
+- dbf
+
+The header attribute (array reference) holds the list of the fields in
+the desired order.
+
+The writer doesn't (need to) know about the recipe and the header map.
 
 
 The Recipe File
 ---------------
 
 The recipe is a file in Apache format (parsed with the Config::General
-Perl module) and configures the source and the destination and how to
-transform the data.  Transformations are made using plugin modules.
+Perl module) and describes the source and the destination and how to
+transform the data.  Transformations are made using plugins.
 
-All recipes contains two mandatory sections:
+All recipes contains a few mandatory sections:
 
-- a header section
-- a configuration section
-
-And two optional sections:
-
-- a column transformation section
-- a row transformation section
+- header section
+- configuration section
+- column transformation section
+- row transformation section
 
 Each recipe is for the transfer and transformation of a single table
 from the source to the destination.
+
+NOTE: A recipe with the C<excel> source reader can have more than one
+table configured in the C<tables> section but it is used only for
+separating the required data along with its header.
 
 
 ## The Header (recipe) Section ##
@@ -55,14 +113,13 @@ from the source to the destination.
 ### The recipe attributes ###
 
 version       :: The version of the recipe.  Not managed by the application.
-syntaxversion :: The version of the recipe syntax.  The current recipe format value is 2.
+syntaxversion :: The version of the recipe syntax.  The current recipe format value is 1.
 name          :: The name of the recipe.
 description   :: A description of the recipe.
+table         :: The destination table name.
 
 
 ## The Config Section ##
-
-The config section has two subsections
 
 An example for a complete file =to=> database transfer recipe config
 section:
@@ -216,46 +273,6 @@ fields of the respective type.
 
 NOTE: This feature is for the DB writer and is work in progress to
       implement it to the file writers.
-
-
-The Readers
------------
-
-The readers are Perl modules designed to read the data from the source
-tables and store it into an array of hash references (AoH) using the
-field names from the header as keys.
-
-The header attribute (array reference) holds the list of the fields in
-the desired order.
-
-The reader doesn't (need to) know about the recipe and the header map.
-
-Implemented writers:
-
-- db (PostgreSQL, Firebird)
-- csv
-- dbf
-- xls
-- odt (experimental)
- 
-
-The Writers
------------
-
-The writers are Perl modules designed to write the data from an array
-of hash references (AoH) using the field names from the header as
-keys to the specific output.
-
-Implemented writers:
-
-- db (PostgreSQL, Firebird)
-- csv
-- dbf
-
-The header attribute (array reference) holds the list of the fields in
-the desired order.
-
-The writer doesn't (need to) know about the recipe and the header map.
 
 
 ## Plugins ##
