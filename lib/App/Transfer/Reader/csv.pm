@@ -59,8 +59,16 @@ sub _build_contents {
         if scalar @{$header} == 0;
 
     my @csv_cols = @{ $csv->getline($fh) };
-    my $row = {};
-    $csv->bind_columns( \@{$row}{@csv_cols} );
+    # bind_columns returns weird data when $row pushed to an array,
+    # do {
+    #     my $a = {
+    #         CODP   => 115101,
+    #         ...
+    #         TIP    => 10,
+    #     };
+    #     ($a, $a, $a, $a, $a, $a, $a, $a, $a, $a, $a, $a, $a, $a, $a);
+    # }
+    $csv->column_names (@csv_cols);
 
     # Validate field list
     if ( any { ! defined $_ } @csv_cols ) {
@@ -89,12 +97,11 @@ sub _build_contents {
     push @{$header}, @{$temp} if ref $temp eq 'ARRAY';
 
     say "# Header: \n# ", join ', ', @{$header} if $self->debug;
-    
+
     # Get the data
     my @aoh;
-  REC:
-    while ( $csv->getline($fh) ) {
-        if (any { defined($_) } values %{$row}) { 
+    while ( my $row = $csv->getline_hr($fh) ) {
+        if (any { defined($_) } values %{$row}) {
             push @aoh, $row;
             $self->inc_count;
         }

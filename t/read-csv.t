@@ -43,7 +43,21 @@ subtest 'CSV OK' => sub {
     } ), 'new reader csv object';
     is $reader->input_file, 't/siruta.csv', 'csv file name';
 
-    my $expecting_rec_15 = {
+    my $expecting_idx_0 = {
+        CODP   => 0,
+        DENLOC => "JUDEŢUL ALBA",
+        FSJ    => 1,
+        FSL    => 100000000000,
+        JUD    => 1,
+        MED    => 0,
+        NIV    => 1,
+        RANG   => undef,
+        SIRSUP => 1,
+        SIRUTA => 10,
+        TIP    => 40,
+    };
+
+    my $expecting_idx_14 = {
         SIRUTA => 13515,
         DENLOC => "VALEA RUMÂNEŞTILOR",
         CODP   => 115101,
@@ -58,7 +72,8 @@ subtest 'CSV OK' => sub {
     };
 
     ok my $aoh = $reader->_contents, 'get contents';
-    cmp_deeply $aoh->[14], $expecting_rec_15, 'record 15 data looks good';
+    cmp_deeply $aoh->[0], $expecting_idx_0, 'record 1 data looks good';
+    cmp_deeply $aoh->[14], $expecting_idx_14, 'record 15 data looks good';
 
     ok my $iter = $reader->contents_iter, 'get the iterator';
     isa_ok $iter, 'MooseX::Iterator::Array', 'iterator';
@@ -66,8 +81,11 @@ subtest 'CSV OK' => sub {
     my $count = 0;
     while ( $iter->has_next ) {
         my $rec = $iter->next;
-        if ($count == 15) {
-            cmp_deeply $rec, $expecting_rec_15, 'record 15 data ok';
+        if ($count == 0) {
+            cmp_deeply $rec, $expecting_idx_0, 'record 1 data ok';
+        }
+        if ($count == 14) {
+            cmp_deeply $rec, $expecting_idx_14, 'record 15 data ok';
         }
         $count++;
     }
