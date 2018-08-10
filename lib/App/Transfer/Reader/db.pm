@@ -12,6 +12,8 @@ use App::Transfer::X qw(hurl);
 use App::Transfer::Target;
 use namespace::autoclean;
 
+use Data::Dump qw/dump/;
+
 extends 'App::Transfer::Reader';
 
 has 'table' => (
@@ -72,24 +74,35 @@ sub _build_contents {
 }
 
 sub get_fields {
-    my ($self, $table) = @_;
+    my ( $self, $table ) = @_;
 
     my $engine = $self->target->engine;
     hurl {
         ident   => 'reader',
         exitval => 1,
-        message => __x( "The '{table}' table does not exists or is not readable", table => $table ),
-    } unless $engine->table_exists($table);
+        message => __x(
+            "The '{table}' table does not exists or is not readable",
+            table => $table
+        ),
+      }
+      unless $engine->table_exists($table);
 
     # The fields from the table ordered by 'pos'
     my $fields = $engine->get_columns($table);
-
+    if ( $self->debug ) {
+        say "Source fields:";
+        dump $fields;
+    }
     return $fields;
 }
 
 sub validate_header_fields {
     my ($self, $table) = @_;
     my $header = $self->header;
+    if ($self->debug) {
+        say "Header fields:";
+        dump $header;
+    }
     my $fields = $self->get_fields($table);
     my $lc        = List::Compare->new( $fields, $header );
     my @fields_cm = $lc->get_intersection;
