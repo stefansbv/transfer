@@ -16,6 +16,26 @@ my $trans4 = __x("The v{sv} recipe table section must have a 'header' attribute 
 
 my $bag1 = bag { item 'id'; item 'denumire'; end; };
 
+# Columns
+my $columns_info = {
+    denumire => {
+        length => 10,
+        name   => "denumire",
+        pos    => 2,
+        prec   => "",
+        scale  => "",
+        type   => "varchar",
+    },
+    id => {
+        length => 2,
+        name   => "id",
+        pos    => 1,
+        prec   => "",
+        scale  => "",
+        type   => "integer"
+    },
+};
+
 #-- Invalid recipes
 
 # Is hard to get an exception from Config::General, it's happy even with
@@ -266,27 +286,8 @@ subtest 'Table section maximum config - columns info' => sub {
     is $recipe->table->dst_header, $bag1, 'destination header';
     is $recipe->table->header_map, $header_href, 'header map';
 
-    # Columns
-    my $info = {
-        denumire => {
-            length => 10,
-            name   => "denumire",
-            pos    => 2,
-            prec   => "",
-            scale  => "",
-            type   => "varchar",
-        },
-        id => {
-            length => 2,
-            name   => "id",
-            pos    => 1,
-            prec   => "",
-            scale  => "",
-            type   => "integer"
-        },
-    };
     ok my $cols = $recipe->table->columns, 'get columns list';
-    is $cols, $info, 'columns info';
+    is $cols, $columns_info, 'columns info';
 
     # Helper
     is $recipe->has_field_list, F(), 'has field list';
@@ -359,6 +360,22 @@ subtest 'Table section - columns array' => sub {
 
     ok my $cols = $recipe->table->columns, 'get columns list';
     is $cols, $header_aref, 'columns list';
+
+    # Helper
+    is $recipe->has_field_list, F(), 'has field list';
+};
+
+subtest 'Table section - columns include' => sub {
+    my $recipe_file = path(qw(t recipes table recipe-5.conf));
+    ok my $recipe
+        = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
+        ), 'new recipe instance';
+
+    ok $recipe->table->logfield, 'log field name';
+
+    ok my $cols = $recipe->table->columns, 'get columns list';
+    use Data::Dump; dd $cols;
+    is $cols, $columns_info, 'columns list';
 
     # Helper
     is $recipe->has_field_list, F(), 'has field list';
