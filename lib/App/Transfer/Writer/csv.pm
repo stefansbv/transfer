@@ -98,7 +98,7 @@ sub insert_header {
     my $csv_o  = $self->csv;
     my $out_fh = $self->csv_fh;
     my @field_names;
-    if ( ref $header_fields && @{$header_fields} ) {
+    if ( ref $header_fields eq 'ARRAY' ) {
         @field_names = @{$header_fields};
     }
     else {
@@ -112,10 +112,7 @@ sub insert_header {
         "Empty header for CSV writer"
     ) if scalar @field_names == 0;
     $csv_o->column_names(\@field_names);
-    if ($self->debug) {
-        say "CSV fields:";
-        dump @field_names;
-    }
+    say "# writer CSV header: \n# ", join ', ', @field_names if $self->debug;
     my $status = $csv_o->print( $out_fh, \@field_names );
     $self->emit_error if !$status;
     return;
@@ -126,7 +123,6 @@ sub insert {
     my $csv_o  = $self->csv;
     my $out_fh = $self->csv_fh;
     my $status;
-    dump $row;
     if ( any { $_ } values %{$row} ) {
         $status = $csv_o->print_hr( $out_fh, $row );
     }
