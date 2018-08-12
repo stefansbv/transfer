@@ -7,6 +7,7 @@ use warnings;
 use utf8;
 use Path::Tiny;
 use Test::Most;
+use Test::File::Contents;
 use App::Transfer;
 use App::Transfer::Options;
 use App::Transfer::Recipe;
@@ -17,46 +18,63 @@ BEGIN {
     use_ok $CLASS or die;
 }
 
-my $output_file = 't/output/siruta.csv';
+my $output_path = 't/output';
+my $output_file = 'siruta.csv';
+my $output      = path $output_path, $output_file;
 
-subtest 'CSV OK' => sub {
+my $csv_text = <<'END_TXT';
+siruta;denloc;sirsup;jud;codp
+10;"JUDEȚUL ALBA";1;1;0
+END_TXT
+
+subtest 'Write CSV file - set output path/file' => sub {
     my $recipe_file = path(qw(t recipes recipe-csv-write.conf));
     my $transfer = App::Transfer->new;
     isa_ok $transfer, 'App::Transfer', 'transfer';
-    my $options_href = { output_file => $output_file, };
+    my $reader_opts_href = {};
+    my $writer_opts_href = {
+        output_file => $output_file,
+        output_path => $output_path,
+        debug       => 0,
+    };
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
     isa_ok $recipe, 'App::Transfer::Recipe', 'recipe';
-    ok my $options = App::Transfer::Options->new(
-        transfer => $transfer,
-        recipe   => $recipe,
-        options  => $options_href,
-        rw_type  => 'writer',
-    ), 'new options instance';
-    isa_ok $options, 'App::Transfer::Options', 'options';
+    ok my $reader_options = App::Transfer::Options->new(
+        transfer  => $transfer,
+        recipe    => $recipe,
+        options   => $reader_opts_href,
+        rw_type   => 'reader',
+    ), 'reader options';
+    my $writer_options = App::Transfer::Options->new(
+        transfer  => $transfer,
+        recipe    => $recipe,
+        options   => $writer_opts_href,
+        rw_type   => 'writer',
+    );
+    isa_ok $reader_options, 'App::Transfer::Options', 'reader options';
+    isa_ok $writer_options, 'App::Transfer::Options', 'writer options';
     ok my $header = $recipe->table->dst_header, 'get the recipe table header';
     ok my $writer = App::Transfer::Writer->load( {
         transfer => $transfer,
         header   => $header,
         writer   => 'csv',
-        options  => $options,
+        reader_options => $reader_options,
+        writer_options => $writer_options,
     } ), 'new writer csv object';
     isa_ok $writer, 'App::Transfer::Writer', 'writer';
     is $writer->output_file, $output_file, 'csv file name';
-    lives_ok { $writer->insert_header } 'insert header';
+    is $writer->output_path, $output_path, 'csv file name';
+    is $writer->output, $output, 'csv path and file name';
+    lives_ok { $writer->insert_header( [qw(siruta denloc sirsup jud codp)] ) }
+    'insert header';
     my $row = {
-        codp   => 0,
-        denloc => "JUDETUL ALBA",
-        fsj    => 1,
-        fsl    => 100000000000,
-        jud    => 1,
-        med    => 0,
-        niv    => 1,
-        rang   => "",
-        sirsup => 1,
         siruta => 10,
-        tip    => 40,
+        denloc => "JUDEȚUL ALBA",
+        sirsup => 1,
+        jud    => 1,
+        codp   => 0,
     };
     lives_ok {
         $writer->insert( 'table', $row )
@@ -64,8 +82,13 @@ subtest 'CSV OK' => sub {
     lives_ok { $writer->finish } 'finish';
     is $writer->records_inserted, 1, 'records inserted: 1';
     is $writer->records_skipped, 0, 'records skipped: 0';
+    file_contents_eq_or_diff(
+        $output,
+        $csv_text,
+        { encoding => 'UTF-8' }
+    );
 };
 
-unlink $output_file;
+unlink $output or warn "unlink output $output: $!";
 
 done_testing;

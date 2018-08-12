@@ -250,7 +250,31 @@ subtest '"file" reader: input_file option; no config; ignore recipe config' => s
       'Should get an exception - not a recipe file';
     is $@->message, __x("The file '{file}' was not found!", file  => $input_file),
         'The message should be from the translation';
+    throws_ok { $options->path }
+        'App::Transfer::X',
+      'Should get an exception - path not a reader option';
+    is $@->message, __("Path option not available for the reader"),
+        'The message should be from the translation';
+};
 
+subtest '"file" reader: output_file option; no config; ignore recipe config' => sub {
+    ok my $recipe_file = path(qw(t recipes recipe-db2csv.conf)),
+        "Recipe file";
+    my $output_file = 'test-output.csv';
+    ok my $transfer = App::Transfer->new, 'new transfer instance';
+    ok my $cli_options = {
+        output_file => $output_file,
+    }, 'cli options';
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
+    ok my $options = $CLASS->new(
+        transfer => $transfer,
+        recipe   => $recipe,
+        options  => $cli_options,
+        rw_type  => 'writer',
+    ), 'new options instance';
+    is $options->path, path('t', 'output'), 'output path';
 };
 
 done_testing;

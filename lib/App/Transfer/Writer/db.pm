@@ -32,8 +32,8 @@ has 'target' => (
         my $self = shift;
         return App::Transfer::Target->new(
             transfer => $self->transfer,
-            uri      => $self->options->uri_str,
-            name     => $self->options->target,
+            uri      => $self->writer_options->uri_str,
+            name     => $self->writer_options->target,
         );
     },
 );

@@ -8,6 +8,7 @@ use MooseX::Types::Path::Tiny qw(File Path);
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use List::Util qw(any);
 use Text::CSV;
+use Path::Tiny;
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
 
@@ -24,9 +25,31 @@ has 'output_file' => (
     coerce   => 1,
     default  => sub {
         my $self = shift;
-        my $file = $self->options->file_path;
+        my $file = $self->writer_options->file;
         $file .= '.csv' unless $file =~ m{\.csv}i;
         return $file;
+    },
+);
+
+has 'output_path' => (
+    is       => 'ro',
+    isa      => Path,
+    coerce   => 1,
+    lazy     => 1,
+    default  => sub {
+        my $self = shift;
+        return $self->writer_options->path || '.';
+    },
+);
+
+has 'output' => (
+    is       => 'ro',
+    isa      => Path,
+    coerce   => 1,
+    lazy     => 1,
+    default  => sub {
+        my $self = shift;
+        return path $self->output_path, $self->output_file;
     },
 );
 
@@ -59,7 +82,7 @@ has 'csv_fh' => (
     init_arg => undef,
     default  => sub {
         my $self = shift;
-        my $file = $self->output_file;
+        my $file = $self->output;
         my $fh   = $file->openw_utf8( { locked => 1 } )
             or hurl io => __x(
                 "Cannot open '{file}': {error}",

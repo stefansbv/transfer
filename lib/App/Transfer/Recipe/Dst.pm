@@ -11,9 +11,9 @@ use namespace::autoclean;
 
 has 'writer' => ( is => 'ro', isa => 'Str', required => 1 );
 has 'file'   => ( is => 'ro', isa => 'Str' );
+has 'path'   => ( is => 'ro', isa => 'Str' );
 has 'target' => ( is => 'ro', isa => 'Str' );
-has 'table' => ( is => 'ro', isa => 'Str' );
-has 'structure' => ( is => 'ro', isa => 'Str' );
+has 'table'  => ( is => 'ro', isa => 'Str' );
 
 has 'date_format' => (
     is       => 'ro',

@@ -23,7 +23,31 @@ has 'output_file' => (
     coerce   => 1,
     default  => sub {
         my $self = shift;
-        return $self->options->file_path;
+        my $file = $self->writer_options->file;
+        $file .= '.dbf' unless $file =~ m{\.dbf}i;
+        return $file;
+    },
+);
+
+has 'output_path' => (
+    is       => 'ro',
+    isa      => Path,
+    coerce   => 1,
+    lazy     => 1,
+    default  => sub {
+        my $self = shift;
+        return $self->writer_options->path || '.';
+    },
+);
+
+has 'output' => (
+    is       => 'ro',
+    isa      => Path,
+    coerce   => 1,
+    lazy     => 1,
+    default  => sub {
+        my $self = shift;
+        return path $self->output_path, $self->output_file;
     },
 );
 
@@ -35,7 +59,7 @@ has 'dbf_stru_file' => (
     default  => sub {
         my $self = shift;
         my ($stru_file, $stru_file_ext) = ('', 'str');
-        if ( my $file = $self->output_file ) {
+        if ( my $file = $self->output ) {
             my ( $name, $path, $ext ) = fileparse( $file, qr/\.[^\.]*/ );
             $stru_file_ext = uc $stru_file_ext if $ext eq uc $ext;
             $stru_file = path( $path, "${name}.${stru_file_ext}" );
@@ -98,11 +122,11 @@ has 'dbf' => (
     default  => sub {
         my $self = shift;
         hurl __x( "Wont overwrite existing file: {file}",
-            file => $self->output_file )
-            if $self->output_file->is_file;
-        say "Creating file: ", $self->output_file;
+            file => $self->output )
+            if $self->output->is_file;
+        say "Creating file: ", $self->output;
         my $dbf = XBase->create(
-            name           => $self->output_file,
+            name           => $self->output,
             field_names    => $self->field_names,
             field_types    => $self->field_types,
             field_lengths  => $self->field_lengths,
@@ -112,41 +136,7 @@ has 'dbf' => (
     },
 );
 
-has '_headers' => (
-    is       => 'ro',
-    isa      => 'ArrayRef',
-    traits   => ['Array'],
-    init_arg => undef,
-    lazy     => 1,
-    builder  => '_build_headers',
-    handles  => {
-        get_header  => 'get',
-        all_headers => 'elements',
-    },
-);
-
-sub _build_headers {
-    my $self = shift;
-    my @headers = ();
-    foreach my $name ( $self->recipe->tables->all_table_names ) {
-        my $header    = $self->recipe->tables->get_table($name)->headermap;
-        my $skip_rows = $self->recipe->tables->get_table($name)->skiprows;
-        my $tempfield = $self->recipe->tables->get_table($name)->tempfield;
-        my $row_count = 0;
-        push @headers, {
-            table  => $name,
-            row    => $row_count,
-            header => $header,
-            skip   => $skip_rows,
-            temp   => $tempfield,
-        };
-    }
-    return \@headers;
-}
-
-sub insert_header {
-
-}
+sub insert_header { }
 
 sub insert {
     my ( $self, $id, $row ) = @_;
@@ -179,28 +169,28 @@ __END__
 
 =encoding utf8
 
-=head1 Name
+=head1 NAME
 
 App::Transfer::Writer::dbf - Writer for DBF files
 
-=head1 Synopsis
+=head1 SYNOPSIS
 
-  my $writer = App::Transfer::Writer->load( { writer => 'dbf' } );
+    my $writer = App::Transfer::Writer->load({
+        transfer => $transfer,
+        recipe   => $recipe,
+        writer   => 'dbf',
+        reader_options => $reader_options,
+        writer_options => $writer_options,
+    });
+    $writer->insert( $id, $row );
 
-=head1 Description
+=head1 DESCRIPTION
 
-App::Transfer::Writer::dbf reads a DBF file and builds a AoH data
-structure for the entire contents.
+App::Transfer::Writer::dbf writes a DBF file from an array of data.
 
-The input file must be in UTF8 format and the output is also UTF8 to
-be inserted in the database.
+=head1 INTERFACE
 
-TODO: Consider Text::DBF::Encoded.  Tests failed for v0.22 with
-"Wide character in subroutine entry...".
-
-=head1 Interface
-
-=head2 Attributes
+=head2 ATTRIBUTES
 
 =head3 C<output_file>
 
@@ -228,16 +218,11 @@ uppercase name.
 
 A L<Text::DBF> object.
 
-=head3 C<_headers>
-
-An array reference holding info about the table in the file.  The
-data-structure contains the table, row, header and skip attributes.
-
-=head2 Instance Methods
+=head2 INSTANCE METHODS
 
 =head3 C<insert_header>
 
-Insert the header row in the DBF.
+Does nothing for DBFs.
 
 =head3 C<insert>
 

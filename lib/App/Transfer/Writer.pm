@@ -20,7 +20,7 @@ has transfer => (
     )],
 );
 
-has 'options' => (
+has [qw(reader_options writer_options)] => (
     is       => 'ro',
     isa      => 'App::Transfer::Options',
     required => 1,

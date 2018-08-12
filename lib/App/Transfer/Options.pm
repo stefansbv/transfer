@@ -21,11 +21,11 @@ has transfer => (
     )],
 );
 
-has 'options' => (
-    is      => 'ro',
-    isa     => 'Maybe[HashRef]',
-    lazy    => 1,
-    default => sub { {} },
+has '_options' => (
+    is       => 'ro',
+    isa      => 'Maybe[HashRef]',
+    init_arg => 'options',
+    default  => sub { {} },
 );
 
 has 'rw_type' => (
@@ -71,55 +71,67 @@ has 'file' => (
     builder => '_build_file_options',
 );
 
-has 'file_path' => (
-    is      => 'ro',
-    isa     => Path,
-    lazy    => 1,
-    coerce  => 1,
-    builder => '_build_file_options',
-);
-
 sub _build_file_options {
-    my $self    = shift;
-    my $rw_type = $self->rw_type;
-    my ( $opt_file, $file, $section, $required );
+    my $self     = shift;
+    my $rw_type  = $self->rw_type;
+    my $required = 0;
+    my ( $option, $section );
     if ( $rw_type eq 'reader' ) {
-        $opt_file = 'input_file';
+        $option = 'input_file';
         $section  = 'source';
         $required = 1;
     }
     elsif ( $rw_type eq 'writer' ) {
-        $opt_file = 'output_file';
-        $section  = 'destination';
-        $required = 0;
+        $option  = 'output_file';
+        $section = 'destination';
     }
     else {
         hurl options => __x("Unknown reader/writer type");
     }
 
     # 1. Command line options
-    my $opts = $self->options;
+    my $opts = $self->_options;
+
     if ( keys %{$opts} ) {
 
         # 1.1 We have a FILE
-        if ( $file = $opts->{$opt_file} ) {
-            $file = path $file;
-            if ($required) {
-                hurl options => __x(
-                    "The file '{file}' was not found!", file => $file,
-                ) if ! $file->is_file;
+        if ( $section eq 'destination' ) {
+            if ( my $file = $opts->{$option} ) {
+                return path $file;
             }
-            return $file;
+        }
+        else {
+            if ( my $file = $opts->{$option} ) {
+                $file = path $file;
+                if ($required) {
+                    hurl options =>
+                        __x( "The file '{file}' was not found!", file => $file, )
+                        if !$file->is_file;
+                }
+                return $file;
+            }
         }
     }
 
     # 2. Recipe config section
-    if ( $file = $self->recipe->$section->file ) {
-        return path $file;
+    if ( my $recipe = $self->recipe ) {
+        if ( $section eq 'destination' ) {
+            if ( my $file = $recipe->$section->file ) {
+                return path $file;
+            }
+        }
+        else {
+            if ( my $file = $recipe->$section->file ) {
+                hurl options =>
+                  __x( "The file '{file}' was not found!", file => $file, )
+                  if !path($file)->is_file;
+                return path $file;
+            }
+        }
     }
 
     # 3. Configuration files
-    # NOT yet
+    # NO, not yet
 
     hurl options => __x(
         "The file {rw_type} must have a valid file option or configuration.",
@@ -127,6 +139,54 @@ sub _build_file_options {
     );
 
     return;
+}
+
+has 'path' => (
+    is      => 'ro',
+    isa     => Path,
+    coerce  => 1,
+    lazy    => 1,
+    builder => '_build_path_options',
+);
+
+sub _build_path_options {
+    my $self     = shift;
+    my $rw_type  = $self->rw_type;
+    my $required = 0;
+    my ( $option, $section );
+    if ( $rw_type eq 'reader' ) {
+        hurl options => __("Path option not available for the reader");
+        return;
+    }
+    elsif ( $rw_type eq 'writer' ) {
+        $option  = 'output_path';
+        $section = 'destination';
+    }
+    else {
+        hurl options => __("Unknown reader/writer type");
+    }
+
+    # 1. Command line options
+    my $opts = $self->_options;
+
+    if ( keys %{$opts} ) {
+
+        # 1.1 We have a PATH
+        if ( my $o_path = $opts->{$option} ) {
+            return path $o_path;
+        }
+    }
+
+    # 2. Recipe config section
+    if ( my $recipe = $self->recipe ) {
+        if ( $section eq 'destination' ) {
+            if ( my $o_path = $recipe->$section->path ) {
+                return path $o_path;
+            }
+        }
+    }
+
+    return '.';
 }
 
 sub _build_db_options {
@@ -150,7 +210,7 @@ sub _build_db_options {
     }
 
     # 1. Command line options
-    my $opts = $self->options;
+    my $opts = $self->_options;
     if ( keys %{$opts} ) {
 
         # 1.1 We have an URI
