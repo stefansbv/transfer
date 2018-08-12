@@ -113,17 +113,17 @@ sub run {
                 qr/$trans3/ms,
             'job info input db should work';
 
-            throws_ok { $trafo->transfer_file2db }
-                'App::Transfer::X',
-                'Should have error for nonexistent table';
+            # throws_ok { $trafo->transfer_file2db }
+            #     'App::Transfer::X',
+            #     'Should have error for nonexistent table';
 
-            throws_ok { $trafo->transfer_db2db }
-                'App::Transfer::X',
-                'Should have error for nonexistent table';
+            # throws_ok { $trafo->transfer_db2db }
+            #     'App::Transfer::X',
+            #     'Should have error for nonexistent table';
 
-            throws_ok { $trafo->transfer_db2file }
-                'App::Transfer::X',
-                'Should have error for nonexistent table';
+            # throws_ok { $trafo->transfer_db2file }
+            #     'App::Transfer::X',
+            #     'Should have error for nonexistent table';
         }
 
         #######################################################################
@@ -441,7 +441,29 @@ sub run {
             },
         ];
 
-        ###
+        ### Validations ???
+
+        # # <source>
+        # #   reader              = db
+        # #   target              = test
+        # #   table               = test_db
+        # # </source>
+        # subtest 'validate db src - wrong ... from the recipe' => sub {
+
+        #     throws_ok { $trafo->validate_db_src }
+        #         'App::Transfer::X',
+        #         'Database error should be converted to Transfer exception';
+        #     is $@->ident, 'something', 'Ident should be the engine';
+        #     ok $@->message, 'The message should be from the translation';
+
+        #     # my $msg = __("Invalid input.");
+        #     # like(
+        #     #     dies { $trafo->validate_db_src },
+        #     #     qr/$msg/,
+        #     #     'validate input: wrong input from the recipe'
+        #     # );
+        # };
+
 
         ######################################################################
         # Test the lookup_in_dbtable plugin and type_lookupdb trafo method
