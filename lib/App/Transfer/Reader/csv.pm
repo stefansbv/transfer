@@ -78,7 +78,7 @@ sub _build_contents {
         );
     }
     else {
-        say "# CSV header: \n# ", join ', ', @csv_cols if $self->debug;
+        say "# reader CSV header: \n# ", join ', ', @csv_cols if $self->debug;
     }
     my @not_found = ();
     foreach my $col ( @{$header} ) {
@@ -95,8 +95,6 @@ sub _build_contents {
     # Add the temporary fields to the record
     my $temp = $self->tempfield;
     push @{$header}, @{$temp} if ref $temp eq 'ARRAY';
-
-    say "# Header: \n# ", join ', ', @{$header} if $self->debug;
 
     # Get the data
     my @aoh;
