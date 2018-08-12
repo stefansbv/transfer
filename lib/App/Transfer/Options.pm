@@ -97,16 +97,30 @@ sub _build_file_options {
         # 1.1 We have a FILE
         if ( $section eq 'destination' ) {
             if ( my $file = $opts->{$option} ) {
-                return path $file;
+                my $file = path $file;
+                if ( my $dir = $file->parent ) {
+                    hurl {
+                        ident   => 'options:invalid',
+                        message => __x(
+                            "The parent dir '{dir}' was not found!",
+                            dir => $dir
+                        ),
+                    } if !$dir->is_dir;
+                }
+                return $file;
             }
         }
         else {
             if ( my $file = $opts->{$option} ) {
                 $file = path $file;
                 if ($required) {
-                    hurl options =>
-                        __x( "The file '{file}' was not found!", file => $file, )
-                        if !$file->is_file;
+                    hurl {
+                        ident   => 'options:invalid',
+                        message => __x(
+                            "The file '{file}' was not found!",
+                            file => $file
+                        ),
+                    } if !$file->is_file;
                 }
                 return $file;
             }
@@ -117,15 +131,30 @@ sub _build_file_options {
     if ( my $recipe = $self->recipe ) {
         if ( $section eq 'destination' ) {
             if ( my $file = $recipe->$section->file ) {
-                return path $file;
+                my $file = path $file;
+                if ( my $dir = $file->parent ) {
+                    hurl {
+                        ident   => 'options:invalid',
+                        message => __x(
+                            "The parent dir '{dir}' was not found!",
+                            dir => $dir
+                        ),
+                    } if !$dir->is_dir;
+                }
+                return $file;
             }
         }
         else {
             if ( my $file = $recipe->$section->file ) {
-                hurl options =>
-                  __x( "The file '{file}' was not found!", file => $file, )
-                  if !path($file)->is_file;
-                return path $file;
+                $file = path $file;
+                hurl {
+                    ident   => 'options:invalid',
+                    message => __x(
+                        "The file '{file}' was not found!",
+                        file => $file
+                    ),
+                } if !$file->is_file;
+                return $file;
             }
         }
     }
@@ -133,11 +162,13 @@ sub _build_file_options {
     # 3. Configuration files
     # NO, not yet
 
-    hurl options => __x(
-        "The file {rw_type} must have a valid file option or configuration.",
-        rw_type => $rw_type,
-    );
-
+    hurl {
+        ident   => 'options:missing',
+        message => __x(
+            "The file {rw_type} must have a valid file option or configuration.",
+            rw_type => $rw_type
+        ),
+    };
     return;
 }
 
@@ -172,17 +203,36 @@ sub _build_path_options {
     if ( keys %{$opts} ) {
 
         # 1.1 We have a PATH
-        if ( my $o_path = $opts->{$option} ) {
-            return path $o_path;
+        if ( my $path = $opts->{$option} ) {
+            $path = path $path;
+            hurl {
+                ident   => 'options:invalid',
+                message => __x(
+                    "The dir '{dir}' was not found!",
+                    dir => $path
+                ),
+            } if !$path->is_dir;
+            return $path;
         }
     }
 
     # 2. Recipe config section
     if ( my $recipe = $self->recipe ) {
         if ( $section eq 'destination' ) {
-            if ( my $o_path = $recipe->$section->path ) {
-                return path $o_path;
+            if ( my $path = $recipe->$section->path ) {
+                $path = path $path;
+                hurl {
+                    ident   => 'options:invalid',
+                    message => __x(
+                        "The dir '{dir}' was not found!",
+                        dir => $path
+                    ),
+                } if !$path->is_dir;
+                return $path;
             }
+        }
+        else {
+            hurl options => "Something went very wrong!";
         }
     }
 
@@ -269,11 +319,13 @@ sub _build_db_options {
         }
     }
 
-    hurl options => __x(
-        "The db {rw_type} must have a valid target or URI option or configuration.",
-        rw_type => $rw_type
-    ) unless $uri;
-
+    hurl {
+        ident => 'options:missing',
+        message => __x(
+            "The db {rw_type} must have a valid target or URI option or configuration.",
+            rw_type => $rw_type
+        ),
+    } if !$uri;
     return;
 }
 

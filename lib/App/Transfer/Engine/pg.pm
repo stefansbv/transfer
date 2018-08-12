@@ -38,7 +38,10 @@ has dbh => (
                 my ($err, $dbh) = @_;
                 my ($type, $name) = $self->parse_error($err);
                 my $message = $self->get_message($type);
-                hurl pg => __x( $message, name => $name );
+                hurl {
+                    ident   => "db:$type",
+                    message => __x( $message, name => $name ),
+                };
             },
         });
     }
