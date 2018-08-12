@@ -74,7 +74,7 @@ subtest 'DBF OK' => sub {
     is $reader->record_count, $count, 'counted records match record_count';
 };
 
-subtest 'DBF unknown fields' => sub {
+subtest 'DBF unknown field: ULT' => sub {
     ok my $recipe_file = path( 't', 'recipes', 'recipe-dbf2.conf' ),
         "recipe file";
     my $transfer = App::Transfer->new;
