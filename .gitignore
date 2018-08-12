@@ -13,8 +13,6 @@ inc/
 \#*#
 TAGS
 cover_db/
-t/output
-t/output.csv
 .build
 .al
 *.html
