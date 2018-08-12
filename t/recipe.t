@@ -212,7 +212,6 @@ subtest 'Config section: from db2db' => sub {
     # Source
     isa_ok $recipe->source, ['App::Transfer::Recipe::Src'], 'recipe source';
     is $recipe->source->reader, 'db', 'has reader xls';
-    is $recipe->source->file, '', 'has no file';
     is $recipe->source->target, 'target1', 'has target';
     is $recipe->source->table, 'test_db', 'has table';
     is $recipe->source->date_format, 'iso', 'has default date format';
@@ -241,7 +240,7 @@ subtest 'Config section: from db2file' => sub {
     is $recipe->source->table, 'siruta', 'has table';
     isa_ok $recipe->destination, ['App::Transfer::Recipe::Dst'], 'recipe destination';
     is $recipe->destination->writer, 'csv', 'has writer';
-    is $recipe->destination->file, 't/siruta.csv', 'has a file';
+    is $recipe->destination->file, 'siruta.csv', 'has a file';
 };
 
 #-- Tables section
@@ -378,7 +377,7 @@ subtest 'Table section - columns include' => sub {
     is $cols, $columns_info, 'columns list';
 
     # Helper
-    is $recipe->has_field_list, F(), 'has field list';
+    is $recipe->has_field_list, T(), 'has field list';
 };
 
 #-- Transform section
