@@ -1,0 +1,46 @@
+|---------+---------------------------------------+-----------------------------------------|
+| Used by | Path                                  |                                         |
+|---------+---------------------------------------+-----------------------------------------|
+|         | recipe-min.conf                       |                                         |
+|         | recipe-db2db.conf                     |                                         |
+|         | recipe-dbf2.conf                      |                                         |
+|         | recipe-xls2db.conf                    |                                         |
+|         | recipe-ds.conf                        |                                         |
+|         | recipe-csv2db.conf                    |                                         |
+|         | recipe-generic.conf                   |                                         |
+|         | recipe-dbf.conf                       |                                         |
+|         | recipe-xls.conf                       |                                         |
+|         | recipe-odt.conf                       |                                         |
+|         | recipe-csv-write.conf                 |                                         |
+|         | recipe-xls2.conf                      |                                         |
+|         | recipe-db.conf                        |                                         |
+|         | recipe-db2csv.conf                    |                                         |
+|         | recipe-fake.conf                      |                                         |
+|         | recipe-odt2.conf                      |                                         |
+|---------+---------------------------------------+-----------------------------------------|
+|         | table/recipe-4.conf                   |                                         |
+|---------+---------------------------------------+-----------------------------------------|
+|         | table/recipe-5.conf                   | reader: csv                             |
+|         |                                       | file: test-file.csv                     |
+|         |                                       | writer: csv                             |
+|         |                                       | file: t/nonexistentoutput/test-file.csv |
+|---------+---------------------------------------+-----------------------------------------|
+|         | table/recipe-3.conf                   |                                         |
+|         | table/recipe-2.conf                   |                                         |
+|         | table/recipe-1.conf                   |                                         |
+|         | table/recipe-0.conf                   |                                         |
+|---------+---------------------------------------+-----------------------------------------|
+|         | versions/recipe-noversion.conf        |                                         |
+|         | versions/recipe-tables_headermap.conf |                                         |
+|         | versions/recipe-wrongversion.conf     |                                         |
+|         | versions/recipe-table_headermap.conf  |                                         |
+|---------+---------------------------------------+-----------------------------------------|
+|         | options/recipe-4.conf                 |                                         |
+|         | options/recipe-3.conf                 |                                         |
+|         | options/recipe-2.conf                 |                                         |
+|         | options/recipe-1.conf                 |                                         |
+|---------+---------------------------------------+-----------------------------------------|
+|         | invalid/recipe-config.conf            |                                         |
+|         | invalid/recipe-header.conf            |                                         |
+|         | invalid/recipe-not_a_recipe.conf      |                                         |
+|---------+---------------------------------------+-----------------------------------------|
