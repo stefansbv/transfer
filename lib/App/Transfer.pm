@@ -202,7 +202,7 @@ sub BUILD {
             log4perl.rootLogger=DEBUG, SCREEN
             log4perl.appender.SCREEN=Log::Log4perl::Appender::Screen
             log4perl.appender.SCREEN.layout=SimpleLayout
-            log4perl.appender.SCREEN.Threshold=INFO
+            log4perl.appender.SCREEN.Threshold=ERROR
         );
         Log::Log4perl->init(\$log4p_conf);
     }
