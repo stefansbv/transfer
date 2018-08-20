@@ -14,9 +14,9 @@ has transfer => (
     isa      => 'App::Transfer',
     required => 1,
     handles  => [qw(
-        debug_
         debug
         verbose
+        debug_print
     )],
 );
 
@@ -69,7 +69,7 @@ sub load {
     }
     catch {
         # Emit the original error for debugging.
-        $transfer->debug_($_);
+        $transfer->debug_print($_);
 
         # Suggest help if it's not a valid writer.
         hurl {
