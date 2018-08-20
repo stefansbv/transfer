@@ -253,12 +253,13 @@ has '_columns_info' => (
     default => sub {
         my $self = shift;
         my $cols = $self->recipe->table->columns;
-        return $cols;
+        return ref $cols ? $cols : {};
     },
     handles => {
         has_no_columns_info => 'is_empty',
         get_column_info     => 'get',
-        num_columns_info    => 'count',
+        set_column_info     => 'set',
+        has_columns_info    => 'count',
         column_info_pairs   => 'kv',
     },
 );
@@ -669,8 +670,6 @@ sub job_transfer {
     my $src_type = $self->recipe->in_type;
     my $dst_type = $self->recipe->out_type;
 
-    say " $src_type -> $dst_type";
-
     # validations...
 
     my $meth_src = "validate_${src_type}_src";
@@ -701,6 +700,7 @@ sub do_transfer {
     my ($self, $cols_info) = @_;
 
     my $logfld = $self->get_logfield_name();
+    my $table  = $self->recipe->destination->table;
 
     my $iter = $self->reader->contents_iter;    # call before record_count
     my $row_count = 0;
@@ -717,7 +717,7 @@ sub do_transfer {
         my $record = $iter->next;
         $record = $self->map_fields_src_to_dst($record);
         $record = $self->transformations( $record, $cols_info, $logfld );
-        $self->writer->insert( 'table', $record );
+        $self->writer->insert( $table, $record );
         $progress->update( message => "Record $row_count|" )
             if $self->show_progress;
 
@@ -811,31 +811,33 @@ sub validate_file_dst {
 sub validate_db_src {
     my $self = shift;
 
-    my $src_engine = $self->reader->target->engine;
-    my $database   = $src_engine->database;
-    my $src_table  = $self->recipe->source->table;
+    my $target = $self->reader->target;
+    say $target->transfer;
+    # my $src_engine = $self->reader->target->engine;
+    # my $database   = $src_engine->database;
+    # my $src_table  = $self->recipe->source->table;
 
-    try {
-        $src_engine->dbh;
-    }
-    catch {
-        say "ORIGINAL ERR: $_" if $ENV{TRANSFER_DEBUG};
-        my $ident = $_->ident;
-        if ( $ident eq 'db:dbnotfound' ) {
-            hurl run => __x(
-                "Could not connect to the '{dbname}' database.",
-                dbname => $database
-            );
-        }
-        elsif ( $ident eq 'options:missing' ) {
-            hurl run => __x(
-                "Something id missing."
-            );
-        }
-        else {
-            say "IDENT = $ident";
-        }
-    };
+    # try {
+    #     $src_engine->dbh;
+    # }
+    # catch {
+    #     say "ORIGINAL ERR: $_" if $ENV{TRANSFER_DEBUG};
+    #     my $ident = $_->ident;
+    #     if ( $ident eq 'db:dbnotfound' ) {
+    #         hurl run => __x(
+    #             "Could not connect to the '{dbname}' database.",
+    #             dbname => $database
+    #         );
+    #     }
+    #     elsif ( $ident eq 'options:missing' ) {
+    #         hurl run => __x(
+    #             "Something id missing."
+    #         );
+    #     }
+    #     else {
+    #         say "IDENT = $ident";
+    #     }
+    # };
 
     # $src_engine->table_exists($src_table);
 
@@ -860,21 +862,25 @@ sub validate_db_src {
 }
 
 sub validate_db_dst {
-    my ($self, $iter) = @_;
+    my ( $self, $iter ) = @_;
 
     my $table  = $self->recipe->destination->table;
     my $engine = $self->writer->target->engine;
 
-    hurl run =>
-        __x( "The table '{table}' does not exists or is not readable!",
-        table => $table )
-        unless $engine->table_exists($table);
+    if ( $self->has_columns_info ) {
+        # for my $pair ( $self->column_info_pairs ) {
+        #     say "field: $pair->[0]";
+        # }
+        # TODO: Should compare this to the real table info?
+    }
+    else {
+        my $info = $engine->get_info($table);
+        hurl run => __ 'No columns type info retrieved from database!'
+          if keys %{$info} == 0;
+        $self->set_column_info( %{$info} );
+    }
 
-    my $table_info = $engine->get_info($table);
-    hurl run => __ 'No columns type info retrieved from database!'
-        if keys %{$table_info} == 0;
-
-    $self->job_info_output_db($table, $engine->database);
+    $self->job_info_output_db( $table, $engine->database );
 
     $self->validate_destination;
 
@@ -956,17 +962,15 @@ sub column_type_trafos {
 
     while ( my ( $field, $value ) = each( %{$record} ) ) {
         next if $self->has_temp_field($field);
-
         my $info = $self->get_column_info($field);
-
         hurl field_info => __x(
             "Field info for '{field}' not found!  Header map config. <--> DB schema inconsistency",
             field => $field
-        ) unless exists $info->{$field} and ref $info->{$field};
-        my $p    = $info->{$field};
-        my $meth = $info->{$field}{type};
+        ) unless $info and ref $info;
+        my $p    = $info;
+        my $meth = $info->{type};
         if ( $meth eq 'date' ) {
-            $p->{is_nullable} = $info->{$field}{is_nullable};
+            $p->{is_nullable} = $info->{is_nullable};
             $p->{src_format}  = $src_date_format;
             $p->{src_sep}     = $src_date_sep;
         }
