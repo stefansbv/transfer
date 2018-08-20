@@ -152,14 +152,14 @@ sub comment_literal {
     $self->emit_literal( _prepend '#', @_ );
 }
 
-sub debug_ {
+sub debug_print {
     my $self = shift;
-    $self->emit( _prepend 'debug:', @_ ) if $self->verbose;
+    $self->emit( _prepend 'debug:', @_ );    #  if $self->verbose;
 }
 
 sub debug_literal {
     my $self = shift;
-    $self->emit_literal( _prepend 'debug:', @_ ) if $self->verbose;
+    $self->emit_literal( _prepend 'debug:', @_ );    # if $self->verbose;
 }
 
 sub vent {
