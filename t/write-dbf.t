@@ -78,6 +78,7 @@ subtest 'Write DBF file' => sub {
     } 'insert row';
     is $writer->records_inserted, 2, 'records inserted: 1';
     is $writer->records_skipped, 0, 'records skipped: 0';
+    lives_ok { $writer->finish } 'finish';
 };
 
 subtest 'Refuse to overwrite DBF' => sub {

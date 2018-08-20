@@ -150,6 +150,14 @@ sub insert {
     return;
 }
 
+sub finish {
+    my $self = shift;
+    $self->dbf->close or hurl io => __x(
+        "Cannot close DBF file': {error}",
+        error => $!
+    );
+}
+
 sub emit_error {
     my ($self, $dbf_o) = @_;
     my $error = XBase->errstr;
