@@ -29,7 +29,7 @@ subtest 'attributes - recipe with columns section and hash header' => sub {
     my $output_options = { output_uri => $uri };
     my $trafo_params   = [ recipe_file => $recipe_file ];
 
-    my $transfer = App::Transfer->new;
+    my $transfer = App::Transfer->new( debug => 1 );
     isa_ok $transfer, ['App::Transfer'], 'transfer instance';
     ok my $trafo = App::Transfer::Transform->new(
         transfer       => $transfer,
@@ -63,7 +63,6 @@ subtest 'attributes - recipe with columns section and hash header' => sub {
 
     ok !$trafo->has_no_columns_info, 'column info';
     is $trafo->get_column_info('id'), $expected_id_info, 'column info for "id"';
-    is $trafo->num_columns_info, 2, 'number columns with infos';
 
     ok my @fields = $trafo->all_ordered_fields, 'get all ordered fields';
     is \@fields, [qw(id denumire)], 'fields order match';
@@ -98,7 +97,6 @@ subtest 'attributes - recipe w/o columns section and with array header' => sub {
 
     ok $trafo->has_no_columns_info, 'column info';
     is $trafo->get_column_info('id'), undef, 'column info for "id"';
-    is $trafo->num_columns_info, 0, 'number columns with infos';
 
     my @fields = $trafo->all_ordered_fields;
     is \@fields, [], 'fields order match';
@@ -318,13 +316,13 @@ subtest 'validate file dst - no output file from the recipe' => sub {
 };
 
 # <source>
-#   reader              = db
+#   reader              = fake_db
 #   target              = test
 #   table               = test_db
 # </source>
 subtest 'validate db src - wrong ... from the recipe' => sub {
     my $uri            = 'db:pg://@localhost/nonexistent';
-    my $recipe_file    = path( 't', 'recipes', 'recipe-db.conf' );
+    my $recipe_file    = path( 't', 'recipes', 'recipe-fake_db.conf' );
     my $input_options  = { input_uri  => $uri };
     my $output_options = { output_uri => $uri };
     my $trafo_params   = [ recipe_file => $recipe_file ];
@@ -340,12 +338,14 @@ subtest 'validate db src - wrong ... from the recipe' => sub {
     isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
     isa_ok $trafo->recipe, ['App::Transfer::Recipe'], 'transfer recipe instance';
 
-    my $msg = __("Invalid input.");
-    like(
-        dies { $trafo->validate_db_src },
-        qr/$msg/,
-        'validate input: wrong input from the recipe'
-    );
+    # $trafo->validate_db_src;
+
+    # my $msg = __("Invalid input.");
+    # like(
+    #     dies { $trafo->validate_db_src },
+    #     qr/$msg/,
+    #     'validate input: wrong input from the recipe'
+    # );
 };
 
 # subtest 'transfer file2file' => sub {
