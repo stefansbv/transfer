@@ -1,6 +1,6 @@
 package App::Transfer::Transform::Type;
 
-# ABSTRACT: Transformation methods types
+# ABSTRACT: Transformation types
 
 use 5.010001;
 use utf8;
