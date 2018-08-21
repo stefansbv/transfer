@@ -275,3 +275,111 @@ sub type_lookupdb {
 }
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 SYNOPSIS
+
+
+=head1 DESCRIPTION
+
+
+=head1 INTERFACE
+
+=head2 ATTRIBUTES
+
+=head3 recipe
+
+=head3 reader
+
+=head3 writer
+
+=head3 plugin_row
+
+=head2 INSTANCE METHODS
+
+=head3 type_split
+
+=head3 type_join
+
+Join two or more fields into one, with a separator.
+
+  # Use " to preserve space, not '
+  <step>
+    type                = join
+    separator           = ", "
+    field_src           = obs1
+    field_src           = obs2
+    field_src           = obs3
+    method              = join_fields
+    field_dst           = obs
+  </step>
+
+=head3 type_copy
+
+A method best used to cleanup columns about to be normalized.  Using
+the C<move_filtered> plug-in, the values not found in a C<datasource>
+valid list are moved to the destination column.  Attributes can be
+used to alter the format of the destination value.
+
+If the C<datasource> attribute is not set, than all values are
+considered to be valid.
+
+Example recipe (from the tests, subtest f.):
+
+  <transform row>
+    <step>
+      type                = copy
+      datasource          = status
+      field_src           = status
+      method              = move_filtered
+      field_dst           = observations
+      attributes          = MOVE | APPENDSRC
+    </step>
+  </transform>
+
+  <datasources>
+    <valid_elts status>
+      item                = Cancelled
+      item                = Disputed
+      item                = In Process
+      item                = On Hold
+      item                = Resolved
+      item                = Shipped
+    </valid_elts>
+  </datasources>
+
+Input records:
+
+  my $records_4f = [
+      { status => "Cancelled",      id => 1 },
+      { status => "Disputed",       id => 2 },
+      { status => "call the owner", id => 3 },
+      { status => "On Hold",        id => 4 },
+      { status => "tel 1234567890", id => 5, observations => 'some obs' },
+      { status => "Shipped",        id => 6 },
+  ];
+
+Resulting records:
+
+  my $expected_4f = [
+      { id => 1, status => "Cancelled" },
+      { id => 2, status => "Disputed" },
+      { id => 3, observations => "status: call the owner", status => undef
+      },
+      { id => 4, status => "On Hold" },
+      { id => 5, observations => "some obs, status: tel 1234567890", status => undef
+      },
+      { id => 6, status => "Shipped" },
+  ];
+
+
+=head3 type_batch
+
+=head3 type_lookup
+
+=head3 type_lookupdb
+
+=cut
