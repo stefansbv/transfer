@@ -16,6 +16,7 @@ use Progress::Any::Output 'TermProgressBarColor';
 use namespace::autoclean;
 
 use App::Transfer::Transform::Type;
+use App::Transfer::Transform::Info;
 use App::Transfer::Options;
 use App::Transfer::Recipe;
 use App::Transfer::Reader;
@@ -57,6 +58,25 @@ has transform_types => (
         type_batch
         type_lookup
         type_lookupdb
+    )],
+);
+
+has transform_info => (
+    is       => 'ro',
+    isa      => 'App::Transfer::Transform::Info',
+    lazy     => 1,
+    default => sub {
+        return App::Transfer::Transform::Info->new;
+      },
+    handles  => [qw(
+        job_intro
+        job_info_input_file
+        job_info_output_file
+        job_info_input_db
+        job_info_output_db
+        job_info_prework
+        job_info_postwork
+        job_summary
     )],
 );
 
@@ -317,137 +337,15 @@ has '_trafo_types' => (
     },
 );
 
-
-###
-
-sub job_intro {
-    my $self = shift;
-
-    my $recipe_l = __ 'Recipe:';
-    my $recipe_v = $self->recipe->header->name;
-    my @recipe_ldet
-        = ( __ 'version:', __ 'syntax version:', __ 'description:' );
-    my @recipe_vdet = (
-        $self->recipe->header->version,
-        $self->recipe->header->syntaxversion,
-        $self->recipe->header->description,
-    );
-
-    print " -----------------------------\n";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-       $recipe_l,                                                         $recipe_v;
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-       \@recipe_ldet,               \@recipe_vdet;
-
-    return;
-}
-
-sub job_info_input_file {
-    my ($self, $file, $worksheet) = @_;
-    my $input_l  = __ 'Input:';
-    print " -----------------------------\n";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-       $input_l;
-    $worksheet //= 'n/a';
-    my @i_l = (__ 'file:', __ 'worksheet:');
-    my @i_v = ($file, $worksheet);
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-       \@i_l,                       \@i_v;
-    return;
-}
-
-sub job_info_output_file {
-    my ($self, $file, $worksheet) = @_;
-    my $output_l = __ 'Output:';
-    print " -----------------------------\n";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-       $output_l;
-    $worksheet //= 'n/a';
-    my @i_l = (__ 'file:', __ 'worksheet:');
-    my @i_v = ($file, $worksheet);
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-       \@i_l,                       \@i_v;
-    return;
-}
-
-sub job_info_input_db {
-    my ($self, $src_table, $src_db) = @_;
-    my $input_l  = __ 'Input:';
-    print " -----------------------------\n";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-       $input_l;
-    my @i_l = (__ 'table:', __ 'database:');
-    my @i_v = ($src_table, $src_db);
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-       \@i_l,                       \@i_v;
-    return;
-}
-
-sub job_info_output_db {
-    my ($self, $dst_table, $dst_db) = @_;
-
-    my $output_l = __ 'Output:';
-    print " -----------------------------\n";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-       $output_l;
-    my @o_l = (__ 'table:', __ 'database:');
-    my @o_v = ($dst_table, $dst_db);
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-       \@o_l,                       \@o_v;
-
-    return;
-}
-
-sub job_info_work {
-    my ($self, $rec_count) = @_;
-    $rec_count //= 0;
-    my $start_l = __ 'Working:';
-    my $count_l = __ 'source records read:';
-    print " -----------------------------\n";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-       $start_l;
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-       $count_l,                    $rec_count;
-    return;
-}
-
-sub job_summary {
-    my $self = shift;
-
-    my $summ_l = __ 'Summary:';
-
-    print " -----------------------------\n";
-    print form
-    "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-       $summ_l;
-    my @o_l = (__ 'records inserted:', __ 'records skipped:');
-    my $ins = $self->writer->records_inserted // 0;
-    my $skp = $self->writer->records_skipped  // 0;
-    my @o_v = ($ins, $skp);
-    print form
-    "  {]]]]]]]]]]]]]]]]]]]]]]]]]}  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[}",
-       \@o_l,                       \@o_v;
-    print " -----------------------------\n";
-
-    return;
-}
-
-###
-
 sub job_transfer {
     my $self = shift;
+
+    $self->job_intro(
+        name          => $self->recipe->header->name,
+        version       => $self->recipe->header->version,
+        syntaxversion => $self->recipe->header->syntaxversion,
+        description   => $self->recipe->header->description,
+    );
 
     my $src_type = $self->recipe->in_type;
     my $dst_type = $self->recipe->out_type;
@@ -475,12 +373,19 @@ sub job_transfer {
 
     $self->do_transfer;
 
+    $self->job_summary(
+        $self->writer->records_inserted,
+        $self->writer->records_skipped,
+    );
+
     return;
 }
 
 sub do_transfer {
     my ($self, $cols_info) = @_;
 
+    $self->job_info_prework;
+        
     my $logfld = $self->get_logfield_name();
     my $table  = $self->recipe->destination->table;
 
@@ -507,12 +412,14 @@ sub do_transfer {
     }
 
     if ( $self->writer->can('finish') ) {
-        #print "Call finish..." if $self->debug;
+        print "Call finish..." if $self->debug;
         $self->writer->finish;
-        #print " done\n" if $self->debug;
+        print " done\n" if $self->debug;
     }
 
     $progress->finish if $self->show_progress;
+
+    $self->job_info_postwork($rec_count);
 
     return;
 }
@@ -594,7 +501,7 @@ sub validate_db_src {
     my $self = shift;
 
     my $target = $self->reader->target;
-    say $target->transfer;
+
     # my $src_engine = $self->reader->target->engine;
     # my $database   = $src_engine->database;
     # my $src_table  = $self->recipe->source->table;
@@ -637,8 +544,6 @@ sub validate_db_src {
     # hurl run =>
     #     __( 'The source and the destination tables must be different!' )
     #     if ( $src_table eq $dst_table ) and ( $src_db eq $dst_db );
-
-#    $self->job_info_work($rec_count);
 
     return 1;
 }
@@ -890,22 +795,6 @@ attribute.
 =head3 info
 
 =head3 _trafo_types
-
-=head3 job_intro
-
-=head3 job_info_input_file
-
-=head3 job_info_output_file
-
-=head3 job_info_input_db
-
-=head3 job_info_output_db
-
-=head3 job_info_work
-
-Print info about the curent job.
-
-=head3 job_summary
 
 =head3 job_transfer
 

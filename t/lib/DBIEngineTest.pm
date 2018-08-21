@@ -99,8 +99,13 @@ sub run {
         {
             require Test::NoWarnings;
             my $trans1 = __('Recipe:');
-            like capture_stdout { $trafo->job_intro },
-                 qr/$trans1/ms,
+            like capture_stdout {
+                $trafo->job_intro(
+                    name           => 'Name',
+                    version        => 1,
+                    suyntaxversion => 2,
+                    description    => 'Description',
+                ) }, qr/$trans1/ms,
                 'job intro should work';
 
             my $trans2 = __('Input:');
