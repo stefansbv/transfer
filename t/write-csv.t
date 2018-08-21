@@ -8,6 +8,7 @@ use utf8;
 use Path::Tiny;
 use Test::Most;
 use Test::File::Contents;
+use Test::Warn;
 use App::Transfer;
 use App::Transfer::Options;
 use App::Transfer::Recipe;
@@ -29,7 +30,7 @@ END_TXT
 
 subtest 'Write CSV file - set output path/file' => sub {
     my $recipe_file = path(qw(t recipes recipe-csv-write.conf));
-    my $transfer = App::Transfer->new;
+    ok my $transfer = App::Transfer->new, 'new transfer instance';
     isa_ok $transfer, 'App::Transfer', 'transfer';
     my $reader_opts_href = {};
     my $writer_opts_href = {
@@ -47,15 +48,18 @@ subtest 'Write CSV file - set output path/file' => sub {
         options   => $reader_opts_href,
         rw_type   => 'reader',
     ), 'reader options';
-    my $writer_options = App::Transfer::Options->new(
+    ok my $writer_options = App::Transfer::Options->new(
         transfer  => $transfer,
         recipe    => $recipe,
         options   => $writer_opts_href,
         rw_type   => 'writer',
-    );
+    ), 'writer options';
     isa_ok $reader_options, 'App::Transfer::Options', 'reader options';
     isa_ok $writer_options, 'App::Transfer::Options', 'writer options';
-    ok my $header = $recipe->table->dst_header, 'get the recipe table header';
+    my $header;
+    warning_like { $header = $recipe->table->dst_header }
+        qr/Deprecated name attribute/i,
+        "an unknown parameter test";
     ok my $writer = App::Transfer::Writer->load( {
         transfer => $transfer,
         header   => $header,
