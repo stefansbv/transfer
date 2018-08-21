@@ -46,7 +46,7 @@ sub timestamp {
     }
     else {
         $self->log->error(
-            "$logstr date: $field='$text' - $meth method not implemented!");
+            "$logstr date: $field='$text' - '$meth' method not implemented!");
     }
 }
 

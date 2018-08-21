@@ -1,9 +1,13 @@
 use 5.010001;
+use utf8;
 use Test::Most;
 use Test::Log::Log4perl;
 use Log::Log4perl;
 use Test::Most;
 use Test::Moose;
+
+binmode STDOUT, ':utf8';
+binmode STDERR, ':utf8';
 
 use App::Transfer::Plugin;
 
@@ -125,7 +129,10 @@ subtest 'Column Type Transformations' => sub {
         $ttr->do_transform( 'date', $p );
     }
 
+    @$p{qw(value src_format src_sep)} = ( undef, undef, undef ); # reset
+
     #-- Integer
+
     $p->{value} = 2300125;
     is $ttr->do_transform( 'integer', $p ), 2300125, 'integer 2300125';
 
@@ -161,6 +168,7 @@ subtest 'Column Type Transformations' => sub {
     }
 
     #-- Smallint
+
     $p->{value} = 2301;
     is $ttr->do_transform( 'smallint', $p ), 2301, 'smallint 2301';
 
@@ -209,6 +217,7 @@ subtest 'Column Type Transformations' => sub {
     }
 
     #-- Numeric
+
     @$p{qw(value prec scale)} = ( "1,000.01", 8, 2 );
     is $ttr->do_transform( 'numeric', $p ), 1000.01, 'numeric 1,000.01';
 
@@ -243,6 +252,47 @@ subtest 'Column Type Transformations' => sub {
     }
     is $ttr->do_transform( 'numeric', $p ), undef,
         'numeric string returns undef';
+
+    @$p{qw(value prec scale)} = ( undef, undef, undef ); # reset
+
+    #-- Char
+
+    @$p{qw(value length)} = ( "a char field", 12 );
+    is $ttr->do_transform( 'char', $p ), "a char field", 'char text';
+
+    @$p{qw(value length)} = ( "", 12 );
+    is $ttr->do_transform( 'char', $p ), undef, 'char text ""';
+
+    @$p{qw(value length)} = ( undef, 12 );
+    is $ttr->do_transform( 'char', $p ), undef, 'char text undef';
+
+  TODO: {
+        todo_skip "Test log info for plugin: char", 1;
+        my $t = Test::Log::Log4perl->expect(
+            [ 'App.Transfer.Plugin.char', info => qr/overflow/ ] );
+        @$p{qw(value length)} = ( "a char field", 2 );
+        $ttr->do_transform( 'char', $p );
+    }
+
+    #-- Varchar
+
+  TODO: {
+        todo_skip "Test log info for plugin: varchar", 1;
+        my $t = Test::Log::Log4perl->expect(
+            [ 'App.Transfer.Plugin.char', info => qr/overflow/ ] );
+        @$p{qw(value length)} = ( "a varchar field", 2 );
+        $ttr->do_transform( 'varchar', $p );
+    }
+
+    @$p{qw(value length)} = ( "", 12 );
+    is $ttr->do_transform( 'varchar', $p ), undef, 'varchar text ""';
+
+    @$p{qw(value length)} = ( undef, 12 );
+    is $ttr->do_transform( 'varchar', $p ), undef, 'varchar text undef';
+
+    @$p{qw(value length)} = ( "ro_RO şţâăî", 15 );
+    is $ttr->do_transform( 'varchar', $p ), "ro_RO șțâăî",
+        'varchar translit test';
 };
 
 subtest 'Column Transformations' => sub {

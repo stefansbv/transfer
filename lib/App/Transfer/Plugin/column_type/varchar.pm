@@ -10,6 +10,7 @@ use namespace::autoclean;
 with 'MooX::Log::Any';
 
 # Transliteration exmple
+# TODO: make this configurable, somehow... 
 has 'latin10' => (
     is      => 'ro',
     isa     => 'Lingua::Translit',
@@ -65,6 +66,6 @@ Parameters:
 
 The C<varchar> method checks the length of the input text and returns
 C<undef> if it's longer than C<$len>, and also creates a log message.
-Otherwise returns C<$text>.
+Otherwise returns C<$text>, or C<undef> if the text is a empty string.
 
 =cut

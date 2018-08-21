@@ -11,7 +11,7 @@ with 'MooX::Log::Any';
 sub char {
     my ( $self, $p ) = @_;
     my ( $logstr, $field, $text, $len ) = @$p{qw(logstr name value length)};
-    return unless defined $text;
+    return unless $text;
     my $str_len = length $text;
     if ( $str_len > $len ) {
         $self->log->info(
@@ -56,6 +56,6 @@ Parameters:
 
 The C<char> method checks the length of the input text and returns
 C<undef> if it's longer than C<$len>, and also creates a log message.
-Otherwise returns C<$text>.
+Otherwise returns C<$text>, or C<undef> if the text is a empty string.
 
 =cut
