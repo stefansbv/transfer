@@ -123,11 +123,7 @@ has 'trafo' => (
 
 sub execute {
     my $self = shift;
-
-    $self->trafo->job_intro;
     $self->trafo->job_transfer;
-    $self->trafo->job_summary;
-
     return;
 }
 
