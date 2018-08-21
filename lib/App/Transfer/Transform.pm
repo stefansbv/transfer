@@ -594,8 +594,7 @@ sub transformations {
     $record = $self->record_trafos( $record, $logstr );
     $record = $self->column_type_trafos( $record, $logstr )
         if $self->recipe->out_type eq 'db';  # TODO allow for other
-                                             # trafo types
-
+                                             # output types
     $self->remove_tempfields($record);
 
     return $record;
@@ -645,26 +644,27 @@ sub column_type_trafos {
     #--  Transformations per field type
 
     my $src_date_format = $self->recipe->source->date_format;
+    my $dst_date_format = $self->recipe->destination->date_format; # TODO: use it!
     my $src_date_sep    = $self->recipe->source->date_sep;
-
+    
     while ( my ( $field, $value ) = each( %{$record} ) ) {
         next if $self->has_temp_field($field);
         my $info = $self->get_column_info($field);
         hurl field_info => __x(
-            "Field info for '{field}' not found!  Header map config. <--> DB schema inconsistency",
+            "Field info for '{field}' not found! Header config. <--> DB schema inconsistency",
             field => $field
         ) unless $info and ref $info;
         my $p    = $info;
         my $meth = $info->{type};
-        if ( $meth eq 'date' ) {
+        if ( $meth eq 'date' || $meth eq 'timestamp' ) {
             $p->{is_nullable} = $info->{is_nullable};
             $p->{src_format}  = $src_date_format;
             $p->{src_sep}     = $src_date_sep;
         }
-        $p->{logstr}      = $logstr;
-        $p->{value}       = $value;
-        $p->{value}       = $self->plugin_column_type->do_transform( $meth, $p );
-        $record->{$field} = $p->{value};
+        $p->{logstr} = $logstr;
+        $p->{value}  = $value;
+        $value = $self->plugin_column_type->do_transform( $meth, $p );
+        $record->{$field} = $value;
     }
     return $record;
 }
