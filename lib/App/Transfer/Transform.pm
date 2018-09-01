@@ -8,7 +8,6 @@ use Moose;
 use MooseX::Types::Path::Tiny qw(Path File);
 use App::Transfer::X qw(hurl);
 use Locale::TextDomain qw(App-Transfer);
-use Perl6::Form;
 use List::Compare;
 use Try::Tiny;
 use Progress::Any;
