@@ -25,13 +25,12 @@ has 'orderby' => (
 has '_filter' => (
     is       => 'ro',
     init_arg => 'filter',
-    isa      => 'ArrayRef|HashRef',
-    default  => sub { {} },
+    isa      => 'Maybe[ArrayRef|HashRef]',
 );
 
 has 'filter' => (
     is       => 'ro',
-    isa      => 'ArrayRef|HashRef',
+    isa      => 'Maybe[ArrayRef|HashRef]',
     init_arg => undef,
     lazy     => 1,
     builder  => '_build_filter',
@@ -40,6 +39,7 @@ has 'filter' => (
 sub _build_filter {
     my $self = shift;
     my $data = $self->_filter;
+    return if !ref $data;
     my $walk = Data::Leaf::Walker->new($data);
     while ( my ( $k, $v ) = $walk->each ) {
         $walk->store( $k, undef ) if $v eq 'NOT_NULL';
