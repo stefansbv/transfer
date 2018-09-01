@@ -4,7 +4,7 @@ package App::Transfer::Recipe;
 
 use 5.010001;
 use Moose;
-use List::Util qw(any);
+use List::Util qw(any first);
 use Locale::TextDomain 1.20 qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use namespace::autoclean;
@@ -104,12 +104,8 @@ has 'recipe_data_table' => (
     default   => sub {
         my $self = shift;
         my %kv = %{ $self->recipe_data->{table} };
-        if ( my $name = $self->is_deprecated_table_config( \%kv ) ) {
-            return $kv{$name};
-        }
-        else {
-            return \%kv;
-        }
+        $self->is_deprecated_table_config( \%kv );
+        return \%kv;
     },
 );
 
@@ -174,26 +170,37 @@ has 'key_list' => (
                 tempfield
                 logfield
                 rectangle
-                }
+                plugins
+            }
         ];
     },
 );
 
 sub is_deprecated_table_config {
-    my ($self, $kv) = @_;
+    my ( $self, $kv ) = @_;
     my @kys = keys %{$kv};
     my $cnt = scalar @kys;
-    if ( $cnt == 1) {
-        warn "Deprecated name attribute (@kys) for the table section in the recipe\n";
-        return $kys[0];
+    if ( $cnt == 1 ) {
+        if ( first { $_ eq $kys[0] } @{ $self->key_list } ) {
+            return;    # is an attribute name
+        }
+        else {
+            hurl __x
+                "Deprecated name attribute ({name}) for the table section in the recipe\n",
+                name => $kys[0];
+        }
     }
     else {
         foreach my $name (@kys) {
-            if ( any { $_ eq $name } @{$self->key_list} ) {
-                return;                      # found an attribute name
+            if ( any { $_ eq $name } @{ $self->key_list } ) {
+                return;    # found an attribute name
+            }
+            else {
+            hurl __x
+                "Deprecated name attribute ({name}) for the table section in the recipe\n",
+                name => $name;
             }
         }
-        hurl recipe => __x( "Expecting a table not '{cnt}'!", cnt => $cnt );
     }
 }
 
