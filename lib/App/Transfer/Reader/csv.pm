@@ -55,7 +55,7 @@ sub _build_contents {
         or die "Error opening CSV: $!";
 
     my $header = $self->header;
-    hurl field_info => __('[EE] Empty header in the recipe file?')
+    hurl field_info => __('[EE] Empty table header in the recipe file?')
         if scalar @{$header} == 0;
 
     my @csv_cols = @{ $csv->getline($fh) };
