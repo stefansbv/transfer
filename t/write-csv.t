@@ -8,7 +8,6 @@ use utf8;
 use Path::Tiny;
 use Test::Most;
 use Test::File::Contents;
-use Test::Warn;
 use App::Transfer;
 use App::Transfer::Options;
 use App::Transfer::Recipe;
@@ -56,10 +55,7 @@ subtest 'Write CSV file - set output path/file' => sub {
     ), 'writer options';
     isa_ok $reader_options, 'App::Transfer::Options', 'reader options';
     isa_ok $writer_options, 'App::Transfer::Options', 'writer options';
-    my $header;
-    warning_like { $header = $recipe->table->dst_header }
-        qr/Deprecated name attribute/i,
-        "an unknown parameter test";
+    ok my $header = $recipe->table->dst_header, 'the header';
     ok my $writer = App::Transfer::Writer->load( {
         transfer => $transfer,
         header   => $header,
