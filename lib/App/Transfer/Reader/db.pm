@@ -30,7 +30,7 @@ has 'orderby' => (
 
 has 'filter' => (
     is       => 'ro',
-    isa      => 'ArrayRef|HashRef',
+    isa      => 'Maybe[ArrayRef|HashRef]',
     required => 0,
 );
 
