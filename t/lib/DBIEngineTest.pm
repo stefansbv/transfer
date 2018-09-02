@@ -74,7 +74,7 @@ sub run {
         throws_ok { $engine->dbh->do('INSERT blah INTO __bar_____') }
             'App::Transfer::X',
             'Database error should be converted to Transfer exception';
-        is $@->ident, 'db:syntax', 'Ident should be db:syntax';
+        like $@->ident, qr/db:\w+/, 'Ident should be db:syntax';
         ok $@->message, 'The message should be from the translation';
 
         my $input_options  = { input_uri  => $p{target_params}[1] };

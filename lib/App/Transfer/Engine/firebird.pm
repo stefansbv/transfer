@@ -38,13 +38,13 @@ has dbh => (
             LongReadLen      => 524288,
             HandleError => sub {
                 my ( $err,  $dbh )  = @_;
-                my ( $type, $error ) = $self->parse_error($err);
-                my $message
-                    = ( $type eq 'errstr' )
-                    ? $error
-                    : $self->get_message($type);
-                hurl firebird => __x( $message, name => $error );
-                },
+                my ( $type, $name ) = $self->parse_error($err);
+                my $message = $self->get_message($type);
+                hurl {
+                    ident   => "db:$type",
+                    message => __x( $message, name => $name ),
+                };
+            }
         });
     }
 );
@@ -52,7 +52,7 @@ has dbh => (
 sub parse_error {
     my ( $self, $err ) = @_;
 
-	say "DBIError: $err" if $self->debug;
+    say "DBIError: $err" if $self->debug;
 
     my $message_type
         = $err eq q{} ? "nomessage"
