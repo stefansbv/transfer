@@ -22,85 +22,85 @@ my $output = __('Output:');
 my $trans3 = __('Working:');
 my $trans4 = __('Summary:');
 
-# subtest 'attributes - recipe with columns section and hash header' => sub {
-#     my $uri            = 'db:pg://@localhost/__transfertest__';
-#     my $recipe_file    = path( 't', 'recipes', 'table','recipe-1.conf' );
-#     my $input_options  = { input_uri  => $uri };
-#     my $output_options = { output_uri => $uri };
-#     my $trafo_params   = [ recipe_file => $recipe_file ];
+subtest 'attributes - recipe with columns section and hash header' => sub {
+    my $uri            = 'db:pg://@localhost/__transfertest__';
+    my $recipe_file    = path( 't', 'recipes', 'table','recipe-1.conf' );
+    my $input_options  = { input_uri  => $uri };
+    my $output_options = { output_uri => $uri };
+    my $trafo_params   = [ recipe_file => $recipe_file ];
 
-#     my $transfer = App::Transfer->new( debug => 1 );
-#     isa_ok $transfer, ['App::Transfer'], 'transfer instance';
-#     ok my $trafo = App::Transfer::Transform->new(
-#         transfer       => $transfer,
-#         input_options  => $input_options,
-#         output_options => $output_options,
-#         @{$trafo_params},
-#     ), 'new trafo instance';
-#     isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
-#     isa_ok $trafo->recipe, ['App::Transfer::Recipe'], 'transfer recipe instance';
+    my $transfer = App::Transfer->new( debug => 1 );
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
+    ok my $trafo = App::Transfer::Transform->new(
+        transfer       => $transfer,
+        input_options  => $input_options,
+        output_options => $output_options,
+        @{$trafo_params},
+    ), 'new trafo instance';
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+    isa_ok $trafo->recipe, ['App::Transfer::Recipe'], 'transfer recipe instance';
 
-#     ok $trafo->exists_in_type('split'), '"split" exists in type';
-#     ok !$trafo->exists_in_type('nosuchtype'), '"nosuchtype" does not exists_in_type';
+    ok $trafo->exists_in_type('split'), '"split" exists in type';
+    ok !$trafo->exists_in_type('nosuchtype'), '"nosuchtype" does not exists_in_type';
 
-#     my $bag1 = bag { item 'id'; item 'denumire'; end; };
-#     is $trafo->src_header, $bag1, 'src_header';
-#     is $trafo->dst_header, $bag1, 'dst_header';
-#     is $trafo->num_fields, 2, 'number of fields in the header map';
+    my $bag1 = bag { item 'id'; item 'denumire'; end; };
+    is $trafo->src_header, $bag1, 'src_header';
+    is $trafo->dst_header, $bag1, 'dst_header';
+    is $trafo->num_fields, 2, 'number of fields in the header map';
 
-#     # for my $pair ( $self->field_pairs ) {
-#     #     $new->{ $pair->[0] } = $rec->{ $pair->[1] };
-#     # }
+    # for my $pair ( $self->field_pairs ) {
+    #     $new->{ $pair->[0] } = $rec->{ $pair->[1] };
+    # }
 
-#     my $expected_id_info = {
-#         pos    => 1,
-#         name   => "id",
-#         type   => "integer",
-#         length => 2,
-#         prec   => "",
-#         scale  => "",
-#     };
+    my $expected_id_info = {
+        pos    => 1,
+        name   => "id",
+        type   => "integer",
+        length => 2,
+        prec   => "",
+        scale  => "",
+    };
 
-#     ok !$trafo->has_no_columns_info, 'column info';
-#     is $trafo->get_column_info('id'), $expected_id_info, 'column info for "id"';
+    ok !$trafo->has_no_columns_info, 'column info';
+    is $trafo->get_column_info('id'), $expected_id_info, 'column info for "id"';
 
-#     ok my @fields = $trafo->all_ordered_fields, 'get all ordered fields';
-#     is \@fields, [qw(id denumire)], 'fields order match';
+    ok my @fields = $trafo->all_ordered_fields, 'get all ordered fields';
+    is \@fields, [qw(id denumire)], 'fields order match';
 
-#     is $trafo->has_common_headers, 1, 'has common headers';
-# };
+    is $trafo->has_common_headers, 1, 'has common headers';
+};
 
-# subtest 'attributes - recipe w/o columns section and with array header' => sub {
-#     my $uri            = 'db:pg://@localhost/__transfertest__';
-#     my $recipe_file    = path( 't', 'recipes', 'table','recipe-3.conf' );
-#     my $input_options  = { input_uri  => $uri };
-#     my $output_options = { output_uri => $uri };
-#     my $trafo_params   = [ recipe_file => $recipe_file ];
+subtest 'attributes - recipe w/o columns section and with array header' => sub {
+    my $uri            = 'db:pg://@localhost/__transfertest__';
+    my $recipe_file    = path( 't', 'recipes', 'table','recipe-3.conf' );
+    my $input_options  = { input_uri  => $uri };
+    my $output_options = { output_uri => $uri };
+    my $trafo_params   = [ recipe_file => $recipe_file ];
 
-#     my $transfer = App::Transfer->new;
-#     isa_ok $transfer, ['App::Transfer'], 'transfer instance';
-#     ok my $trafo = App::Transfer::Transform->new(
-#         transfer       => $transfer,
-#         input_options  => $input_options,
-#         output_options => $output_options,
-#         @{$trafo_params},
-#     ), 'new trafo instance';
-#     isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
-#     isa_ok $trafo->recipe, ['App::Transfer::Recipe'], 'transfer recipe instance';
+    my $transfer = App::Transfer->new;
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
+    ok my $trafo = App::Transfer::Transform->new(
+        transfer       => $transfer,
+        input_options  => $input_options,
+        output_options => $output_options,
+        @{$trafo_params},
+    ), 'new trafo instance';
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+    isa_ok $trafo->recipe, ['App::Transfer::Recipe'], 'transfer recipe instance';
 
-#     ok $trafo->exists_in_type('split'), 'exists_in_type';
+    ok $trafo->exists_in_type('split'), 'exists_in_type';
 
-#     my $bag1 = bag { item 'id'; item 'denumire'; end; };
-#     is $trafo->src_header, $bag1, 'src_header';
-#     is $trafo->dst_header, $bag1, 'dst_header';
-#     is $trafo->num_fields, 2, 'number of fields in the header map';
+    my $bag1 = bag { item 'id'; item 'denumire'; end; };
+    is $trafo->src_header, $bag1, 'src_header';
+    is $trafo->dst_header, $bag1, 'dst_header';
+    is $trafo->num_fields, 2, 'number of fields in the header map';
 
-#     ok $trafo->has_no_columns_info, 'column info';
-#     is $trafo->get_column_info('id'), undef, 'column info for "id"';
+    ok $trafo->has_no_columns_info, 'column info';
+    is $trafo->get_column_info('id'), undef, 'column info for "id"';
 
-#     my @fields = $trafo->all_ordered_fields;
-#     is \@fields, [], 'fields order match';
-# };
+    my @fields = $trafo->all_ordered_fields;
+    is \@fields, [], 'fields order match';
+};
 
 subtest 'transform: column_type_trafos' => sub {
     my $uri            = 'db:pg://@localhost/__transfertest__';
@@ -309,87 +309,87 @@ subtest 'transform: column_type_trafos' => sub {
     # header_map
 };
 
-# #--- Validations
+#--- Validations
 
-# # <source>
-# #   reader              = csv
-# #   file                = test-file.csv
-# # </source>
-# subtest 'validate file src - wrong input file from the recipe' => sub {
-#     my $recipe_file  = path(qw(t recipes table recipe-5.conf));
-#     my $trafo_params = [ recipe_file => $recipe_file ];
+# <source>
+#   reader              = csv
+#   file                = test-file.csv
+# </source>
+subtest 'validate file src - wrong input file from the recipe' => sub {
+    my $recipe_file  = path(qw(t recipes table recipe-5.conf));
+    my $trafo_params = [ recipe_file => $recipe_file ];
 
-#     my $transfer = App::Transfer->new;
-#     isa_ok $transfer, ['App::Transfer'], 'transfer instance';
-#     ok my $trafo = App::Transfer::Transform->new(
-#         transfer       => $transfer,
-#         input_options  => {},
-#         output_options => {},
-#         @{$trafo_params},
-#     ), 'new trafo instance';
-#     isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+    my $transfer = App::Transfer->new;
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
+    ok my $trafo = App::Transfer::Transform->new(
+        transfer       => $transfer,
+        input_options  => {},
+        output_options => {},
+        @{$trafo_params},
+    ), 'new trafo instance';
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
 
-#     is $trafo->get_logfield_name, 'pos', 'log field name';
+    is $trafo->get_logfield_name, '?', 'default log field name';
 
-#     my $msg = __("Invalid input file specified; use '--if' or fix the source file in the recipe.");
-#     like(
-#         dies { $trafo->validate_file_src },
-#         qr/$msg/,
-#         'validate input: wrong input from the recipe'
-#     );
-# };
+    my $msg = __("Invalid input file specified; use '--if' or fix the source file in the recipe.");
+    like(
+        dies { $trafo->validate_file_src },
+        qr/$msg/,
+        'validate input: wrong input from the recipe'
+    );
+};
 
-# # <source>
-# #   reader              = dbf
-# #   file                =
-# # </source>
-# subtest 'validate file src - no input file from the recipe' => sub {
-#     my $recipe_file  = path(qw(t recipes recipe-dbf2.conf));
-#     my $trafo_params = [ recipe_file => $recipe_file ];
+# <source>
+#   reader              = dbf
+#   file                =
+# </source>
+subtest 'validate file src - no input file from the recipe' => sub {
+    my $recipe_file  = path(qw(t recipes recipe-dbf2.conf));
+    my $trafo_params = [ recipe_file => $recipe_file ];
 
-#     my $transfer = App::Transfer->new;
-#     isa_ok $transfer, ['App::Transfer'], 'transfer instance';
-#     ok my $trafo = App::Transfer::Transform->new(
-#         transfer       => $transfer,
-#         input_options  => {},
-#         output_options => {},
-#         @{$trafo_params},
-#     ), 'new trafo instance';
-#     isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+    my $transfer = App::Transfer->new;
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
+    ok my $trafo = App::Transfer::Transform->new(
+        transfer       => $transfer,
+        input_options  => {},
+        output_options => {},
+        @{$trafo_params},
+    ), 'new trafo instance';
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
 
-#     my $msg = __("No input file specified; use '--if' or set the source file in the recipe.");
-#     like(
-#         dies { $trafo->validate_file_src },
-#         qr/$msg/,
-#         'validate input: no input from the recipe'
-#     );
-# };
+    my $msg = __("No input file specified; use '--if' or set the source file in the recipe.");
+    like(
+        dies { $trafo->validate_file_src },
+        qr/$msg/,
+        'validate input: no input from the recipe'
+    );
+};
 
-# # <destination>
-# #   writer              = csv
-# #   file                = t/nonexistentoutput/test-file.csv
-# # </destination>
-# subtest 'validate file dst - wrong output path from file name in the recipe' => sub {
-#     my $recipe_file  = path(qw(t recipes table recipe-5.conf));
-#     my $trafo_params = [ recipe_file => $recipe_file ];
+# <destination>
+#   writer              = csv
+#   file                = t/nonexistentoutput/test-file.csv
+# </destination>
+subtest 'validate file dst - wrong output path from file name in the recipe' => sub {
+    my $recipe_file  = path(qw(t recipes table recipe-5.conf));
+    my $trafo_params = [ recipe_file => $recipe_file ];
 
-#     my $transfer = App::Transfer->new;
-#     isa_ok $transfer, ['App::Transfer'], 'transfer instance';
-#     ok my $trafo = App::Transfer::Transform->new(
-#         transfer       => $transfer,
-#         input_options  => {},
-#         output_options => {},
-#         @{$trafo_params},
-#     ), 'new trafo instance';
-#     isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+    my $transfer = App::Transfer->new;
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
+    ok my $trafo = App::Transfer::Transform->new(
+        transfer       => $transfer,
+        input_options  => {},
+        output_options => {},
+        @{$trafo_params},
+    ), 'new trafo instance';
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
 
-#     my $msg = __("Invalid output file specified; use '--of' or fix the destination file in the recipe.");
-#     like(
-#         dies { $trafo->validate_file_dst },
-#         qr/$msg/,
-#         'validate output: no output from the recipe'
-#     );
-# };
+    my $msg = __("Invalid output file specified; use '--of' or fix the destination file in the recipe.");
+    like(
+        dies { $trafo->validate_file_dst },
+        qr/$msg/,
+        'validate output: no output from the recipe'
+    );
+};
 
 # TODO: decide how to handle file and path configs in the recipe
 # <destination>
@@ -397,118 +397,118 @@ subtest 'transform: column_type_trafos' => sub {
 #   file                = test-file.csv
 #   path                = t/nonexistentoutput
 # </destination>
-# subtest 'validate file dst - wrong output path from the recipe' => sub {
-#     my $recipe_file  = path(qw(t recipes recipe-6.conf));
-#     my $trafo_params = [ recipe_file => $recipe_file ];
+subtest 'validate file dst - wrong output path from the recipe' => sub {
+    my $recipe_file  = path(qw(t recipes recipe-6.conf));
+    my $trafo_params = [ recipe_file => $recipe_file ];
 
-#     my $transfer = App::Transfer->new;
-#     isa_ok $transfer, ['App::Transfer'], 'transfer instance';
-#     ok my $trafo = App::Transfer::Transform->new(
-#         transfer       => $transfer,
-#         input_options  => {},
-#         output_options => {},
-#         @{$trafo_params},
-#     ), 'new trafo instance';
-#     isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+    my $transfer = App::Transfer->new;
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
+    ok my $trafo = App::Transfer::Transform->new(
+        transfer       => $transfer,
+        input_options  => {},
+        output_options => {},
+        @{$trafo_params},
+    ), 'new trafo instance';
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
 
-#     my $msg = __("Invalid output file specified; use '--of' or fix the destination file in the recipe.");
-#     like(
-#         dies { $trafo->validate_file_dst },
-#         qr/$msg/,
-#         'validate output: no output from the recipe'
-#     );
-# };
+    my $msg = __("Invalid output path specified; fix the destination path in the recipe.");
+    like(
+        dies { $trafo->validate_file_dst },
+        qr/$msg/,
+        'validate output: no output from the recipe'
+    );
+};
 
-# #  <destination>
-# #   writer              = dbf
-# #   file                =
-# # </destination>
-# subtest 'validate file dst - no output file from the recipe' => sub {
-#     my $recipe_file  = path(qw(t recipes recipe-dbf3.conf));
-#     my $trafo_params = [ recipe_file => $recipe_file ];
+#  <destination>
+#   writer              = dbf
+#   file                =
+# </destination>
+subtest 'validate file dst - no output file from the recipe' => sub {
+    my $recipe_file  = path(qw(t recipes recipe-dbf3.conf));
+    my $trafo_params = [ recipe_file => $recipe_file ];
 
-#     my $transfer = App::Transfer->new;
-#     isa_ok $transfer, ['App::Transfer'], 'transfer instance';
-#     ok my $trafo = App::Transfer::Transform->new(
-#         transfer       => $transfer,
-#         input_options  => {},
-#         output_options => {},
-#         @{$trafo_params},
-#     ), 'new trafo instance';
-#     isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+    my $transfer = App::Transfer->new;
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
+    ok my $trafo = App::Transfer::Transform->new(
+        transfer       => $transfer,
+        input_options  => {},
+        output_options => {},
+        @{$trafo_params},
+    ), 'new trafo instance';
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
 
-#     my $msg = __("No output file specified; use '--of' or set the destination file in the recipe.");
-#     like(
-#         dies { $trafo->validate_file_dst },
-#         qr/$msg/,
-#         'validate output: no output from the recipe'
-#     );
-# };
+    my $msg = __("No output file specified; use '--of' or set the destination file in the recipe.");
+    like(
+        dies { $trafo->validate_file_dst },
+        qr/$msg/,
+        'validate output: no output from the recipe'
+    );
+};
 
-# # <source>
-# #   reader              = fake_db
-# #   target              = test
-# #   table               = test_db
-# # </source>
-# subtest 'validate db src - wrong ... from the recipe' => sub {
-#     my $uri            = 'db:pg://@localhost/nonexistent';
-#     my $recipe_file    = path( 't', 'recipes', 'recipe-fake_db.conf' );
-#     my $input_options  = { input_uri  => $uri };
-#     my $output_options = { output_uri => $uri };
-#     my $trafo_params   = [ recipe_file => $recipe_file ];
+# <source>
+#   reader              = fake_db
+#   target              = test
+#   table               = test_db
+# </source>
+subtest 'validate db src - wrong ... from the recipe' => sub {
+    my $uri            = 'db:pg://@localhost/nonexistent';
+    my $recipe_file    = path( 't', 'recipes', 'recipe-fake_db.conf' );
+    my $input_options  = { input_uri  => $uri };
+    my $output_options = { output_uri => $uri };
+    my $trafo_params   = [ recipe_file => $recipe_file ];
 
-#     my $transfer = App::Transfer->new;
-#     isa_ok $transfer, ['App::Transfer'], 'transfer instance';
-#     ok my $trafo = App::Transfer::Transform->new(
-#         transfer       => $transfer,
-#         input_options  => $input_options,
-#         output_options => $output_options,
-#         @{$trafo_params},
-#     ), 'new trafo instance';
-#     isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
-#     isa_ok $trafo->recipe, ['App::Transfer::Recipe'], 'transfer recipe instance';
+    my $transfer = App::Transfer->new;
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
+    ok my $trafo = App::Transfer::Transform->new(
+        transfer       => $transfer,
+        input_options  => $input_options,
+        output_options => $output_options,
+        @{$trafo_params},
+    ), 'new trafo instance';
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+    isa_ok $trafo->recipe, ['App::Transfer::Recipe'], 'transfer recipe instance';
 
-#     # $trafo->validate_db_src;
+    # $trafo->validate_db_src;
 
-#     # my $msg = __("Invalid input.");
-#     # like(
-#     #     dies { $trafo->validate_db_src },
-#     #     qr/$msg/,
-#     #     'validate input: wrong input from the recipe'
-#     # );
-# };
+    # my $msg = __("Invalid input.");
+    # like(
+    #     dies { $trafo->validate_db_src },
+    #     qr/$msg/,
+    #     'validate input: wrong input from the recipe'
+    # );
+};
 
-# subtest 'transfer file2file' => sub {
-#     my $input_options  = { input_file  => path(qw(t siruta.csv)) };
-#     my $output_options = { output_file => path(qw(t output.csv)) };
-#     my $recipe_file    = path(qw(t recipes table recipe-5.conf));
-#     my $trafo_params   = [ recipe_file => $recipe_file ];
+subtest 'transfer file2file' => sub {
+    my $input_options  = { input_file  => path(qw(t siruta.csv)) };
+    my $output_options = { output_file => path(qw(t output.csv)) };
+    my $recipe_file    = path(qw(t recipes table recipe-5.conf));
+    my $trafo_params   = [ recipe_file => $recipe_file ];
 
-#     my $transfer = App::Transfer->new;
-#     isa_ok $transfer, ['App::Transfer'], 'transfer instance';
-#     ok my $trafo = App::Transfer::Transform->new(
-#         transfer       => $transfer,
-#         input_options  => $input_options,
-#         output_options => $output_options,
-#         @{$trafo_params},
-#     ), 'new trafo instance';
-#     isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+    my $transfer = App::Transfer->new;
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
+    ok my $trafo = App::Transfer::Transform->new(
+        transfer       => $transfer,
+        input_options  => $input_options,
+        output_options => $output_options,
+        @{$trafo_params},
+    ), 'new trafo instance';
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
 
-#     is $trafo->get_logfield_name, 'pos', 'log field name';
+    is $trafo->get_logfield_name, '?', 'default log field name';
 
-#     my $merged;
-#     like(
-#         $merged = capture_merged { $trafo->validate_file_src },
-#         qr/$input/,
-#         'transfer file to file'
-#     );
-#     diag $merged if $ENV{TRANSFER_DEBUG};
-#     like(
-#         $merged = capture_merged { $trafo->validate_file_dst },
-#         qr/$output/,
-#         'transfer file to file'
-#     );
-#     diag $merged if $ENV{TRANSFER_DEBUG};
-# };
+    my $merged;
+    like(
+        $merged = capture_merged { $trafo->validate_file_src },
+        qr/$input/,
+        'transfer file to file'
+    );
+    diag $merged if $ENV{TRANSFER_DEBUG};
+    like(
+        $merged = capture_merged { $trafo->validate_file_dst },
+        qr/$output/,
+        'transfer file to file'
+    );
+    diag $merged if $ENV{TRANSFER_DEBUG};
+};
 
 done_testing;
