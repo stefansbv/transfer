@@ -354,7 +354,7 @@ sub job_transfer {
     my $meth_src = "validate_${src_type}_src";
     my $iter;
     if ( $self->can($meth_src) ) {
-        $iter = $self->$meth_src;                       # read the source
+        $iter = $self->$meth_src;            # read the source
     }
     else {
         hurl run =>
@@ -363,7 +363,7 @@ sub job_transfer {
 
     my $meth_dst = "validate_${dst_type}_dst";
     if ( $self->can($meth_dst) ) {
-        $self->$meth_dst($iter);        # write to the destination source
+        $self->$meth_dst($iter);            # write to the destination
     }
     else {
         hurl run =>
@@ -454,12 +454,21 @@ sub validate_file_src {
 
 sub validate_file_dst {
     my $self = shift;
-
-    # my $file = $self->writer_options->file;
-    # my $path = $self->writer_options->path;
-    # say "FILE = $file";
-    # say "path = $path";
-
+    my $output_path = try {
+        $self->writer_options->path;
+    }
+    catch {
+        say "ORIGINAL ERR: $_" if $ENV{TRANSFER_DEBUG};
+        my $ident = $_->ident;
+        if ( $ident eq 'options:invalid' ) {
+            hurl run => __x(
+                "Invalid output path specified; fix the destination path in the recipe."
+            );
+        }
+        else {
+            say "IDENT=$ident";
+        }
+    };
     my $output_file = try {
         $self->writer_options->file;
     }
@@ -562,7 +571,7 @@ sub validate_db_dst {
     else {
         my $info = $engine->get_info($table);
         hurl run => __ 'No columns type info retrieved from database!'
-          if keys %{$info} == 0;
+            if keys %{$info} == 0;
         $self->set_column_info( %{$info} );
     }
 
@@ -574,10 +583,10 @@ sub validate_db_dst {
 }
 
 sub map_fields_src_to_dst {
-    my ( $self, $rec, $h_map ) = @_;
+    my ( $self, $rec ) = @_;
     my $new = {};
     for my $pair ( $self->field_pairs ) {
-        $new->{ $pair->[0] } = $rec->{ $pair->[1] };
+        $new->{ $pair->[1] } = $rec->{ $pair->[0] };
     }
     return $new;
 }
@@ -645,12 +654,20 @@ sub column_type_trafos {
     my $src_date_format = $self->recipe->source->date_format;
     my $dst_date_format = $self->recipe->destination->date_format; # TODO: use it!
     my $src_date_sep    = $self->recipe->source->date_sep;
+
+    # for my $pair ( $self->column_info_pairs ) {
+    #     say "field: $pair->[0]";
+    # }
     
     while ( my ( $field, $value ) = each( %{$record} ) ) {
+        # say "FIELD: $field";
         next if $self->has_temp_field($field);
         my $info = $self->get_column_info($field);
+
+        # dump $info;
+
         hurl field_info => __x(
-            "Field info for '{field}' not found! Header config. <--> DB schema inconsistency",
+            "XXX Field info for '{field}' not found! Header config. <--> DB schema inconsistency",
             field => $field
         ) unless $info and ref $info;
         my $p    = $info;
