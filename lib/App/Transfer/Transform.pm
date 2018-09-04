@@ -594,6 +594,8 @@ sub map_fields_src_to_dst {
 sub transformations {
     my ($self, $record, $info, $logfld) = @_;
 
+    use Data::Dump; dd $record;
+
     #--  Logging settings
     my $logidx = $record->{$logfld} ? $record->{$logfld} : '?';
     my $logstr = $self->verbose ? qq{[$logfld=$logidx]} : qq{[$logidx]};
@@ -605,6 +607,8 @@ sub transformations {
                                              # output types
     $self->remove_tempfields($record);
 
+    dd $record;
+    
     return $record;
 }
 

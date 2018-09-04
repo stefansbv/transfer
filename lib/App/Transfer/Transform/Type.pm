@@ -66,8 +66,12 @@ sub type_split {
 sub type_join {
     my ( $self, $step, $record, $logstr ) = @_;
 
+    my $field_src  = $step->field_src;
+    my $field_dst  = $step->field_dst;
+    my $attributes = $step->attributes;
+
     my $values_aref = [];
-    foreach my $field ( @{ $step->field_src } ) {
+    foreach my $field ( @{ $field_src } ) {
         if ( exists $record->{$field} ) {
             my $value = $record->{$field};
             push @{$values_aref}, $value if defined $value;
@@ -82,8 +86,16 @@ sub type_join {
     $p->{separator}   = $step->separator;
     $p->{values_aref} = $values_aref;
 
-    $record->{ $step->field_dst }
-        = $self->plugin_row->do_transform( $step->method, $p );
+    my $dst_value = $self->plugin_row->do_transform( $step->method, $p );
+    $record->{$field_dst} = $dst_value;
+    
+    # if ( $attributes->{REPLACE} ) {
+    #     $record->{$field_dst} = $dst_value;
+    # }
+    # elsif ( $attributes->{REPLACENULL} ) {
+    #     $record->{$field_dst} = $dst_value
+    #         if not defined $record->{$field_dst};
+    # }
 
     return $record;
 }
