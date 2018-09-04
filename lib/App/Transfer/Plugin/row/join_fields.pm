@@ -12,7 +12,8 @@ sub join_fields {
     my ( $self, $p ) = @_;
     my ( $values_aref, $separator ) = @$p{qw(values_aref separator)};
     return unless ref $values_aref;
-    return join $separator, @{$values_aref};
+    my @values = map { $_ } grep { defined } @{$values_aref};
+    return join $separator, @values;
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -435,9 +435,9 @@ subtest 'Row Transformations' => sub {
     meta_ok $ttr, "App::Transfer::Plugin has a 'meta'";
     has_attribute_ok $ttr, 'plugins', '"plugins"';
 
-    my $values_aref = [ 'Brașov', 'B-dul Saturn', 'nr. 20' ];
-
     #-- join
+
+    my $values_aref = [ 'Brașov', 'B-dul Saturn', 'nr. 20' ];
     my $p = {
         name   => 'field',
         logstr => 'error',
@@ -447,7 +447,20 @@ subtest 'Row Transformations' => sub {
     ok my $joined = $ttr->do_transform( 'join_fields', $p ), 'join fields';
     is $joined, 'Brașov, B-dul Saturn, nr. 20', 'resulting string';
 
+    #-- join with undef
+
+    my $values_undef = [ 'Brașov', undef, 'nr. 20' ];
+    $p = {
+        name   => 'field',
+        logstr => 'error',
+    };
+
+    @$p{qw(values_aref separator)} = ( $values_undef, ', ' );
+    ok $joined = $ttr->do_transform( 'join_fields', $p ), 'join fields';
+    is $joined, 'Brașov, nr. 20', 'resulting string';
+
     #-- split
+
     $p = {
         name   => 'field',
         logstr => 'error',
