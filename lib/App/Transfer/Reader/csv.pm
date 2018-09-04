@@ -93,8 +93,12 @@ sub _build_contents {
     ) if scalar @not_found;
 
     # Add the temporary fields to the record
-    my $temp = $self->tempfield;
-    push @{$header}, @{$temp} if ref $temp eq 'ARRAY';
+    if ( my $tempfield = $self->tempfield ) {
+        my $temp_aref = ref $tempfield ? $tempfield : [$tempfield];
+        push @{$header}, @{$temp_aref};
+    }
+
+    use Data::Dump; dd $header;
 
     # Get the data
     my @aoh;
