@@ -152,7 +152,6 @@ subtest 'CSV - recipe with tempfield' => sub {
         data      => "21.01.2018",
         scadenta  => "05.02.2018",
         suma      => 10.84,
-        seria     => undef,
     };
 
     ok my $aoh = $reader->_contents, 'get contents';
