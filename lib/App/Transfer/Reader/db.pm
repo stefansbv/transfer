@@ -24,7 +24,7 @@ has 'table' => (
 
 has 'orderby' => (
     is       => 'ro',
-    isa      => 'Str|ArrayRef|HashRef',
+    isa      => 'Maybe[Str|ArrayRef|HashRef]',
     required => 0,
 );
 
