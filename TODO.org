@@ -1,8 +1,9 @@
 
-* TODO [33%]
+* TODO [16%]
  - [ ] Check early if the plugins can be used
  - [X] Add tests for copy type
  - [ ] Add tests for batch type
  - [ ] The transform.t test fails if there is no DBD::Pg module
  - [ ] Test the map_fields_src_to_dst method from Transform
+ - [ ] Test (implement !?) the date_format for the destination
 
