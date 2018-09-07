@@ -5,6 +5,7 @@ use strict;
 use warnings;
 
 use Log::Log4perl;
+use Log::Log4perl::Level;
 
 # Log Levels
 #   There are six predefined log levels: "FATAL", "ERROR", "WARN", "INFO",
@@ -17,24 +18,28 @@ use Log::Log4perl;
 #   priority is higher or equal than the configured setting.
 
 my $log4p_conf = q(
-    log4perl.rootLogger=DEBUG, SCREEN
+    log4perl.rootLogger=TRACE, SCREEN
     log4perl.appender.SCREEN=Log::Log4perl::Appender::Screen
     log4perl.appender.SCREEN.layout=SimpleLayout
-    log4perl.appender.SCREEN.Threshold=WARN
 );
 
 Log::Log4perl->init(\$log4p_conf);
 
-say "Level from config is WARN";
-
 my $log = Log::Log4perl->get_logger("");
 
-say "is_fatal: ", $log->is_fatal ? 'true' : 'false';
-say "is_error: ", $log->is_error ? 'true' : 'false';
-say "is_warn : ", $log->is_warn  ? 'true' : 'false';
-say "is_info : ", $log->is_info  ? 'true' : 'false';
-say "is_debug: ", $log->is_debug ? 'true' : 'false';
-say "is trace: ", $log->is_trace ? 'true' : 'false';
+#$log->level('DEBUG');
+
+say "Level from config is ", $log->level();
+$log->inc_level(2);
+say "Level from setting is ", $log->level();
+
+say '---';
+say "1: is fatal: ", $log->is_fatal ? 'true' : 'false';
+say "2: is error: ", $log->is_error ? 'true' : 'false';
+say "3: is warn : ", $log->is_warn  ? 'true' : 'false';
+say "4: is info : ", $log->is_info  ? 'true' : 'false';
+say "5: is debug: ", $log->is_debug ? 'true' : 'false';
+say "6: is trace: ", $log->is_trace ? 'true' : 'false';
 
 say '---';
 $log->fatal("fatal msg");
@@ -45,12 +50,8 @@ $log->debug("debug msg");
 $log->trace("trace msg");
 say '---';
 
-# Change the treshold
-Log::Log4perl->appender_by_name('SCREEN')->threshold('INFO');
-
-$Log::Log4perl::Logger::APPENDER_BY_NAME{SCREEN}->threshold('DEBUG');
-
-say "Level from setting is DEBUG";
+$log->inc_level(1);
+say "Level from setting is ", $log->level();
 
 say '---';
 $log->fatal("fatal msg");
