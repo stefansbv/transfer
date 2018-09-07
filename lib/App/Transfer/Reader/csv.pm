@@ -98,8 +98,6 @@ sub _build_contents {
         push @{$header}, @{$temp_aref};
     }
 
-    use Data::Dump; dd $header;
-
     # Get the data
     my @aoh;
     while ( my $row = $csv->getline_hr($fh) ) {

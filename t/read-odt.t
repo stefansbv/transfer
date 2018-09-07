@@ -29,7 +29,6 @@ subtest 'ODT OK' => sub {
         rw_type  => 'reader',
     );
     ok my $header = $recipe->table->src_header, 'get the recipe table header';
-    use Data::Dump; dd $header;
     my $tmpfld = $recipe->table->tempfield;
     ok my $reader = App::Transfer::Reader->load( {
         transfer  => $transfer,

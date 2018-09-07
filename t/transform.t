@@ -258,10 +258,6 @@ subtest 'transform: column_type_trafos' => sub {
 
     ok $trafo->set_column_info( %{$info} ), 'set the column info';
 
-    # use Data::Dump;
-    # my @fp = $trafo->field_pairs;
-    # dd @fp;
-
     ok !$trafo->has_no_columns_info, 'column info';
     is $trafo->get_column_info('f_vchr'), $info->{f_vchr},
       'column info for "f_vchr"';

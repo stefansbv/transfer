@@ -387,7 +387,6 @@ subtest 'Table section - columns include' => sub {
     is $recipe->table->header_map, $header_map, 'header map';
 
     ok my $columns = $recipe->table->columns, 'get columns list';
-    use Data::Dump; dd $columns;
     #is $columns, $header_aref, 'columns list';
 
     # Helper
