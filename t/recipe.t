@@ -393,6 +393,39 @@ subtest 'Table section - columns include' => sub {
     is $recipe->has_field_list, F(), 'has field list';
 };
 
+subtest 'Table section with empty field names in the header' => sub {
+    my $recipe_file = path(qw(t recipes recipe-xls3.conf));
+    ok my $recipe
+        = App::Transfer::Recipe->new(
+            recipe_file => $recipe_file->stringify,
+        ), 'new recipe instance';
+
+    my $header_raw = [
+        'siruta', 'denloc', 'codp', '', 'sirsup',
+        '', '', '', '', 'rang',
+    ];
+    my $header     = [qw{siruta denloc codp sirsup rang}];
+    my $header_map = {
+        siruta => 'siruta',
+        denloc => 'denloc',
+        codp   => 'codp',
+        sirsup => 'sirsup',
+        rang   => 'rang',
+    };
+
+    is $recipe->table->logfield, 'siruta', 'log field name';
+    ok my @shr = $recipe->table->src_header_raw, 'got src_header_raw';
+    is \@shr, $header_raw, 'source raw header';
+    is $recipe->table->src_header, $header, 'source header';
+    is $recipe->table->dst_header, $header, 'destination header';
+    is $recipe->table->header_map, $header_map, 'header map';
+
+    # Helper
+    # is $recipe->has_field_list, T(), 'has field list';
+    # ok my @field_list = $recipe->field_list, 'get the field list';
+    # is \@field_list, $header_aref, 'the field list';
+};
+
 #-- Transform section
 
 subtest 'Column transformation type' => sub {

@@ -168,6 +168,7 @@ has 'reader' => (
             transfer  => $self->transfer,
             header    => $self->recipe->table->src_header,
             table     => $self->recipe->source->table,
+            rectangle => $self->recipe->table->rectangle,
             tempfield => $self->recipe->table->tempfield,
             orderby   => $self->recipe->table->orderby,
             filter    => $self->recipe->table->filter,

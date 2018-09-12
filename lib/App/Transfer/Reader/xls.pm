@@ -63,25 +63,23 @@ has 'sheet' => (
 );
 
 sub _read_rectangle {
-    my ($self, $top_cell, $bot_cell) = @_;
-
+    my ( $self, $top_cell, $bot_cell ) = @_;
     my $header = $self->header;
-
-    my ($col_min, $row_min) = $self->sheet->cell2cr($top_cell);
-    my ($col_max, $row_max) = $self->sheet->cell2cr($bot_cell);
+    my ( $col_min, $row_min ) = $self->sheet->cell2cr($top_cell);
+    my ( $col_max, $row_max ) = $self->sheet->cell2cr($bot_cell);
     say "row_min = $row_min  row_max = $row_max" if $self->debug;
     say "col_min = $col_min  col_max = $col_max" if $self->debug;
-
     my @aoh = ();
     for my $row_cnt ( $row_min .. $row_max ) {
         my @row = $self->sheet->row($row_cnt);
         my $rec = {};
         foreach my $col_cnt ( $col_min .. $col_max ) {
             my $index = $col_cnt - $col_min;
-            my $field = $header->[$index];
-            my $value = $row[$index];
-            say "[$index] $field = $value" if $self->debug;
-            $rec->{$field} = $value;
+            if ( my $field = $header->[$index] ) {
+                my $value = $row[$index];
+                say "[$index] $field = $value" if $self->debug;
+                $rec->{$field} = $value;
+            }
         }
         dump $rec if $self->debug;
         push @aoh, $rec;
@@ -99,8 +97,7 @@ has _contents => (
 
 sub _build_contents {
     my $self = shift;
-    my @rect = @{$self->rectangle};
-    my ( $top, $bot ) = @rect;
+    my ( $top, $bot ) = @{ $self->rectangle };
     return $self->_read_rectangle( $top, $bot );
 }
 
@@ -117,6 +114,24 @@ sub BUILDARGS {
     return $p;
 }
 
+sub BUILD {
+    my $self = shift;
+    my ( $top,     $bot )     = @{ $self->rectangle };
+    my ( $col_min, $row_min ) = $self->sheet->cell2cr($top);
+    my ( $col_max, $row_max ) = $self->sheet->cell2cr($bot);
+    my $count = scalar @{ $self->header };
+    my $range = $col_max - $col_min + 1;
+    hurl xls => __x(
+        "The columns range ({range}) from the 'rectangle' attribute must match the fields count {count}",
+        count => $count,
+        range => $range
+    ) if $range != $count;
+    hurl xls => __x(
+        "For the 'xls' reader, a valid 'rectangle' attribute with positive row range is required {min} < {max}",
+        min => $row_min,
+        max => $row_max,
+    ) if $row_max <= $row_min;
+}
 
 __PACKAGE__->meta->make_immutable;
 

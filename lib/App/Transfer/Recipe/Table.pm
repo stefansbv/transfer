@@ -52,22 +52,47 @@ has 'columns' => (
     isa      => 'HashRef|ArrayRef',
 );
 
-has 'src_header' => (
+has '_src_header' => (
+    traits   => ['Array'],
     is       => 'ro',
-    isa      => 'ArrayRef',
-    required => 1,
+    isa      => 'ArrayRef[Str]',
+    lazy     => 1,
+    default  => sub { [] },
+    init_arg => 'src_header',
+    handles  => {
+        src_header_raw => 'elements',
+        src_header_def => 'grep',
+    },
 );
 
+sub src_header {
+    my $self = shift;
+    my @header = $self->src_header_def( sub { $_ } );
+    return \@header;
+}
+
 has 'dst_header' => (
-    is       => 'ro',
-    isa      => 'ArrayRef',
-    required => 1,
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        return $self->src_header;
+    },
 );
 
 has 'header_map' => (
-    is       => 'ro',
-    isa      => 'HashRef',
-    required => 1,
+    is      => 'ro',
+    isa     => 'HashRef',
+    lazy    => 1,
+    default => sub {
+        my $self  = shift;
+        my $h_map = {};
+        foreach my $field ( @{ $self->src_header } ) {
+            $h_map->{$field} = $field;
+        }
+        return $h_map;
+    },
 );
 
 has 'tempfield' => (

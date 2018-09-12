@@ -138,8 +138,6 @@ has 'table' => (
         if ( $self->has_field_list ) {
             my @header = $self->field_list;
             $meta->{src_header} = \@header;
-            $meta->{dst_header} = \@header;
-            $meta->{header_map} = { map { $_ => $_ } @header };
         }
         else {
             my $header = delete $meta->{header};
