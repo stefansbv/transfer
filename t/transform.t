@@ -123,10 +123,10 @@ subtest 'transform: column_type_trafos' => sub {
     isa_ok $trafo->recipe, ['App::Transfer::Recipe'], 'transfer recipe instance';
     isa_ok $trafo->transfer, ['App::Transfer'], 'is a transfer instance';
 
-    # my $bag1 = bag { item 'id'; item 'denumire'; end; };
-    # is $trafo->src_header, $bag1, 'src_header';
-    # is $trafo->dst_header, $bag1, 'dst_header';
-    # is $trafo->num_fields, 2, 'number of fields in the header map';
+    my $bag1 = bag { item 'id'; item 'denumire'; end; };
+    is $trafo->src_header, $bag1, 'src_header';
+    is $trafo->dst_header, $bag1, 'dst_header';
+    is $trafo->num_fields, 2, 'number of fields in the header map';
 
     # like(
     #     capture_stdout {
@@ -305,7 +305,66 @@ subtest 'transform: column_type_trafos' => sub {
     # header_map
 };
 
-#--- Validations
+subtest 'transform: column_trafos' => sub {
+    my $input_options  = { input_file  => path(qw(t siruta.csv)) };
+    my $output_options = { output_file => path(qw(t output.csv)) };
+    my $recipe_file    = path(qw(t recipes table recipe-5.conf));
+    my $trafo_params   = [ recipe_file => $recipe_file ];
+
+    my $transfer = App::Transfer->new;
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
+    ok my $trafo = App::Transfer::Transform->new(
+        transfer       => $transfer,
+        input_options  => $input_options,
+        output_options => $output_options,
+        @{$trafo_params},
+    ), 'new trafo instance';
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+
+    my $bag1 = bag { item 'id'; item 'denumire'; end; };
+    my $bag2 = bag { item 'ident'; item 'name'; end; };
+
+    ok my @shr = $trafo->recipe->table->src_header_raw, 'got the src raw header';
+    is \@shr, $bag2, 'source raw header';
+    is $trafo->recipe->table->src_header, $bag2, 'source header';
+    is $trafo->recipe->table->dst_header, $bag1, 'destination header';
+    my $header_map = { ident => 'id', name => 'denumire' };
+    is $trafo->recipe->table->header_map, $header_map, 'header map';
+
+    is $trafo->get_logfield_name, '?', 'default log field name';
+
+    my $merged;
+    like(
+        $merged = capture_merged { $trafo->validate_file_src },
+        qr/$input/,
+        'transfer file to file'
+    );
+    diag $merged if $ENV{TRANSFER_DEBUG};
+    like(
+        $merged = capture_merged { $trafo->validate_file_dst },
+        qr/$output/,
+        'transfer file to file'
+    );
+    diag $merged if $ENV{TRANSFER_DEBUG};
+
+    my $record = {
+        id    => 100,
+        valid => 'no, not really',
+        code  => '666',
+    };
+    my $expected = {
+        code => 666,
+        id => 100,
+        valid => "N",
+    };
+    my $r = $trafo->column_trafos( $record, 'logstr' );
+    is $r, $expected, 'the record is like expected';
+
+    # TODO: Validate the existance of the fields from the trafos, here
+    # 'valid' does not exists and is automagically added to the rezult
+};
+
+# #--- Validations
 
 # <source>
 #   reader              = csv
@@ -472,39 +531,6 @@ subtest 'validate db src - wrong ... from the recipe' => sub {
     #     qr/$msg/,
     #     'validate input: wrong input from the recipe'
     # );
-};
-
-subtest 'transfer file2file' => sub {
-    my $input_options  = { input_file  => path(qw(t siruta.csv)) };
-    my $output_options = { output_file => path(qw(t output.csv)) };
-    my $recipe_file    = path(qw(t recipes table recipe-5.conf));
-    my $trafo_params   = [ recipe_file => $recipe_file ];
-
-    my $transfer = App::Transfer->new;
-    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
-    ok my $trafo = App::Transfer::Transform->new(
-        transfer       => $transfer,
-        input_options  => $input_options,
-        output_options => $output_options,
-        @{$trafo_params},
-    ), 'new trafo instance';
-    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
-
-    is $trafo->get_logfield_name, '?', 'default log field name';
-
-    my $merged;
-    like(
-        $merged = capture_merged { $trafo->validate_file_src },
-        qr/$input/,
-        'transfer file to file'
-    );
-    diag $merged if $ENV{TRANSFER_DEBUG};
-    like(
-        $merged = capture_merged { $trafo->validate_file_dst },
-        qr/$output/,
-        'transfer file to file'
-    );
-    diag $merged if $ENV{TRANSFER_DEBUG};
 };
 
 done_testing;
