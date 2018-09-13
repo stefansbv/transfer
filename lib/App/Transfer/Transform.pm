@@ -386,7 +386,7 @@ sub do_transfer {
     my ($self, $cols_info) = @_;
 
     $self->job_info_prework;
-        
+
     my $logfld = $self->get_logfield_name();
     my $table  = $self->recipe->destination->table;
 
@@ -431,7 +431,7 @@ sub validate_file_src {
         $self->reader_options->file;
     }
     catch {
-        say "ORIGINAL ERR: $_" if $ENV{TRANSFER_DEBUG};
+        say "ORIGINAL ERR: $_" if $self->debug;
         my $ident = $_->ident;
         if ( $ident eq 'options:invalid' ) {
             hurl run => __x(
@@ -460,7 +460,7 @@ sub validate_file_dst {
         $self->writer_options->path;
     }
     catch {
-        say "ORIGINAL ERR: $_" if $ENV{TRANSFER_DEBUG};
+        say "ORIGINAL ERR: $_" if $self->debug;
         my $ident = $_->ident;
         if ( $ident eq 'options:invalid' ) {
             hurl run => __x(
@@ -475,7 +475,7 @@ sub validate_file_dst {
         $self->writer_options->file;
     }
     catch {
-        say "ORIGINAL ERR: $_" if $ENV{TRANSFER_DEBUG};
+        say "ORIGINAL ERR: $_" if $self->debug;
         my $ident = $_->ident;
         if ( $ident eq 'options:invalid' ) {
             hurl run => __x(
@@ -520,7 +520,7 @@ sub validate_db_src {
     #     $src_engine->dbh;
     # }
     # catch {
-    #     say "ORIGINAL ERR: $_" if $ENV{TRANSFER_DEBUG};
+    #     say "ORIGINAL ERR: $_" if $self->debug;
     #     my $ident = $_->ident;
     #     if ( $ident eq 'db:dbnotfound' ) {
     #         hurl run => __x(
@@ -606,7 +606,7 @@ sub transformations {
         if $self->recipe->out_type eq 'db';  # TODO allow for other
                                              # output types
     $self->remove_tempfields($record);
-    
+
     return $record;
 }
 
@@ -660,7 +660,7 @@ sub column_type_trafos {
     # for my $pair ( $self->column_info_pairs ) {
     #     say "field: $pair->[0]";
     # }
-    
+
     while ( my ( $field, $value ) = each( %{$record} ) ) {
         # say "FIELD: $field";
         next if $self->has_temp_field($field);
