@@ -141,9 +141,11 @@ has 'table' => (
         }
         else {
             my $header = delete $meta->{header};
-            @{ $meta->{src_header} } = keys   %{$header};
-            @{ $meta->{dst_header} } = values %{$header};
             $meta->{header_map} = $header;
+            foreach my $field ( keys %{$header} ) {
+                push @{ $meta->{src_header} }, $field;
+                push @{ $meta->{dst_header} }, $header->{$field};
+            }
         }
         if ( exists $meta->{columns}{name} ) {
             my $cols = delete $meta->{columns}{name};
