@@ -164,9 +164,10 @@ has 'reader' => (
     lazy     => 1,
     default  => sub {
         my $self = shift;
+        my @header = $self->recipe->table->src_header_raw;
         return App::Transfer::Reader->load({
             transfer  => $self->transfer,
-            header    => $self->recipe->table->src_header,
+            header    => \@header,
             table     => $self->recipe->source->table,
             rectangle => $self->recipe->table->rectangle,
             tempfield => $self->recipe->table->tempfield,
