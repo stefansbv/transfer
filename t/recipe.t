@@ -167,6 +167,9 @@ subtest 'Recipe - minimum' => sub {
     is $table->rectangle, ['A27','E36'], 'rectangle';
     is ref $table->orderby, '', 'table orderby';
     my $fields = [qw(siruta denloc codp)];
+
+    ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
+    is \@shr, $fields, 'source raw header';
     is $table->src_header, $fields, 'source header';
     is $table->dst_header, $fields, 'destination header';
     my %h_map = map { $_ => $_ } @{$fields};
@@ -257,6 +260,9 @@ subtest 'Table section minimum config' => sub {
         ), 'new recipe instance';
 
     is $recipe->table->logfield, 'id', 'log field name';
+
+    ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
+    is \@shr, $header_aref, 'source raw header';
     is $recipe->table->src_header, $header_aref, 'source header';
     is $recipe->table->dst_header, $header_aref, 'destination header';
     is $recipe->table->header_map, $header_href, 'header map';
@@ -282,6 +288,8 @@ subtest 'Table section maximum config - columns info' => sub {
     is $recipe->table->filter, $expected, 'table filter';
     is $recipe->table->tempfield, [ 'seria', 'factura' ], 'tempfields';
 
+    ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
+    is \@shr, $bag1, 'source raw header';
     is $recipe->table->src_header, $bag1, 'source header';
     is $recipe->table->dst_header, $bag1, 'destination header';
     is $recipe->table->header_map, $header_href, 'header map';
@@ -304,6 +312,8 @@ subtest 'Table section medium config' => sub {
     is $recipe->table->orderby, { -asc => 'denumire' }, 'table orderby';
     is $recipe->table->tempfield, [ 'seria' ], 'tempfields';
 
+    ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
+    is \@shr, $header_aref, 'source raw header';
     is $recipe->table->src_header, $header_aref, 'source header';
     is $recipe->table->dst_header, $header_aref, 'destination header';
     is $recipe->table->header_map, $header_href, 'header map';
@@ -330,6 +340,8 @@ subtest 'Table section complex orderby config' => sub {
     ], 'table orderby';
     is $recipe->table->get_plugin('date'), 'date_german', 'plugin for date';
 
+    ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
+    is \@shr, $header_aref, 'source raw header';
     is $recipe->table->src_header, $header_aref, 'source header';
     is $recipe->table->dst_header, $header_aref, 'destination header';
     is $recipe->table->header_map, $header_href, 'header map';
@@ -355,6 +367,8 @@ subtest 'Table section - columns array' => sub {
     is $recipe->table->filter, $expected, 'table filter';
     is $recipe->table->tempfield, [ 'seria', 'factura' ], 'tempfields';
 
+    ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
+    is \@shr, $bag1, 'source raw header';
     is $recipe->table->src_header, $bag1, 'source header';
     is $recipe->table->dst_header, $bag1, 'destination header';
     is $recipe->table->header_map, $header_href, 'header map';
@@ -380,6 +394,8 @@ subtest 'Table section - columns include' => sub {
     is $recipe->table->filter, undef, 'table filter';
     is $recipe->table->tempfield, undef, 'tempfields';
 
+    ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
+    is \@shr, $bag2, 'source raw header';
     is $recipe->table->src_header, $bag2, 'source header';
     is $recipe->table->dst_header, $bag1, 'destination header';
 
@@ -414,7 +430,7 @@ subtest 'Table section with empty field names in the header' => sub {
     };
 
     is $recipe->table->logfield, 'siruta', 'log field name';
-    ok my @shr = $recipe->table->src_header_raw, 'got src_header_raw';
+    ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
     is \@shr, $header_raw, 'source raw header';
     is $recipe->table->src_header, $header, 'source header';
     is $recipe->table->dst_header, $header, 'destination header';
