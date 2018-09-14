@@ -318,7 +318,7 @@ has 'ordered_dst_header' => (
     },
 );
 
-has '_trafo_types' => (
+has '_trafo_row_types' => (
     traits  => ['Hash'],
     is      => 'rw',
     isa     => 'HashRef',
@@ -350,8 +350,6 @@ sub job_transfer {
 
     my $src_type = $self->recipe->in_type;
     my $dst_type = $self->recipe->out_type;
-
-    # validations...
 
     my $meth_src = "validate_${src_type}_src";
     my $iter;
@@ -500,10 +498,13 @@ sub validate_file_dst {
         my @ordered = $self->all_ordered_fields;
         $self->writer->insert_header(\@ordered);
     }
-
+    
     my $worksheet = $self->writer->worksheet
         if $self->writer->can('worksheet');
     $self->job_info_output_file($output_file, $worksheet);
+
+    $self->validate_dst_file_fields;
+
     return;
 }
 
@@ -512,45 +513,45 @@ sub validate_db_src {
 
     my $target = $self->reader->target;
 
-    # my $src_engine = $self->reader->target->engine;
-    # my $database   = $src_engine->database;
-    # my $src_table  = $self->recipe->source->table;
+    my $src_engine = $self->reader->target->engine;
+    my $database   = $src_engine->database;
+    my $src_table  = $self->recipe->source->table;
 
-    # try {
-    #     $src_engine->dbh;
-    # }
-    # catch {
-    #     say "ORIGINAL ERR: $_" if $self->debug;
-    #     my $ident = $_->ident;
-    #     if ( $ident eq 'db:dbnotfound' ) {
-    #         hurl run => __x(
-    #             "Could not connect to the '{dbname}' database.",
-    #             dbname => $database
-    #         );
-    #     }
-    #     elsif ( $ident eq 'options:missing' ) {
-    #         hurl run => __x(
-    #             "Something id missing."
-    #         );
-    #     }
-    #     else {
-    #         say "IDENT = $ident";
-    #     }
-    # };
+    try {
+        $src_engine->dbh;
+    }
+    catch {
+        say "ORIGINAL ERR: $_" if $self->debug;
+        my $ident = $_->ident;
+        if ( $ident eq 'db:dbnotfound' ) {
+            hurl run => __x(
+                "Could not connect to the '{dbname}' database.",
+                dbname => $database
+            );
+        }
+        elsif ( $ident eq 'options:missing' ) {
+            hurl run => __x(
+                "Something id missing."
+            );
+        }
+        else {
+            say "IDENT = $ident";
+        }
+    };
 
-    # $src_engine->table_exists($src_table);
+    $src_engine->table_exists($src_table);
 
     # - db exists
     # - table exists
     # - validate fields
 
-    # $self->job_info_input_db($src_table, $database);
+    $self->job_info_input_db($src_table, $database);
 
-    # hurl run => __x( "The source table '{table}' does not exists!",
-    #     table => $src_table )
-    #     unless $src_engine->table_exists($src_table);
+    hurl run => __x( "The source table '{table}' does not exists!",
+        table => $src_table )
+        unless $src_engine->table_exists($src_table);
 
-    # # XXX Have to also check the host
+    # XXX Have to also check the host
     # hurl run =>
     #     __( 'The source and the destination tables must be different!' )
     #     if ( $src_table eq $dst_table ) and ( $src_db eq $dst_db );
@@ -579,7 +580,7 @@ sub validate_db_dst {
 
     $self->job_info_output_db( $table, $engine->database );
 
-    $self->validate_destination;
+    $self->validate_dst_db_fields;
 
     return;
 }
@@ -687,12 +688,8 @@ sub column_type_trafos {
     return $record;
 }
 
-sub validate_destination {
+sub collect_recipe_fields {
     my $self = shift;
-
-    my $table  = $self->recipe->destination->table;
-    my $engine = $self->writer->target->engine;
-
     my %fields_all;
 
     # Collect fields from column trafos
@@ -715,15 +712,44 @@ sub validate_destination {
         }
     }
     my @trafo_fields = sort keys %fields_all;
+    return \@trafo_fields;
+}
 
-    return unless scalar @trafo_fields; # no trafos no columns to check
+sub validate_dst_file_fields {
+    my $self = shift;
+
+    my $table_fields = $self->recipe->table->dst_header;
+    my $trafo_fields = $self->collect_recipe_fields;
+
+    return unless scalar @{$trafo_fields}; # no trafos no columns to check
+
+    my $lc = List::Compare->new('--unsorted', $trafo_fields, $table_fields);
+    my @error = $lc->get_Lonly;              # not in the table
+
+    hurl field_info => __x(
+        'Destination fields from trafos not found in the destination table: "{list}"',
+        list  => join( ', ', @error ),
+    ) unless scalar @error == 0;
+
+    return;
+}
+
+sub validate_dst_db_fields {
+    my $self = shift;
+
+    my $table  = $self->recipe->destination->table;
+    my $engine = $self->writer->target->engine;
+
+    my $trafo_fields = $self->collect_recipe_fields;
+
+    return unless scalar @{$trafo_fields}; # no trafos no columns to check
 
     unless ( $engine->table_exists($table) ) {
         hurl table =>
             __x( 'Destination table "{table}" not found', table => $table );
     }
     my $table_fields = $engine->get_columns($table);
-    my $lc = List::Compare->new('--unsorted', \@trafo_fields, $table_fields);
+    my $lc = List::Compare->new('--unsorted', $trafo_fields, $table_fields);
     my @error = $lc->get_Lonly;              # not in the table
 
     hurl field_info => __x(
@@ -781,6 +807,10 @@ __END__
 
 =head3 transfer
 
+=head3 transform_types
+
+=head3 transform_info
+
 =head3 recipe_file
 
 =head3 input_options
@@ -808,24 +838,42 @@ attribute.
 
 =head3 writer
 
-=head3 plugin
+=head3 plugin_column_type
 
-=head3 info
+=head3 plugin_column
 
-=head3 _trafo_types
+=head3 src_header
+
+=head3 dst_header
+
+=head3 header_lc
+
+=head3 has_common_headers
+
+=head3 _header_map
+
+=head3 _columns_info
+
+=head3 ordered_dst_header
+
+=head3 _trafo_row_types
 
 =head3 job_transfer
 
-The dispatch method for the different input - output combinations
-transformation to be executed.
+The dispatch method for the different input - output combinations for
+the transformations to be executed.
 
-=head3 validate_file2db
+=head3 do_transfer
 
-=head3 validate_db2db
+=head3 validate_file_src
 
-=head3 validate_db2file
+=head3 validate_file_dst
 
-=head3 validate_file2file
+=head3 validate_db_src
+
+=head3 validate_db_dst
+
+=head3 map_fields_src_to_dst
 
 =head3 transformations
 
@@ -865,23 +913,21 @@ This is the first type of transformation to be applied.
 
 =head3 record_trafos
 
-Transformations per record (row).  This type of transformation works
-on the entire current record of data.  It can be used to split a field
-data into two or more fields, or to join, copy or move data between
-fields.
-
-This is the second type of transformation to be applied.
-
 =head3 column_type_trafos
 
 Transformations per field type are used to validate the data for the
 destination type of the column.  If the data is not a valid type or
 overflows than a log entry is added.
 
-=head3 validate_destination
+=head3 collect_recipe_fields
 
-Collect all destination field names and check if the destination table
-contains them, throw an exception if not.
+Collect all recipe field names from the row and column transformations
+and return them as an sorted array reference.
+
+=head3 validate_dst_db_fields
+
+Chack if recipe field from the row and column transformations are in
+the destination table, throw an exception if not.
 
 =head3 remove_tempfields
 
@@ -895,5 +941,14 @@ Return true if a field is in the tempfields list.
 
 Return the logfield value from the recipe configuration, or the first
 column name from the database table.
+
+=head3 record_trafos
+
+Transformations per record (row).  This type of transformation works
+on the entire current record of data.  It can be used to split a field
+data into two or more fields, or to join, copy or move data between
+fields.
+
+This is the second type of transformation to be applied.
 
 =cut

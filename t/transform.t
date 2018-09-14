@@ -347,21 +347,45 @@ subtest 'transform: column_trafos' => sub {
     );
     diag $merged if $ENV{TRANSFER_DEBUG};
 
+    ok my $trafo_fields = $trafo->collect_recipe_fields, 'collect recipe fields';
+    is $trafo_fields, ['denumire'], 'recipe trafo fileds';
+    
     my $record = {
-        id    => 100,
-        valid => 'no, not really',
-        code  => '666',
+        id       => 100,
+        denumire => 'a text     with   many    spaces',
     };
     my $expected = {
-        code => 666,
-        id => 100,
-        valid => "N",
+        id       => 100,
+        denumire => 'a text with many spaces',
     };
     my $r = $trafo->column_trafos( $record, 'logstr' );
     is $r, $expected, 'the record is like expected';
+};
 
-    # TODO: Validate the existance of the fields from the trafos, here
-    # 'valid' does not exists and is automagically added to the rezult
+subtest 'transform: column_trafos exception' => sub {
+    my $input_options  = { input_file  => path(qw(t siruta.csv)) };
+    my $output_options = { output_file => path(qw(t output.csv)) };
+    my $recipe_file    = path(qw(t recipes table recipe-6.conf));
+    my $trafo_params   = [ recipe_file => $recipe_file ];
+
+    my $transfer = App::Transfer->new;
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
+    ok my $trafo = App::Transfer::Transform->new(
+        transfer       => $transfer,
+        input_options  => $input_options,
+        output_options => $output_options,
+        @{$trafo_params},
+    ), 'new trafo instance';
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+
+    ok my $trafo_fields = $trafo->collect_recipe_fields, 'collect recipe fields';
+    is $trafo_fields, ['valid'], 'recipe trafo fileds';
+
+    like(
+        dies { $trafo->validate_dst_file_fields },
+        qr/\QDestination fields/,
+        'Should have error for dst fields missmatch'
+    );
 };
 
 # #--- Validations
