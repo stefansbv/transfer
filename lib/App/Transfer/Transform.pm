@@ -224,7 +224,6 @@ has 'src_header' => (
     },
 );
 
-
 has 'dst_header' => (
     is       => 'ro',
     isa      => 'ArrayRef',
@@ -235,7 +234,7 @@ has 'dst_header' => (
     },
 );
 
-has 'header_lc' => (
+has '_header_lc' => (
     is      => 'ro',
     isa     => 'List::Compare',
     lazy    => 1,
@@ -245,12 +244,6 @@ has 'header_lc' => (
     },
 );
 
-# - is header-map from array?  ( $self->recipe->has_field_list; )
-#   - yes -> all the same fields
-#   - no  -> if header-map is from hash, are the fields all the same?
-#
-# - does the recipe table columns match the destination field names?
-# $self->header_lc->is_LequivalentR
 has 'has_common_headers' => (
     is      => 'ro',
     isa     => 'Bool',
@@ -260,7 +253,7 @@ has 'has_common_headers' => (
         if ( $self->recipe->has_field_list ) {
             return 1;
         }
-        return $self->header_lc->is_LequivalentR;
+        return $self->_header_lc->is_LequivalentR;
     },
 );
 
@@ -274,8 +267,6 @@ has '_header_map' => (
         return $self->recipe->table->header_map;
     },
     handles => {
-        has_no_map  => 'is_empty',
-        num_fields  => 'count',
         field_pairs => 'kv',
     },
 );
@@ -498,7 +489,7 @@ sub validate_file_dst {
         my @ordered = $self->all_ordered_fields;
         $self->writer->insert_header(\@ordered);
     }
-    
+
     my $worksheet = $self->writer->worksheet
         if $self->writer->can('worksheet');
     $self->job_info_output_file($output_file, $worksheet);
@@ -846,11 +837,20 @@ attribute.
 
 =head3 dst_header
 
-=head3 header_lc
+=head3 _header_lc
+
+Build and return a L<List::Compare> instance from the source and
+destination header arrays.
 
 =head3 has_common_headers
 
+Returns true if the source and destination headers are equivalent.  No
+need to compare if the recipe has a field list.
+
 =head3 _header_map
+
+A hash holding the mapping between the source and destination field
+names.
 
 =head3 _columns_info
 

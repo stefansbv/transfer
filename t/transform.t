@@ -46,7 +46,6 @@ subtest 'attributes - recipe with columns section and hash header' => sub {
     my $bag1 = bag { item 'id'; item 'denumire'; end; };
     is $trafo->src_header, $bag1, 'src_header';
     is $trafo->dst_header, $bag1, 'dst_header';
-    is $trafo->num_fields, 2, 'number of fields in the header map';
 
     # for my $pair ( $self->field_pairs ) {
     #     $new->{ $pair->[0] } = $rec->{ $pair->[1] };
@@ -93,7 +92,6 @@ subtest 'attributes - recipe w/o columns section and with array header' => sub {
     my $bag1 = bag { item 'id'; item 'denumire'; end; };
     is $trafo->src_header, $bag1, 'src_header';
     is $trafo->dst_header, $bag1, 'dst_header';
-    is $trafo->num_fields, 2, 'number of fields in the header map';
 
     ok $trafo->has_no_columns_info, 'column info';
     is $trafo->get_column_info('id'), undef, 'column info for "id"';
@@ -126,7 +124,6 @@ subtest 'transform: column_type_trafos' => sub {
     my $bag1 = bag { item 'id'; item 'denumire'; end; };
     is $trafo->src_header, $bag1, 'src_header';
     is $trafo->dst_header, $bag1, 'dst_header';
-    is $trafo->num_fields, 2, 'number of fields in the header map';
 
     # like(
     #     capture_stdout {
