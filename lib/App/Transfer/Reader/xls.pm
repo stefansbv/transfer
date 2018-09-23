@@ -42,13 +42,48 @@ has 'rectangle' => (
     required => 1,
 );
 
+has 'rect_x' => (
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    lazy     => 1,
+    required => 0,
+    default => sub {
+        my $self = shift;
+        my ( $top, $bot ) = @{ $self->rectangle };
+        my ( $col, $row ) = $self->sheet->cell2cr($top);
+        return [$col, $row];
+    },
+);
+
+has 'rect_y' => (
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    lazy     => 1,
+    required => 0,
+    default => sub {
+        my $self = shift;
+        my ( $top, $bot ) = @{ $self->rectangle };
+        my ( $col, $row );
+        if ( $bot =~ m{^\w+$} ) {
+            ( $col, $row ) = ( $self->sheet->maxcol, $self->sheet->maxrow );
+        }
+        else {
+            ( $col, $row ) = $self->sheet->cell2cr($bot);
+        }
+        return [$col, $row];
+    },
+);
+
 has 'workbook' => (
     is      => 'ro',
     isa     => 'Spreadsheet::Read',
     lazy    => 1,
     default => sub {
         my $self = shift;
-        return Spreadsheet::Read->new( $self->input_file->stringify );
+        return Spreadsheet::Read->new(
+            $self->input_file->stringify,
+            clip => 1,
+        );
     },
 );
 
@@ -65,8 +100,8 @@ has 'sheet' => (
 sub _read_rectangle {
     my ( $self, $top_cell, $bot_cell ) = @_;
     my $header = $self->header;
-    my ( $col_min, $row_min ) = $self->sheet->cell2cr($top_cell);
-    my ( $col_max, $row_max ) = $self->sheet->cell2cr($bot_cell);
+    my ( $col_min, $row_min ) = ( $self->rect_x->[0], $self->rect_x->[1] );
+    my ( $col_max, $row_max ) = ( $self->rect_y->[0], $self->rect_y->[1] );
     say "row_min = $row_min  row_max = $row_max" if $self->debug;
     say "col_min = $col_min  col_max = $col_max" if $self->debug;
     my @aoh = ();
@@ -117,15 +152,15 @@ sub BUILDARGS {
 sub BUILD {
     my $self = shift;
     my ( $top,     $bot )     = @{ $self->rectangle };
-    my ( $col_min, $row_min ) = $self->sheet->cell2cr($top);
-    my ( $col_max, $row_max ) = $self->sheet->cell2cr($bot);
+    my ( $col_min, $row_min ) = ( $self->rect_x->[0], $self->rect_x->[1] );
+    my ( $col_max, $row_max ) = ( $self->rect_y->[0], $self->rect_y->[1] );
     my $count = scalar @{ $self->header };
     my $range = $col_max - $col_min + 1;
-    hurl xls => __x(
-        "The columns range ({range}) from the 'rectangle' attribute must match the fields count {count}",
-        count => $count,
-        range => $range
-    ) if $range != $count;
+    # hurl xls => __x(
+    #     "The columns range ({range}) from the 'rectangle' attribute must match the fields count ({count})",
+    #     range => $range,
+    #     count => $count,
+    # ) if $range != $count;
     hurl xls => __x(
         "For the 'xls' reader, a valid 'rectangle' attribute with positive row range is required {min} < {max}",
         min => $row_min,
