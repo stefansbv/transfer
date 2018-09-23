@@ -401,7 +401,7 @@ subtest 'Column Transformations' => sub {
 
     #-- Zero if null (undef)
     $p->{value} = '';
-    is $ttr->do_transform( 'zero_ifnull', $p ), '', 'zero if null ""';
+    is $ttr->do_transform( 'zero_ifnull', $p ), 0, 'zero if null ""';
 
     $p->{value} = 0;
     is $ttr->do_transform( 'zero_ifnull', $p ), 0, 'zero if null "undef"';

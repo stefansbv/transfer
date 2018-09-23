@@ -9,9 +9,11 @@ use namespace::autoclean;
 with 'MooX::Log::Any';
 
 sub zero_ifnull {
-    my ($self, $p) = @_;
-    my ($logstr, $field, $text ) = @$p{qw(logstr name value)};
-    return 0 if not defined $text;
+    my ( $self, $p ) = @_;
+    my ( $logstr, $field, $text ) = @$p{qw(logstr name value)};
+    $self->log->info("$logstr '$field' empty text")
+        if defined $text and $text eq q{};
+    return 0 if not defined $text or $text eq q{};
     return $text;
 }
 
