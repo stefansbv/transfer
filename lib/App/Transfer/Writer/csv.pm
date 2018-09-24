@@ -114,7 +114,7 @@ sub insert_header {
     $csv_o->column_names(\@field_names);
     say "# writer CSV header: \n# ", join ', ', @field_names if $self->debug;
     my $status = $csv_o->print( $out_fh, \@field_names );
-    $self->emit_error if !$status;
+    $self->emit_error($csv_o) if !$status;
     return;
 }
 
@@ -127,13 +127,13 @@ sub insert {
         $status = $csv_o->print_hr( $out_fh, $row );
     }
     else {
-        $self->inc_skip;
+        $self->inc_skipped;
     }
     if ($status) {
         $self->inc_inserted;
     }
     else {
-        $self->emit_error;
+        $self->emit_error($csv_o);
     }
     return;
 }
