@@ -42,12 +42,11 @@ has 'rectangle' => (
     required => 1,
 );
 
-has 'rect_x' => (
+has 'rect_o' => (
     is       => 'ro',
     isa      => 'ArrayRef',
     lazy     => 1,
-    required => 0,
-    default => sub {
+    default  => sub {
         my $self = shift;
         my ( $top, $bot ) = @{ $self->rectangle };
         my ( $col, $row ) = $self->sheet->cell2cr($top);
@@ -55,21 +54,14 @@ has 'rect_x' => (
     },
 );
 
-has 'rect_y' => (
+has 'rect_v' => (
     is       => 'ro',
     isa      => 'ArrayRef',
     lazy     => 1,
-    required => 0,
-    default => sub {
+    default  => sub {
         my $self = shift;
         my ( $top, $bot ) = @{ $self->rectangle };
-        my ( $col, $row );
-        if ( $bot =~ m{^\w+$} ) {
-            ( $col, $row ) = ( $self->sheet->maxcol, $self->sheet->maxrow );
-        }
-        else {
-            ( $col, $row ) = $self->sheet->cell2cr($bot);
-        }
+        my ( $col, $row ) = $self->sheet->cell2cr($bot);
         return [$col, $row];
     },
 );
@@ -98,28 +90,32 @@ has 'sheet' => (
 );
 
 sub _read_rectangle {
-    my ( $self, $top_cell, $bot_cell ) = @_;
+    my $self   = shift;
     my $header = $self->header;
-    my ( $col_min, $row_min ) = ( $self->rect_x->[0], $self->rect_x->[1] );
-    my ( $col_max, $row_max ) = ( $self->rect_y->[0], $self->rect_y->[1] );
-    say "row_min = $row_min  row_max = $row_max" if $self->debug;
-    say "col_min = $col_min  col_max = $col_max" if $self->debug;
+    my ( $col_min, $row_min ) = ( $self->rect_o->[0], $self->rect_o->[1] );
+    my ( $col_max, $row_max ) = ( $self->rect_v->[0], $self->rect_v->[1] );
+    my $col = $self->sheet->maxcol;
+    say "# row_min = $row_min  row_max = $row_max" if $self->debug;
+    say "# col_min = $col_min  col_max = $col_max" if $self->debug;
     my @aoh = ();
     for my $row_cnt ( $row_min .. $row_max ) {
         my @row = $self->sheet->row($row_cnt);
         my $rec = {};
-        foreach my $col_cnt ( $col_min .. $col_max ) {
-            my $index = $col_cnt - $col_min;
-            if ( my $field = $header->[$index] ) {
-                my $value = $row[$index];
-                say "[$index] $field = $value" if $self->debug;
+        my ( $col_idx, $fld_idx ) = ( -1, 0 );
+        foreach my $col_cnt ( 1 .. $col ) {
+            $col_idx++;
+            next if $col_cnt < $col_min;
+            next if $col_cnt > $col_max;
+            if ( my $field = $header->[$fld_idx] ) {
+                my $value = $row[$col_idx];
                 $rec->{$field} = $value;
             }
+            $fld_idx++;
         }
-        dump $rec if $self->debug;
         push @aoh, $rec;
         $self->inc_count;
     }
+    dump @aoh if $self->debug;
     return \@aoh;
 }
 
@@ -152,15 +148,15 @@ sub BUILDARGS {
 sub BUILD {
     my $self = shift;
     my ( $top,     $bot )     = @{ $self->rectangle };
-    my ( $col_min, $row_min ) = ( $self->rect_x->[0], $self->rect_x->[1] );
-    my ( $col_max, $row_max ) = ( $self->rect_y->[0], $self->rect_y->[1] );
+    my ( $col_min, $row_min ) = ( $self->rect_o->[0], $self->rect_o->[1] );
+    my ( $col_max, $row_max ) = ( $self->rect_v->[0], $self->rect_v->[1] );
     my $count = scalar @{ $self->header };
     my $range = $col_max - $col_min + 1;
-    # hurl xls => __x(
-    #     "The columns range ({range}) from the 'rectangle' attribute must match the fields count ({count})",
-    #     range => $range,
-    #     count => $count,
-    # ) if $range != $count;
+    hurl xls => __x(
+        "The columns range ({range}) from the 'rectangle' attribute must match the fields count ({count})",
+        range => $range,
+        count => $count,
+    ) if $range != $count;
     hurl xls => __x(
         "For the 'xls' reader, a valid 'rectangle' attribute with positive row range is required {min} < {max}",
         min => $row_min,
@@ -223,6 +219,13 @@ A L<Spreadsheet::Read> object.
 =head2 Instance Methods
 
 =head3 _read_rectangle
+
+Read a data rectangle defined by two points and return it as a AoH.
+The points represent the upper left corner of the rectangle and the
+lower right corner, respectively.
+
+    my ( $col_min, $row_min ) = ( $self->rect_o->[0], $self->rect_o->[1] );
+    my ( $col_max, $row_max ) = ( $self->rect_v->[0], $self->rect_v->[1] );
 
 =head3 _build_contents
 

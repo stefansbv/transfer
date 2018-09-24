@@ -96,11 +96,39 @@ my $expected_2 = [
     },
 ];
 
-subtest 'Read the test table' => sub {
+my $expected_3 = [
+    {
+        col_a => 'A1',
+        col_c => 'C1',
+        col_f => 'F1',
+    },
+    {
+        col_a => 'A2',
+        col_c => 'C2',
+        col_f => 'F2',
+    },
+    {
+        col_a => 'A3',
+        col_c => 'C3',
+        col_f => 'F3',
+    },
+    {
+        col_a => 'A4',
+        col_c => 'C4',
+        col_f => 'F4',
+    },
+    {
+        col_a => 'A5',
+        col_c => 'C5',
+        col_f => 'F5',
+    },
+];
+
+subtest 'Full range' => sub {
     ok my $recipe_file = path( 't', 'recipes', 'recipe-xls-rect.conf' ),
         "Recipe file";
-    my $transfer = App::Transfer->new;
-    my $options_href = { input_file => 't/rectangle.xls', debug => 1, };
+    my $transfer = App::Transfer->new( debug => 0 );
+    my $options_href = { input_file => 't/rectangle.xls',  };
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
@@ -128,8 +156,8 @@ subtest 'Read the test table' => sub {
 
     cmp_deeply $reader->rectangle, [ 'A5', 'F9' ],
         'siruta data rectangle';
-    cmp_deeply $reader->rect_x, [1,5],'rext min col, min row';
-    cmp_deeply $reader->rect_y, [6,9],'rext max col, max row';
+    cmp_deeply $reader->rect_o, [1,5],'rext min col, min row';
+    cmp_deeply $reader->rect_v, [6,9],'rext max col, max row';
 
     ok my $iter = $reader->contents_iter, 'get the iterator';
     isa_ok $iter, 'MooseX::Iterator::Array', 'iterator';
@@ -140,15 +168,15 @@ subtest 'Read the test table' => sub {
         cmp_deeply $rec, $expected->[$i], "record $i data ok";
         $i++;
     }
-
+    is $i, 5, 'compared all records';
     is $reader->record_count, $i, 'counted records match record_count';
 };
 
-subtest 'Read the test table' => sub {
+subtest 'Partial range - no skip' => sub {
     ok my $recipe_file = path( 't', 'recipes', 'recipe-xls-rect-2.conf' ),
         "Recipe file";
-    my $transfer = App::Transfer->new;
-    my $options_href = { input_file => 't/rectangle.xls', debug => 1, };
+    my $transfer = App::Transfer->new( debug => 0 );
+    my $options_href = { input_file => 't/rectangle.xls',  };
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
     ), 'new recipe instance';
@@ -176,8 +204,8 @@ subtest 'Read the test table' => sub {
 
     cmp_deeply $reader->rectangle, [ 'B5', 'E9' ],
         'siruta data rectangle';
-    cmp_deeply $reader->rect_x, [2,5],'rext min col, min row';
-    cmp_deeply $reader->rect_y, [5,9],'rext max col, max row';
+    cmp_deeply $reader->rect_o, [2,5],'rext min col, min row';
+    cmp_deeply $reader->rect_v, [5,9],'rext max col, max row';
 
     ok my $iter = $reader->contents_iter, 'get the iterator';
     isa_ok $iter, 'MooseX::Iterator::Array', 'iterator';
@@ -188,7 +216,57 @@ subtest 'Read the test table' => sub {
         cmp_deeply $rec, $expected_2->[$i], "record $i data ok";
         $i++;
     }
+    is $i, 5, 'compared all records';
+    is $reader->record_count, $i, 'counted records match record_count';
+};
 
+subtest 'Full range - skip some inner fields' => sub {
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-xls-rect-3.conf' ),
+      "Recipe file";
+    my $transfer = App::Transfer->new( debug => 0 );
+    my $options_href = { input_file => 't/rectangle.xls', };
+    ok my $recipe =
+      App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify, ),
+      'new recipe instance';
+    my $options = App::Transfer::Options->new(
+        transfer => $transfer,
+        recipe   => $recipe,
+        options  => $options_href,
+        rw_type  => 'reader',
+    );
+    ok my @header = $recipe->table->src_header_raw,
+      'get the recipe table header';
+    my $tempfield = $recipe->table->tempfield;
+    my $rectangle = $recipe->table->rectangle;
+    ok my $reader = App::Transfer::Reader->load(
+        {
+            transfer  => $transfer,
+            header    => \@header,
+            tempfield => $tempfield,
+            rectangle => $rectangle,
+            reader    => 'xls',
+            options   => $options,
+        }
+      ),
+      'new reader spreadsheet object';
+    is $reader->input_file,   't/rectangle.xls',   'xls file name';
+    is $reader->worksheet,    1,                   'worksheet name';
+    isa_ok $reader->workbook, 'Spreadsheet::Read', 'workbook';
+
+    cmp_deeply $reader->rectangle, [ 'A5', 'F9' ], 'siruta data rectangle';
+    cmp_deeply $reader->rect_o,    [ 1,    5 ],    'rext min col, min row';
+    cmp_deeply $reader->rect_v,    [ 6,    9 ],    'rext max col, max row';
+
+    ok my $iter = $reader->contents_iter, 'get the iterator';
+    isa_ok $iter, 'MooseX::Iterator::Array', 'iterator';
+
+    my $i = 0;
+    while ( $iter->has_next ) {
+        my $rec = $iter->next;
+        cmp_deeply $rec, $expected_3->[$i], "record $i data ok";
+        $i++;
+    }
+    is $i, 5, 'compared all records';
     is $reader->record_count, $i, 'counted records match record_count';
 };
 

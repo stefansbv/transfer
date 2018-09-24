@@ -67,9 +67,6 @@ subtest 'Read the SIRUTA table' => sub {
         fsl    => 321696512951,
     };
 
-    ok my $aoh = $reader->_contents, 'get contents';
-    cmp_deeply $aoh->[14], $expecting_rec_15, 'record 15 data looks good';
-
     ok my $iter = $reader->contents_iter, 'get the iterator';
     isa_ok $iter, 'MooseX::Iterator::Array', 'iterator';
 
@@ -158,9 +155,6 @@ subtest 'Read the SIRUTA table - skip fields' => sub {
         sirsup => 13490,
         rang   => "V",
     };
-
-    ok my $aoh = $reader->_contents, 'get contents';
-    cmp_deeply $aoh->[14], $expecting_rec_15, 'record 15 data looks good';
 
     ok my $iter = $reader->contents_iter, 'get the iterator';
     isa_ok $iter, 'MooseX::Iterator::Array', 'iterator';
