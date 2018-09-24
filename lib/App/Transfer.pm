@@ -40,7 +40,9 @@ sub _init_logger {
         $self->has_logger(1);
     }
     else {
-        warn "The log file config '$log_fqn' was not found, using the default config.\n";
+        say
+        "The log file config '$log_fqn' was not found, using the default config.\n"
+        if $self->debug;
     }
 }
 
