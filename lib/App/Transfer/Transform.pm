@@ -648,19 +648,13 @@ sub column_type_trafos {
     my $dst_date_format = $self->recipe->destination->date_format; # TODO: use it!
     my $src_date_sep    = $self->recipe->source->date_sep;
 
-    # for my $pair ( $self->column_info_pairs ) {
-    #     say "field: $pair->[0]";
-    # }
-
     while ( my ( $field, $value ) = each( %{$record} ) ) {
         # say "FIELD: $field";
         next if $self->has_temp_field($field);
         my $info = $self->get_column_info($field);
 
-        # dump $info;
-
         hurl field_info => __x(
-            "XXX Field info for '{field}' not found! Header config. <--> DB schema inconsistency",
+            "Field info for '{field}' not found! Header config. <--> DB schema inconsistency",
             field => $field
         ) unless $info and ref $info;
         my $p    = $info;
