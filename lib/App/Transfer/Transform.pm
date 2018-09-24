@@ -595,8 +595,7 @@ sub transformations {
     $record = $self->column_trafos( $record, $logstr );
     $record = $self->record_trafos( $record, $logstr );
     $record = $self->column_type_trafos( $record, $logstr )
-        if $self->recipe->out_type eq 'db';  # TODO allow for other
-                                             # output types
+        if $self->has_columns_info;
     $self->remove_tempfields($record);
 
     return $record;
