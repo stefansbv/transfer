@@ -5,12 +5,13 @@ package App::Transfer::Plugin::column_type::varchar;
 use 5.010001;
 use Moose;
 use Lingua::Translit 0.23; # for "ISO 8859-16 RON" table
+use Text::Truncate;
 use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
 # Transliteration exmple
-# TODO: make this configurable, somehow... 
+# TODO: make this configurable, somehow..., or move to other plugin
 has 'latin10' => (
     is      => 'ro',
     isa     => 'Lingua::Translit',
@@ -27,8 +28,8 @@ sub varchar {
     if ( $str_len > $len ) {
         $self->log->info(
             "$logstr varchar: $field='$text' overflow ($str_len > $len)");
-        return;
     }
+    $text = truncstr( $text, $len);
     return $self->latin10->translit($text);
 }
 
