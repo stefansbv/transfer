@@ -37,8 +37,8 @@ has 'log_file_path' => (
     required => 1,
     default  => sub {
         my $self = shift;
-        return path( $ENV{TRANSFER_LOG_CONFIG} )
-            || path( $self->user_dir, 'log.conf' );
+        return path( $ENV{TRANSFER_LOG_CONFIG} ) if $ENV{TRANSFER_LOG_CONFIG};
+        return path( $self->user_dir, 'log.conf' );
     },
 );
 

@@ -186,21 +186,18 @@ sub warn_literal {
 
 sub BUILD {
     my $self = shift;
-    if ($self->has_logger) {
-        $self->_init_logger;
-    }
-    else {
+    $self->_init_logger;
+    if ( !$self->has_logger ) {
         my $log4p_conf = q(
             log4perl.rootLogger=DEBUG, SCREEN
             log4perl.appender.SCREEN=Log::Log4perl::Appender::Screen
             log4perl.appender.SCREEN.layout=SimpleLayout
             log4perl.appender.SCREEN.Threshold=ERROR
         );
-        Log::Log4perl->init(\$log4p_conf);
+        Log::Log4perl->init( \$log4p_conf );
     }
     return;
 }
-
 
 1;
 
