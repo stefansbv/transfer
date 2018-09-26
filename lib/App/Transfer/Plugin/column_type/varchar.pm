@@ -29,7 +29,7 @@ sub varchar {
         $self->log->info(
             "$logstr varchar: $field='$text' overflow ($str_len > $len)");
     }
-    $text = truncstr( $text, $len);
+    $text = truncstr( $text, $len) if $len >= 100;
     return $self->latin10->translit($text);
 }
 
