@@ -90,6 +90,17 @@ subtest 'Column Type Transformations' => sub {
     $p->{src_format} = 'iso';
     is $ttr->do_transform( 'date_german', $p ), undef, 'date iso to dmy empty';
 
+  TODO: {
+        todo_skip "Test log info for plugin: method not implemented", 1;
+        $p->{src_format} = 'unknown';
+        my $t = Test::Log::Log4perl->expect(
+            [   'App.Transfer.Plugin.column_type.date',
+                info => qr/method not implemented/
+            ]
+        );
+        $ttr->do_transform( 'date', $p );
+    }
+
     #-- Date Time                                TODO: test with different date seps
 
     #-- Firebird timestamp
@@ -139,7 +150,7 @@ subtest 'Column Type Transformations' => sub {
         todo_skip "Test log info for plugin: date not date", 1;
         $p->{value} = '2014';
         my $t = Test::Log::Log4perl->expect(
-            [ 'App.Transfer.Plugin.date', info => qr/is not a date/ ] );
+            [ 'App.Transfer.Plugin.column_type.date', info => qr/is not a date/ ] );
         $ttr->do_transform( 'date', $p );
     }
 
@@ -147,7 +158,7 @@ subtest 'Column Type Transformations' => sub {
         todo_skip "Test log info for plugin: date not valid", 1;
         $p->{value} = '01/31/2014';
         my $t = Test::Log::Log4perl->expect(
-            [   'App.Transfer.Plugin.date',
+            [   'App.Transfer.Plugin.column_type.date',
                 info => qr/is not a valid EU date/
             ]
         );

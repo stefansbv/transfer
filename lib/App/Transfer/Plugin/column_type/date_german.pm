@@ -12,13 +12,11 @@ with 'MooX::Log::Any';
 
 sub format_iso {
     my ($self, $sep) = @_;
-    die "Separator parameter required for 'format_iso'" unless $sep;
     return '%Y' . $sep . '%m' . $sep . '%d';
 }
 
 sub format_mdy {
     my ($self, $sep) = @_;
-    die "Separator parameter required for 'format_mdy'" unless $sep;
     return '%m' . $sep . '%d' . $sep . '%Y';
 }
 
