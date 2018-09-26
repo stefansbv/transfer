@@ -33,7 +33,7 @@ subtest 'Column Type Transformations' => sub {
         logstr      => 'error',
     };
 
-    #-- Date                                     TODO: test with different date seps
+    #-- Date to ISO
 
     $p->{value}      = '31.01.2014';
     $p->{src_format} = 'dmy';
@@ -47,23 +47,48 @@ subtest 'Column Type Transformations' => sub {
 
     $p->{value}      = '2014-01-31';
     $p->{src_format} = 'iso';
-    $p->{dst_format} = 'iso';
     is $ttr->do_transform( 'date', $p ), '2014-01-31', 'date iso to iso';
 
     $p->{value}      = '2014-12';
     $p->{src_format} = 'iso';
-    $p->{dst_format} = 'iso';
     is $ttr->do_transform( 'date', $p ), undef, 'date iso to iso incomplete';
 
     $p->{value}      = undef;
     $p->{src_format} = 'iso';
-    $p->{dst_format} = 'iso';
     is $ttr->do_transform( 'date', $p ), undef, 'date iso to iso undef';
 
     $p->{value}      = '';
     $p->{src_format} = 'iso';
-    $p->{dst_format} = 'iso';
     is $ttr->do_transform( 'date', $p ), undef, 'date iso to iso empty';
+
+    #-- Date to dmy (german)
+
+    $p->{value}      = '31.01.2014';
+    $p->{src_format} = 'dmy';
+    $p->{src_sep}    = '.';
+    is $ttr->do_transform( 'date_german', $p ), '31.01.2014', 'date dmy to dmy';
+
+    $p->{value}      = '01/31/2014';
+    $p->{src_format} = 'mdy';
+    $p->{src_sep}    = '/';
+    is $ttr->do_transform( 'date_german', $p ), '31.01.2014', 'date mdy to dmy';
+
+    $p->{value}      = '2014-01-31';
+    $p->{src_format} = 'iso';
+    $p->{src_sep}    = '-';
+    is $ttr->do_transform( 'date_german', $p ), '31.01.2014', 'date iso to dmy';
+
+    $p->{value}      = '2014-12';
+    $p->{src_format} = 'iso';
+    is $ttr->do_transform( 'date_german', $p ), undef, 'date iso to dmy incomplete';
+
+    $p->{value}      = undef;
+    $p->{src_format} = 'iso';
+    is $ttr->do_transform( 'date_german', $p ), undef, 'date iso to dmy undef';
+
+    $p->{value}      = '';
+    $p->{src_format} = 'iso';
+    is $ttr->do_transform( 'date_german', $p ), undef, 'date iso to dmy empty';
 
     #-- Date Time                                TODO: test with different date seps
 

@@ -652,7 +652,6 @@ sub column_type_trafos {
         # say "FIELD: $field";
         next if $self->has_temp_field($field);
         my $info = $self->get_column_info($field);
-
         hurl field_info => __x(
             "Field info for '{field}' not found! Header config. <--> DB schema inconsistency",
             field => $field
@@ -664,9 +663,10 @@ sub column_type_trafos {
             $p->{src_format}  = $src_date_format;
             $p->{src_sep}     = $src_date_sep;
         }
+        my $plug = $self->recipe->table->get_plugin($meth) // $meth;
         $p->{logstr} = $logstr;
         $p->{value}  = $value;
-        $value = $self->plugin_column_type->do_transform( $meth, $p );
+        $value = $self->plugin_column_type->do_transform( $plug, $p );
         $record->{$field} = $value;
     }
     return $record;

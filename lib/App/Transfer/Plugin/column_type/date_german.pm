@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::column_type::date;
+package App::Transfer::Plugin::column_type::date_german;
 
 # ABSTRACT: Transfer plugin for 'date' columns
 
@@ -10,10 +10,10 @@ use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
-sub format_dmy {
+sub format_iso {
     my ($self, $sep) = @_;
-    die "Separator parameter required for 'format_dmy'" unless $sep;
-    return '%d' . $sep . '%m' . $sep . '%Y';
+    die "Separator parameter required for 'format_iso'" unless $sep;
+    return '%Y' . $sep . '%m' . $sep . '%d';
 }
 
 sub format_mdy {
@@ -22,7 +22,7 @@ sub format_mdy {
     return '%m' . $sep . '%d' . $sep . '%Y';
 }
 
-sub date {
+sub date_german {
     my ( $self, $p ) = @_;
     my ( $logstr, $field, $text, $src_format, $src_sep, $is_nullable )
         = @$p{qw(logstr name value src_format src_sep is_nullable)};
@@ -39,7 +39,7 @@ sub date {
         $self->log->info("$logstr date: $field='$text' is not a 10 character date\n");
         return;
     }
-    my $meth = "${src_format}_to_iso";
+    my $meth = "${src_format}_to_dmy";
     if ( $self->can($meth) ) {
         return $self->$meth($field, $text, $logstr, $src_sep);
     }
@@ -49,10 +49,23 @@ sub date {
     }
 }
 
-sub iso_to_iso {
-    my ($self, $field, $text, $logstr) = @_;
+sub iso_to_dmy {
+    my ($self, $field, $text, $logstr, $sep) = @_;
+    return unless $text;
+    my $dt = try { Time::Piece->strptime( $text, $self->format_iso($sep) ) }
+    catch {
+        $self->log->info(
+            "$logstr date: $field='$text' is not a valid ISO date");
+        return undef;
+    };
+    return unless $dt;
+    return $dt->dmy('.');
+}
+
+sub dmy_to_dmy {
+    my ($self, $field, $text, $logstr, $sep) = @_;
     # Just return the value.
-    if ( $text !~ /\d{4}-\d{2}-\d{2}/ ) {
+    if ( $text !~ /\d{2}$sep\d{2}$sep\d{2}/ ) {
         $self->log->info(
             "$logstr date: $field='$text' is not a valid ISO date");
         return undef;
@@ -60,20 +73,7 @@ sub iso_to_iso {
     return $text;
 }
 
-sub dmy_to_iso {
-    my ($self, $field, $text, $logstr, $sep) = @_;
-    return unless $text;
-    my $dt = try { Time::Piece->strptime( $text, $self->format_dmy($sep) ) }
-    catch {
-        $self->log->info(
-            "$logstr date: $field='$text' is not a valid DMY date");
-        return undef;
-    };
-    return unless $dt;
-    return $dt->ymd;                         # iso
-}
-
-sub mdy_to_iso {
+sub mdy_to_dmy {
     my ($self, $field, $text, $logstr, $sep) = @_;
     return unless $text;
     my $dt = try { Time::Piece->strptime( $text, $self->format_mdy($sep) ) }
@@ -83,7 +83,7 @@ sub mdy_to_iso {
         return undef;
     };
     return unless $dt;
-    return $dt->ymd;                         # iso
+    return $dt->dmy('.');
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -134,19 +134,19 @@ Otherwise tries to transform it to an ISO date and return it.  The
 input date format can be from a source configuration option named
 C<date_format>.
 
-=head3 C<iso_to_iso>
+=head3 C<iso_to_dmy>
 
 Empty method for the default date formats: ISOI 8601.
 
-=head3 C<dmy_to_iso>
+=head3 C<dmy_to_dmy>
 
 Convert the date string from DMY to the ISO format.
 
-=head3 C<mdy_to_iso>
+=head3 C<mdy_to_dmy>
 
 Convert the date string from MDY to the ISO format.
 
-=head3 C<eu_to_iso>
+=head3 C<eu_to_dmy>
 
 Takes an European formated date string and return an ISO date.
 

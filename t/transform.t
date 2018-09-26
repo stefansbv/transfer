@@ -17,10 +17,14 @@ use Capture::Tiny 0.12 qw(capture_stdout capture_merged);
 
 $ENV{TRANSFER_LOG_CONFIG} = 't/log.conf';
 
-my $input  = __('Input:');
-my $output = __('Output:');
-my $trans3 = __('Working:');
-my $trans4 = __('Summary:');
+my $tr_input  = __('Input:');
+my $tr_output = __('Output:');
+my $tr_workin = __('Working:');
+my $tr_summar = __('Summary:');
+
+my $output_path = 't/output';
+my $output_file = 'output.csv';
+my $output      = path $output_path, $output_file;
 
 subtest 'attributes - recipe with columns section and hash header' => sub {
     my $uri            = 'db:pg://@localhost/__transfertest__';
@@ -128,7 +132,7 @@ subtest 'transform: column_type_trafos' => sub {
     # like(
     #     capture_stdout {
     #         dies { $trafo->job_info_input_file }
-    #     }, qr/$input/,
+    #     }, qr/$tr_input/,
     #     'Should have error for missing input file option or configuration'
     # );
 
@@ -136,15 +140,15 @@ subtest 'transform: column_type_trafos' => sub {
     #     capture_stdout {
     #         dies { $trafo->job_info_output_file }
     #     },
-    #     qr/$output/,
+    #     qr/$tr_output/,
     #     'Should have error for missing output file option or configuration'
     # );
 
     # like( capture_stdout { $trafo->job_info_work },
-    #     qr/$trans3/ms, 'job_intro should work');
+    #     qr/$tr_workin/ms, 'job_intro should work');
 
     # like( capture_stdout { $trafo->job_summary },
-    #     qr/$trans4/ms, 'job_summary should work');
+    #     qr/$tr_summar/ms, 'job_summary should work');
 
 
     is $trafo->recipe_file,    $recipe_file,    'has recipe file';
@@ -279,7 +283,7 @@ subtest 'transform: column_type_trafos' => sub {
     my $expected_record = {
         f_blob => 'A long long, not so long text blob',
         f_char => 'A',
-        f_date => '2018-08-21',
+        f_date => '21.08.2018',
         f_int  => -2300125,
         f_num  => 51720.100,
         f_sint => 2301,
@@ -304,7 +308,7 @@ subtest 'transform: column_type_trafos' => sub {
 
 subtest 'transform: column_trafos' => sub {
     my $input_options  = { input_file  => path(qw(t siruta.csv)) };
-    my $output_options = { output_file => path(qw(t output.csv)) };
+    my $output_options = { output_file => $output };
     my $recipe_file    = path(qw(t recipes table recipe-5.conf));
     my $trafo_params   = [ recipe_file => $recipe_file ];
 
@@ -333,20 +337,20 @@ subtest 'transform: column_trafos' => sub {
     my $merged;
     like(
         $merged = capture_merged { $trafo->validate_file_src },
-        qr/$input/,
+        qr/$tr_input/,
         'transfer file to file'
     );
     diag $merged if $ENV{TRANSFER_DEBUG};
     like(
         $merged = capture_merged { $trafo->validate_file_dst },
-        qr/$output/,
+        qr/$tr_output/,
         'transfer file to file'
     );
     diag $merged if $ENV{TRANSFER_DEBUG};
 
     ok my $trafo_fields = $trafo->collect_recipe_fields, 'collect recipe fields';
     is $trafo_fields, ['denumire'], 'recipe trafo fileds';
-    
+
     my $record = {
         id       => 100,
         denumire => 'a text     with   many    spaces',
@@ -361,7 +365,7 @@ subtest 'transform: column_trafos' => sub {
 
 subtest 'transform: column_trafos exception' => sub {
     my $input_options  = { input_file  => path(qw(t siruta.csv)) };
-    my $output_options = { output_file => path(qw(t output.csv)) };
+    my $output_options = { output_file => $output };
     my $recipe_file    = path(qw(t recipes table recipe-6.conf));
     my $trafo_params   = [ recipe_file => $recipe_file ];
 
@@ -553,5 +557,7 @@ subtest 'validate db src - wrong ... from the recipe' => sub {
     #     'validate input: wrong input from the recipe'
     # );
 };
+
+unlink $output or warn "unlink output $output: $!";
 
 done_testing;
