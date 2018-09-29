@@ -20,24 +20,27 @@ has 'plugins' => (
 
 has 'plugin_type' => (
     is       => 'ro',
-	isa      => enum( [qw(column_type column row)] ),
+    isa      => enum( [qw(column_type column row)] ),
     required => 1,
 );
 
 # Set min/max depth to load modules exclusive from the plugin_type
 # dirs
 sub _build_plugins {
-	my $self = shift;
+    my $self = shift;
+    my $type  = $self->plugin_type;
+    my $regex = qr/::${type}::/;
     return [
         Module::Pluggable::Object->new(
-            min_depth  => 5,
-            max_depth  => 5,
+            min_depth   => 5,
+            max_depth   => 5,
             instantiate => 'new',
             search_path => 'App::Transfer::Plugin',
-            search_dirs => [ $self->plugin_type ],
+            search_dirs => [ 'plugins', $self->plugin_type ],
+            only        => $regex,
         )->plugins,
     ];
-};
+}
 
 sub do_transform {
     my ($self, $method, $p) = @_;

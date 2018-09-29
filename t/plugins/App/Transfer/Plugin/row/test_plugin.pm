@@ -1,4 +1,4 @@
-package App::Transfer::Plugin::column::test_plugin;
+package App::Transfer::Plugin::row::test_plugin;
 
 # ABSTRACT: test plugin
 
@@ -11,7 +11,7 @@ with 'MooX::Log::Any';
 sub test_plugin {
     my ($self, $p) = @_;
     my ($logfld, $logidx, $field, $text ) = @$p{qw(logfld logidx name value)};
-    print "column test plugin loaded\n";
+    print "row test plugin loaded\n";
     return $text;
 }
 

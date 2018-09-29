@@ -10,6 +10,7 @@ binmode STDOUT, ':utf8';
 binmode STDERR, ':utf8';
 
 use App::Transfer::Plugin;
+use Capture::Tiny 0.12 qw(capture_stdout capture_merged);
 
 BEGIN { Log::Log4perl->init('t/log.conf') }
 
@@ -448,21 +449,14 @@ subtest 'Column Transformations' => sub {
     $p->{value} = 'a str';
     is $ttr->do_transform( 'zero_ifnull', $p ), 'a str', 'zero if null "undef"';
 
-    #-- Test load plugin from local ./plugins dir
-  TODO: {
-        todo_skip "Test log info for plugin: test_plugin", 1;
-        $p->{value} = 'does nothing';
-        my $t = Test::Log::Log4perl->expect(
-            [   'App.Transfer.Plugin.test_plugin',
-                info => qr/test plugin loaded/
-            ]
-        );
-        ok $ttr->do_transform( 'test_plugin', $p );
-    }
-
     #-- Non existent plugin
     throws_ok { $ttr->do_transform( 'nosuchplugin', $p ) } qr/nosuchplugin/,
         "No plugin for 'nosuchplugin' in 'do_transform'";
+
+    #-- Test load plugin from local ./plugins dir
+    $p->{value} = 'does nothing';
+    like( capture_stdout { $ttr->do_transform( 'test_plugin', $p ) },
+          qr/^column/ms, 'column plugin loaded from local ./plugins');
 };
 
 subtest 'Row Transformations' => sub {
@@ -506,6 +500,11 @@ subtest 'Row Transformations' => sub {
     @$p{qw(value limit separator)} = ( $value, 3, ',' );
     ok my @splited = $ttr->do_transform( 'split_field', $p ), 'split field';
     cmp_deeply \@splited, $values_aref, 'resulting values';
+
+    #-- Test load plugin from local ./plugins dir
+    $p->{value} = 'does nothing';
+    like( capture_stdout { $ttr->do_transform( 'test_plugin', $p ) },
+          qr/^row/ms, 'row plugin loaded from local ./plugins');
 };
 
 subtest 'Unknown plugin type' => sub {
