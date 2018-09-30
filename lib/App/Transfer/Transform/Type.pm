@@ -43,23 +43,25 @@ has 'plugin_row' => (
 
 sub type_split {
     my ( $self, $step, $record, $logstr ) = @_;
-
+    my $field_src = $step->field_src;
+    hurl type_split =>
+        __x( "Error in recipe (split): no such source field '{field}'",
+             field => $field_src ) if !exists $record->{$field_src};
     my $p = {};
     $p->{logstr}    = $logstr;
     $p->{field}     = $step->field_src;
-    $p->{value}     = $record->{ $step->field_src };
     $p->{limit}     = $step->limit;
     $p->{separator} = $step->separator;
+    $p->{value}     = $record->{$field_src};
 
-    # Assuming that the number of values matches the number of destinations
+    my @fields = @{ $step->field_dst };
     my @values = $self->plugin_row->do_transform( $step->method, $p );
     my $i = 0;
-    foreach my $value (@values) {
-        my $field = ${ $step->field_dst }[$i];
+    foreach my $field (@fields) {
+        my $value = $values[$i];
         $record->{$field} = $value;
         $i++;
     }
-
     return $record;
 }
 

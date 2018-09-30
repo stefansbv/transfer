@@ -782,6 +782,8 @@ sub run {
             { adresa => "Brasov, str. Bucurestilor,    nr. 23",  id => 3 },
         ];
 
+        is $step->limit, 3, 'step limit is the number of dst fields';
+
         my @records;
         foreach my $rec ( @{$records_4e} ) {
             my $id = $rec->{id} // '?';
@@ -799,6 +801,7 @@ sub run {
             {   adresa     => "Sfintu Gheorghe,  str. Covasna",
                 id         => 2,
                 localitate => "Sfintu Gheorghe",
+                numarul    => undef,
                 strada     => "str. Covasna",
             },
             {   adresa     => "Brasov, str. Bucurestilor,    nr. 23",

@@ -489,7 +489,7 @@ subtest 'Row Transformations' => sub {
     ok $joined = $ttr->do_transform( 'join_fields', $p ), 'join fields';
     is $joined, 'Brașov, nr. 20', 'resulting string';
 
-    #-- split
+    #-- split - the ideal case
 
     $p = {
         name   => 'field',
@@ -500,6 +500,23 @@ subtest 'Row Transformations' => sub {
     @$p{qw(value limit separator)} = ( $value, 3, ',' );
     ok my @splited = $ttr->do_transform( 'split_field', $p ), 'split field';
     cmp_deeply \@splited, $values_aref, 'resulting values';
+
+
+    #-- split - set limit
+
+    $p = {
+        name   => 'field',
+        logstr => 'error',
+    };
+
+    my $value = 'Brașov, B-dul Saturn, nr. 20, etc.';
+    @$p{qw(value limit separator)} = ( $value, 2, ',' );
+    ok @splited = $ttr->do_transform( 'split_field', $p ), 'split field';
+    is scalar @splited, 2, 'split returns 2 elements';
+
+    @$p{qw(value limit separator)} = ( $value, 5, ',' );
+    ok @splited = $ttr->do_transform( 'split_field', $p ), 'split field';
+    is scalar @splited, 4, 'split returns 4 elements (#sep+1)';
 
     #-- Test load plugin from local ./plugins dir
     $p->{value} = 'does nothing';

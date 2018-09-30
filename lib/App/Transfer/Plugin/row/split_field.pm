@@ -10,10 +10,10 @@ with 'MooX::Log::Any';
 
 sub split_field {
     my ( $self, $p ) = @_;
-    my ($logstr, $field, $value, $limit, $separator)
+    my ($logstr, $field, $value, $limit, $sep)
         = @$p{qw(logstr field value limit separator)};
     return unless $value;
-    my $regex = qr/\s*$separator\s*/;
+    my $regex = qr/\s*${sep}\s*/;
     my @values = split $regex, $value, $limit;
     return wantarray ? @values : \@values;
 }
