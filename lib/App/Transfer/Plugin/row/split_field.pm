@@ -14,7 +14,8 @@ sub split_field {
         = @$p{qw(logstr field value limit separator)};
     return unless $value;
     my $regex = qr/\s*$separator\s*/;
-    return split $regex, $value, $limit;
+    my @values = split $regex, $value, $limit;
+    return wantarray ? @values : \@values;
 }
 
 __PACKAGE__->meta->make_immutable;
