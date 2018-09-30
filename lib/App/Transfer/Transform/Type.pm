@@ -59,7 +59,6 @@ sub type_split {
     my $i = 0;
     foreach my $field (@fields) {
         my $value = $values[$i];
-        say "$i: $field = $value";
         $record->{$field} = $value;
         $i++;
     }
