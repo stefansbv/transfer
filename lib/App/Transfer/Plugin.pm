@@ -53,8 +53,11 @@ sub do_transform {
             return $plugin->$method($p);
         }
     }
-    hurl transform => __x( "No plugin for '{method}' in 'do_transform'.",
-        method => $method ) if $found == 0;
+    hurl transform => __x(
+        "The '{type}' plugin '{method}' was not found!'.",
+        method => $method,
+        type   => $self->plugin_type
+    ) if $found == 0;
     return;
 }
 
