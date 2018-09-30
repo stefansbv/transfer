@@ -124,6 +124,7 @@ has 'tempfields' => (
     handles  => {
         all_temp_fields => 'elements',
         find_temp_field => 'first',
+        has_temp_fields => 'count',
     },
 );
 
@@ -165,12 +166,12 @@ has 'reader' => (
     default  => sub {
         my $self = shift;
         my @header = $self->recipe->table->src_header_raw;
+        push @header, $self->all_temp_fields if $self->has_temp_fields;
         return App::Transfer::Reader->load({
             transfer  => $self->transfer,
             header    => \@header,
             table     => $self->recipe->source->table,
             rectangle => $self->recipe->table->rectangle,
-            tempfield => $self->recipe->table->tempfield,
             orderby   => $self->recipe->table->orderby,
             filter    => $self->recipe->table->filter,
             reader    => $self->recipe->source->reader,
@@ -577,10 +578,15 @@ sub validate_db_dst {
 }
 
 sub map_fields_src_to_dst {
-    my ( $self, $rec ) = @_;
+    my ( $self, $record ) = @_;
     my $new = {};
     for my $pair ( $self->field_pairs ) {
-        $new->{ $pair->[1] } = $rec->{ $pair->[0] };
+        $new->{ $pair->[1] } = $record->{ $pair->[0] };
+    }
+
+    # Add the tempfields with values
+    foreach my $field ( $self->all_temp_fields ) {
+        $new->{$field} = $record->{$field};
     }
     return $new;
 }
@@ -806,13 +812,13 @@ __END__
 =head3 tempfields
 
 An attribute holding the temporary fields defined in the recipe.  The
-values are added in the reader and than removed befor sending the
-record to the writer.
+values are added to the current record and than removed befor sending
+the record to the writer.
 
 This fields exists in the source table but not in the destination
-table and their contents can be copied to another destination field
-using, for example, the copy row transformation with the APPENDSRC
-attribute.
+table and their contents is transfered to another destination field
+using, for example, the C<copy> transformation with the APPENDSRC
+attribute, or the C<split> transformation.
 
 =head3 reader_options
 
