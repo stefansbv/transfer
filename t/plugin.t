@@ -509,7 +509,7 @@ subtest 'Row Transformations' => sub {
         logstr => 'error',
     };
 
-    my $value = 'Brașov, B-dul Saturn, nr. 20, etc.';
+    $value = 'Brașov, B-dul Saturn, nr. 20, etc.';
     @$p{qw(value limit separator)} = ( $value, 2, ',' );
     ok @splited = $ttr->do_transform( 'split_field', $p ), 'split field';
     is scalar @splited, 2, 'split returns 2 elements';
