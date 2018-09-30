@@ -133,9 +133,12 @@ subtest 'CSV - recipe with tempfield' => sub {
         rw_type  => 'reader',
     );
     ok my $header = $recipe->table->src_header, 'get the recipe table header';
-
     my $tmpfld = $recipe->table->tempfield;
-    is $tmpfld, ['seria'], '';
+    is $tmpfld, ['seria'], 'has a tempfield';
+
+    # Add the tempfields to the header
+    push @{$header}, $_ for @{$tmpfld};
+
     ok my $reader = App::Transfer::Reader->load( {
         transfer  => $transfer,
         header    => $header,
@@ -152,6 +155,7 @@ subtest 'CSV - recipe with tempfield' => sub {
         data      => "21.01.2018",
         scadenta  => "05.02.2018",
         suma      => 10.84,
+        seria     => "18 F",
     };
 
     ok my $aoh = $reader->_contents, 'get contents';

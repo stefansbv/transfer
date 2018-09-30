@@ -1,2 +1,2 @@
-firma;mod_plata;factura;data;scadenta;suma
-7;3;"18 F 05000038";21.01.2018;05.02.2018;10.84
+firma;mod_plata;factura;data;scadenta;suma;seria
+7;3;"18 F 05000038";21.01.2018;05.02.2018;10.84;"18 F"
