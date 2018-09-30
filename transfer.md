@@ -285,6 +285,15 @@ NOTE: This feature is for the DB writer and is work in progress to
 </source>
 ```
 
+IMPORTANT: The values of any date type fields returned by plugins must
+match the **date_format** and the **date_sep** setting of the recipe.
+Otherwise the field will be cleared by the **column_type_trafos**
+method.
+
+
+destination.
+
+
 ### TODO ###
 
 Test cases:

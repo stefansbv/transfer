@@ -55,7 +55,6 @@ sub _build_contents {
         or die "Error opening CSV: $!";
 
     my @header = @{ $self->header };
-    use Data::Dump; dd @header;
     hurl field_info => __('[EE] Empty table header in the recipe file?')
         if scalar @header == 0;
 

@@ -603,7 +603,6 @@ sub transformations {
     $record = $self->column_type_trafos( $record, $logstr )
         if $self->has_columns_info;
     $self->remove_tempfields($record);
-
     return $record;
 }
 
