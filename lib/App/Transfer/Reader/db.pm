@@ -62,12 +62,8 @@ sub _build_contents {
     my $where   = $self->filter;
     my $orderby = $self->orderby;
     my $header  = $self->header;
-    my $temp    = $self->tempfield;
     my $fields  = $self->validate_header_fields($table);
     
-    # Add the temporary fields to the record
-    push @{$header}, @{$temp} if ref $temp eq 'ARRAY';
-
     my $ah_ref = $engine->records_aoh( $table, $fields, $where, $orderby );
     $self->record_count( scalar @{$ah_ref} );
     return $ah_ref;

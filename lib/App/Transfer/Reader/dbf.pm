@@ -52,11 +52,6 @@ sub _build_contents {
     my @cols = $dbf->field_names; # field_types, field_lengths, field_decimals
     my $header = $self->header;
 
-    # Add the temporary fields to the record
-    # Add the temporary fields to the record
-    my $temp = $self->tempfield;
-    push @{$header}, @{$temp} if ref $temp eq 'ARRAY';
-
     # Validate field list
     my @not_found = ();
     foreach my $col ( @{$header} ) {

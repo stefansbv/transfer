@@ -80,10 +80,6 @@ sub _build_contents {
         push @cols, $col;
     }
 
-    # Add the temporary fields to the record
-    my $temp = $self->tempfield;
-    push @cols, @{$temp} if ref $temp eq 'ARRAY';
-
     # Validate field list
     my @not_found = ();
     foreach my $col ( @{$header} ) {

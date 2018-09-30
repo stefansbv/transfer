@@ -54,21 +54,15 @@ sub _build_contents {
     open my $fh, "<:encoding(utf8)", $self->input_file
         or die "Error opening CSV: $!";
 
-    my $header = $self->header;
+    my @header = @{ $self->header };
+    use Data::Dump; dd @header;
     hurl field_info => __('[EE] Empty table header in the recipe file?')
-        if scalar @{$header} == 0;
+        if scalar @header == 0;
 
     my @csv_cols = @{ $csv->getline($fh) };
-    # bind_columns returns weird data when $row pushed to an array,
-    # do {
-    #     my $a = {
-    #         CODP   => 115101,
-    #         ...
-    #         TIP    => 10,
-    #     };
-    #     ($a, $a, $a, $a, $a, $a, $a, $a, $a, $a, $a, $a, $a, $a, $a);
-    # }
-    $csv->column_names (@csv_cols);
+    # bind_columns returns weird data when the $row pushed to an
+    # array
+    $csv->column_names(@csv_cols);
 
     # Validate field list
     if ( any { ! defined $_ } @csv_cols ) {
@@ -81,7 +75,7 @@ sub _build_contents {
         say "# reader CSV header: \n# ", join ', ', @csv_cols if $self->debug;
     }
     my @not_found = ();
-    foreach my $col ( @{$header} ) {
+    foreach my $col (@header) {
         unless ( any { $col eq $_ } @csv_cols ) {
             push @not_found, $col;
         }
@@ -92,17 +86,16 @@ sub _build_contents {
         list  => join( ', ', @not_found ),
     ) if scalar @not_found;
 
-    # Add the temporary fields to the record
-    if ( my $tempfield = $self->tempfield ) {
-        my $temp_aref = ref $tempfield ? $tempfield : [$tempfield];
-        push @{$header}, @{$temp_aref};
-    }
-
-    # Get the data
-    my @aoh;
+    # Get the data, only for non empty records and fields of the
+    # header
+    my @aoh = ();
     while ( my $row = $csv->getline_hr($fh) ) {
-        if (any { defined($_) } values %{$row}) {
-            push @aoh, $row;
+        my $record = {};
+        if ( any { defined($_) } values %{$row} ) {
+            foreach my $field (@header) {
+                $record->{$field} = $row->{$field};
+            }
+            push @aoh, $record;
             $self->inc_count;
         }
         else {

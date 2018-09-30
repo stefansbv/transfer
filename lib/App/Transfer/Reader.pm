@@ -29,12 +29,6 @@ has 'header' => (
     required => 1,
 );
 
-has 'tempfield' => (
-    is      => 'ro',
-    isa     => 'Maybe[ArrayRef]',
-    default => sub { [] },
-);
-
 has 'options' => (
     is       => 'ro',
     isa      => 'App::Transfer::Options',
