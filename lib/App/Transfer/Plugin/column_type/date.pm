@@ -51,8 +51,8 @@ sub iso_to_iso {
     my ($self, $field, $text, $logstr) = @_;
     # Just return the value.
     if ( $text !~ /\d{4}-\d{2}-\d{2}/ ) {
-        $self->log->info(
-            "$logstr date: $field='$text' is not a valid ISO date");
+        $self->log->error(
+            "$logstr date: $field='$text' is not a valid ISO date: Err: $_\n");
         return undef;
     }
     return $text;
@@ -63,8 +63,8 @@ sub dmy_to_iso {
     return unless $text;
     my $dt = try { Time::Piece->strptime( $text, $self->format_dmy($sep) ) }
     catch {
-        $self->log->info(
-            "$logstr date: $field='$text' is not a valid DMY date");
+        $self->log->error(
+            "$logstr date: $field='$text' is not a valid DMY date: Err: $_\n");
         return undef;
     };
     return unless $dt;
@@ -76,8 +76,8 @@ sub mdy_to_iso {
     return unless $text;
     my $dt = try { Time::Piece->strptime( $text, $self->format_mdy($sep) ) }
     catch {
-        $self->log->info(
-            "$logstr date: $field='$text' is not a valid MDY date");
+        $self->log->error(
+            "$logstr date: $field='$text' is not a valid MDY date: Err: $_\n");
         return undef;
     };
     return unless $dt;
