@@ -692,7 +692,7 @@ sub collect_recipe_fields {
     # Collect fields from row trafos
     foreach my $step ( @{ $self->recipe->transform->row } ) {
         my $dest = $step->field_dst;
-        if (ref $dest eq 'ARRAY') {
+        if ( ref $dest eq 'ARRAY' ) {
             my %fields = map { $_ => 1 } @{$dest};
             while ( my ( $key, $val ) = each %fields ) {
                 $fields_all{$key} = $val;
@@ -704,6 +704,33 @@ sub collect_recipe_fields {
     }
     my @trafo_fields = sort keys %fields_all;
     return \@trafo_fields;
+}
+
+sub collect_recipe_methods {
+    my $self = shift;
+    my %methods_all;
+
+    # Collect methods from column trafos
+    foreach my $step ( @{ $self->recipe->transform->column } ) {
+        my $meth = $step->method;
+        if ( ref $meth eq 'ARRAY' ) {
+            my %methods = map { $_ => 1 } @{$meth};
+            while ( my ( $key, $val ) = each %methods ) {
+                $methods_all{$key} = $val;
+            }
+        }
+        else {
+            $methods_all{$meth} = 1;
+        }
+    }
+
+    # Collect methods from row trafos
+    foreach my $step ( @{ $self->recipe->transform->row } ) {
+        my $meth = $step->method;
+        $methods_all{$meth} = 1;
+    }
+    my @trafo_methods = sort keys %methods_all;
+    return \@trafo_methods;
 }
 
 sub validate_dst_file_fields {

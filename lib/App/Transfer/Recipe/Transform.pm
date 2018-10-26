@@ -45,7 +45,6 @@ sub BUILDARGS {
             validate_type($step, $types);
         }
     }
-
     return $p;
 };
 

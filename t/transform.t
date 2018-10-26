@@ -296,6 +296,22 @@ subtest 'transform: column_type_trafos' => sub {
 
     is $record, $expected_record, 'test column_type_trafos';
 
+    my @expected_meths = (
+        qw{
+            copy_nonzero
+            join_fields
+            lookup_in_dbtable
+            lookup_in_ds
+            move_filtered
+            move_filtered_regex
+            null_ifzero
+            number_only
+            split_field
+      }
+    );
+    ok my $meths = $trafo->collect_recipe_methods, 'collect recipe methods';
+    is $meths, \@expected_meths, 'recipe methods (plugin methods)';
+
     # like(
     #     dies { $trafo->reader->contents_iter },
     #     qr/(database|server)( .+)? not (found|available)/,
@@ -387,6 +403,9 @@ subtest 'transform: column_trafos exception' => sub {
         qr/\QDestination fields/,
         'Should have error for dst fields missmatch'
     );
+
+    ok my $meths = $trafo->collect_recipe_methods, 'collect recipe methods';
+    is $meths, ['first_upper'], 'recipe methods (plugin methods)';
 };
 
 # #--- Validations
