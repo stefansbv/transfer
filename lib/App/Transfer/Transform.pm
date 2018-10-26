@@ -438,8 +438,8 @@ sub validate_file_src {
         }
     };
     my $worksheet
-        = $self->trafo->reader->can('worksheet')
-        ? $self->trafo->reader->worksheet
+        = $self->reader->can('worksheet')
+        ? $self->reader->worksheet
         : undef;
     $self->job_info_input_file($input_file, $worksheet);
     return;
@@ -492,8 +492,8 @@ sub validate_file_dst {
         $self->writer->insert_header(\@ordered);
     }
     my $worksheet
-        = $self->trafo->writer->can('worksheet')
-        ? $self->trafo->writer->worksheet
+        = $self->writer->can('worksheet')
+        ? $self->writer->worksheet
         : undef;
     $self->job_info_output_file($output_file, $worksheet);
 
