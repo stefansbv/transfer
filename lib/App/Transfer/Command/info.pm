@@ -20,7 +20,7 @@ with qw(App::Transfer::Role::Utils);
 parameter 'recipe' => (
     is            => 'ro',
     isa           => Path,
-    required      => 0,
+    required      => 1,
     coerce        => 1,
     documentation => q[The recipe file.],
 );
@@ -56,30 +56,47 @@ has 'trafo' => (
 
 sub execute {
     my $self = shift;
-    $self->job_info;    
+    $self->job_info;
     return;
 }
 
 sub job_info {
     my $self = shift;
 
-    $self->trafo->job_intro;
-    
-    my $in_type  = $self->trafo->recipe->in_type;
-    my $out_type = $self->trafo->recipe->out_type;
+    $self->trafo->job_intro(
+        name          => $self->trafo->recipe->header->name,
+        version       => $self->trafo->recipe->header->version,
+        syntaxversion => $self->trafo->recipe->header->syntaxversion,
+        description   => $self->trafo->recipe->header->description,
+    );
 
-    my $io_type = $self->trafo->io_trafo_type($in_type, $out_type);
-    my $meth    = "transfer_$io_type";
-    if ( $self->can($meth) ) {
-        $self->$meth;                        # execute the transfer
+    my $src_type = $self->trafo->recipe->in_type;
+    my $dst_type = $self->trafo->recipe->out_type;
+
+    my $meth_src = "validate_${src_type}_src";
+    my $iter;
+    if ( $self->can($meth_src) ) {
+        $iter = $self->$meth_src;            # read the source
     }
     else {
-        hurl run => __x( "\nUnimplemented reader-writer combo: '{type}'!",
-            type => $io_type );
+        hurl run =>
+            __x( "\nUnimplemented reader: '{type}'!", type => $src_type );
     }
 
+    my $meth_dst = "validate_${dst_type}_dst";
+    if ( $self->can($meth_dst) ) {
+        $self->$meth_dst($iter);            # write to the destination
+    }
+    else {
+        hurl run =>
+            __x( "\nUnimplemented writer: '{type}'!", type => $dst_type );
+    }
+
+    my $trafo_fields = $self->trafo->collect_recipe_fields;
+    use Data::Dump; dd $trafo_fields;
+
     $self->job_close;
-    
+
     return;
 }
 
@@ -87,99 +104,39 @@ sub job_close {
     print " -----------------------------\n";
 }
 
-sub transfer_file2db {
-    my $self = shift;
-
-    my $table  = $self->trafo->recipe->destination->table;
-    my $engine = $self->trafo->writer->target->engine;
-
-    hurl run => __x( "The table '{table}' does not exists or is not readable!", table => $table )
-        unless $engine->table_exists($table);
-
-    my $table_info = $engine->get_info($table);
-    hurl run => __ 'No columns type info retrieved from database!'
-        if keys %{$table_info} == 0;
-
-    $self->trafo->job_info_input_file;
-    $self->trafo->job_info_output_db($table, $engine->database);
-}
-
-sub transfer_db2db {
-    my $self = shift;
-
-    my $src_table  = $self->trafo->recipe->source->table;
-    my $dst_table  = $self->trafo->recipe->destination->table;
-    my $src_engine = $self->trafo->reader->target->engine;
-    my $dst_engine = $self->trafo->writer->target->engine;
-    my $src_db     = $src_engine->database;
-    my $dst_db     = $dst_engine->database;
-
-    $self->trafo->job_info_input_db($src_table, $src_db);
-    $self->trafo->job_info_output_db($dst_table, $dst_db);
-
-    hurl run => __x( "The source table '{table}' does not exists!",
-        table => $src_table )
-        unless $src_engine->table_exists($src_table);
-    hurl run => __x( "The destination table '{table}' does not exists!",
-        table => $dst_table )
-        unless $dst_engine->table_exists($dst_table);
-
-    # XXX Have to also check the host
-    hurl run =>
-        __( 'The source and the destination tables must be different!' )
-        if ( $src_table eq $dst_table ) and ( $src_db eq $dst_db );
-
-    my $table_info = $dst_engine->get_info($dst_table);
-    hurl run => __( 'No columns type info retrieved from database!' )
-        if keys %{$table_info} == 0;
-
-    my $logfld = $self->trafo->get_logfield_name($table_info);
-
+sub validate_file_src {
+    my $self     = shift;
+    my $src_file = $self->trafo->recipe->source->file;
+    my $worksheet
+        = $self->trafo->reader->can('worksheet')
+        ? $self->trafo->reader->worksheet
+        : undef;
+    $self->trafo->job_info_input_file( $src_file, $worksheet );
     return;
 }
 
-sub transfer_db2file {
+sub validate_file_dst {
     my $self = shift;
 
-    my $src_table  = $self->trafo->recipe->source->table;
-    my $dst_table  = $self->trafo->recipe->destination->table;
-    my $src_engine = $self->trafo->reader->target->engine;
-    my $src_db     = $src_engine->database;
+    my $dst_file = $self->trafo->recipe->destination->file;
 
-    $self->trafo->job_info_input_db($src_table, $src_db);
-    $self->trafo->job_info_output_file;
+    # Header, sorted if the 'columns' section is available
+    # if ( $self->trafo->has_no_columns_info ) {
+    #     $self->trafo->writer->insert_header;
+    # }
+    # else {
+    #     my @ordered = $self->trafo->all_ordered_fields;
+    #     $self->trafo->writer->insert_header(\@ordered);
+    # }
 
-    # hurl run => __x( "The source table '{table}' does not exists!",
-    #     table => $src_table )
-    #     unless $src_engine->table_exists($src_table);
+    my $worksheet
+        = $self->trafo->writer->can('worksheet')
+        ? $self->trafo->writer->worksheet
+        : undef;
 
-    # my $src_table_info = $src_engine->get_info($src_table);
-    my $dst_table_info = $self->trafo->recipe->table->columns;
-    my @fields = $self->sort_hash_by_pos($dst_table_info);
-    
-    # hurl run => __( 'No columns type info retrieved from database!' )
-    #     if keys %{$src_table_info} == 0;
+    $self->trafo->job_info_output_file($dst_file, $worksheet);
 
-    # my $logfld = $self->trafo->get_logfield_name($src_table_info);
-
-    return;
-}
-
-sub transfer_file2file {
-    my $self = shift;
-
-    my $dst_table = $self->trafo->recipe->destination->table;
-
-    $self->trafo->job_info_input_file;
-    $self->trafo->job_info_output_file;
-
-    hurl run => __x("No input file specified; use '--if' or set the source file in the recipe.") unless $self->trafo->reader_options->file;
-
-    hurl run => __x("No output file specified; use '--of' or set the destination file in the recipe.") unless $self->trafo->writer_options->file;
-
-    hurl run => __x("Invalid input file specified; use '--if' or fix the source file in the recipe.") unless -f $self->trafo->reader_options->file->stringify;
-
-    my $logfld = $self->trafo->get_logfield_name();
+    # $self->validate_dst_file_fields;
 
     return;
 }

@@ -111,12 +111,13 @@ has 'trafo' => (
     isa     => 'App::Transfer::Transform',
     lazy    => 1,
     default => sub {
-        my $self = shift;
+        my $self   = shift;
+        my $recipe = $self->recipe;
         return App::Transfer::Transform->new(
             transfer       => $self,
             input_options  => $self->input_options,
             output_options => $self->output_options,
-            recipe_file    => $self->recipe,
+            recipe_file    => $recipe,
         );
     },
 );

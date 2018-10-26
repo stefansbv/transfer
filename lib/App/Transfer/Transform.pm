@@ -437,9 +437,10 @@ sub validate_file_src {
             say "IDENT = $ident";
         }
     };
-
-    my $worksheet = $self->reader->worksheet
-        if $self->reader->can('worksheet');
+    my $worksheet
+        = $self->trafo->reader->can('worksheet')
+        ? $self->trafo->reader->worksheet
+        : undef;
     $self->job_info_input_file($input_file, $worksheet);
     return;
 }
@@ -490,9 +491,10 @@ sub validate_file_dst {
         my @ordered = $self->all_ordered_fields;
         $self->writer->insert_header(\@ordered);
     }
-
-    my $worksheet = $self->writer->worksheet
-        if $self->writer->can('worksheet');
+    my $worksheet
+        = $self->trafo->writer->can('worksheet')
+        ? $self->trafo->writer->worksheet
+        : undef;
     $self->job_info_output_file($output_file, $worksheet);
 
     $self->validate_dst_file_fields;
