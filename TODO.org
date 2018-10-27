@@ -1,14 +1,9 @@
 
-* TODO [12%]
- - [ ] Check early if the plugins can be used
- - [X] Add tests for copy type
- - [ ] Add tests for batch type
- - [ ] The transform.t test fails if there is no DBD::Pg module
- - [ ] Test the map_fields_src_to_dst method from Transform
- - [ ] Implement the date_format in the writers
- - [ ] Adapt the Printer module from the App::Intersect instead of Perl6::Form
- - [ ] The info command should print info:
-   - [ ] about plugins
-   - [ ] about readers
-   - [ ] about writers
-
+* TODO [42%]
+  - [X] Check early if the plugins can be used
+  - [X] Add tests for copy type
+  - [ ] Add tests for batch type
+  - [ ] The transform.t test fails if there is no DBD::Pg module
+  - [ ] Test the map_fields_src_to_dst method from Transform
+  - [ ] Implement the date_format in the writers
+  - [X] Adapt the Printer module from App::Intersect and replace Perl6::Form

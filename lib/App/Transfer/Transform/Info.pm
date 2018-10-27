@@ -90,7 +90,7 @@ sub job_info_prework {
     my $self = shift;
     my $start_l = __ 'Working:';
     print " -----------------------------\n";
-    $self->printer( '4i1c_l_', { label => $start_l } );
+    $self->printer( '2i1c_l_', { label => $start_l } );
     return;
 }
 
