@@ -13,7 +13,6 @@ use List::Compare;
 use Try::Tiny;
 use Progress::Any;
 use Progress::Any::Output 'TermProgressBarColor';
-use namespace::autoclean;
 
 use App::Transfer::Transform::Type;
 use App::Transfer::Transform::Info;
@@ -22,6 +21,7 @@ use App::Transfer::Recipe;
 use App::Transfer::Reader;
 use App::Transfer::Writer;
 use App::Transfer::Plugin;
+use namespace::autoclean;
 
 use Data::Dump qw/dump/;
 
@@ -65,9 +65,9 @@ has transform_info => (
     is       => 'ro',
     isa      => 'App::Transfer::Transform::Info',
     lazy     => 1,
-    default => sub {
-        return App::Transfer::Transform::Info->new;
-      },
+    default  => sub {
+        return App::Transfer::Transform::Info->new
+    },
     handles  => [qw(
         job_intro
         job_info_input_file
@@ -354,7 +354,7 @@ sub job_transfer {
     my $dst_type = $self->recipe->out_type;
 
     $self->validate_plugin_methods;
-    
+
     my $meth_src = "validate_${src_type}_src";
     my $iter;
     if ( $self->can($meth_src) ) {
@@ -373,7 +373,7 @@ sub job_transfer {
         hurl run =>
             __x( "\nUnimplemented writer: '{type}'!", type => $dst_type );
     }
-        
+
     $self->do_transfer;
 
     $self->job_summary(
@@ -778,7 +778,7 @@ sub validate_plugin_methods {
     hurl plugins => __x(
         'Missing plugins: "{list}"',
         list  => join( ', ', @missing ),
-    ) if scalar @missing > 0;    
+    ) if scalar @missing > 0;
     return;
 }
 

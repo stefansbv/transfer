@@ -24,17 +24,17 @@ my $workin = __('Working:');
 my $worked = __('source records read:');
 my $summar = __('Summary:');
 
-subtest 'DB to DB transfer' => sub {
+subtest 'Test the transfer info methods' => sub {
     ok my $trafo = App::Transfer::Transform::Info->new,
         'new trafo info instance';
 
     like(
         capture_stdout {
             $trafo->job_intro(
-                name           => 'Name',
-                version        => 1,
-                suyntaxversion => 2,
-                description    => 'Description',
+                name          => 'Name',
+                version       => 1,
+                syntaxversion => 2,
+                description   => 'Description',
               )
         },
         qr/$recipe/ms,
