@@ -298,23 +298,30 @@ subtest 'transform: column_type_trafos' => sub {
 
     my $expected_meths = {
         row => {
-            copy_nonzero        => 1,
-            join_fields         => 1,
-            lookup_in_dbtable   => 1,
-            lookup_in_ds        => 1,
-            move_filtered       => 1,
-            move_filtered_regex => 1,
-            split_field         => 1,
+            copy_nonzero        => 0,
+            join_fields         => 0,
+            lookup_in_dbtable   => 0,
+            lookup_in_ds        => 0,
+            move_filtered       => 0,
+            move_filtered_regex => 0,
+            split_field         => 0,
         },
         column => {
-            null_ifzero => 1,
-            number_only => 1,
+            null_ifzero => 0,
+            number_only => 0,
         },
     };
     ok my $meths = $trafo->collect_recipe_methods, 'collect recipe methods';
     is $meths, $expected_meths, 'recipe methods (plugin methods)';
 
-    ok $trafo->validate_plugin_methods;
+    # Change expected values to 1
+    foreach my $rc ( keys %{$expected_meths} ) {
+        while ( my ( $k, $v ) = each( %{ $expected_meths->{$rc} } ) ) {
+            $expected_meths->{$rc}{$k} = 1;  # !$v
+        }
+    }
+    ok my $plugs = $trafo->get_plugin_methods;
+    is $plugs, $expected_meths, 'validate recipe methods (plugin methods)';
 
     # like(
     #     dies { $trafo->reader->contents_iter },
@@ -409,8 +416,12 @@ subtest 'transform: column_trafos exception' => sub {
     );
 
     ok my $meths = $trafo->collect_recipe_methods, 'collect recipe methods';
-    is $meths, { column => { first_upper => 1 } },
+    is $meths, { column => { first_upper => 0 }, row => {} },
         'recipe methods (plugin methods)';
+
+    ok my $plugs = $trafo->get_plugin_methods;
+    is $plugs, { column => { first_upper => 1 }, row => {} },
+        'get recipe methods (plugin methods)';
 };
 
 # #--- Validations

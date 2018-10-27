@@ -451,7 +451,7 @@ subtest 'Column transformation type' => sub {
     ), 'new recipe instance';
     ok my $trafos_col = $recipe->transform->column, 'column trafos';
     my $fields  = [qw(codp)];
-    my $methods = [[qw(number_only null_ifzero)]];
+    my $methods = [[qw(number_only null_ifzero nonexistent)]];
     my $idx     = 0;
     foreach my $step ( @{$trafos_col} ) {
         my $field  = $fields->[$idx];

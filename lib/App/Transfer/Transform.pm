@@ -8,6 +8,7 @@ use Moose;
 use MooseX::Types::Path::Tiny qw(Path File);
 use App::Transfer::X qw(hurl);
 use Locale::TextDomain qw(App-Transfer);
+use Scalar::Util qw(blessed);
 use List::Compare;
 use Try::Tiny;
 use Progress::Any;
@@ -215,6 +216,15 @@ has 'plugin_column' => (
     },
 );
 
+has 'plugin_row' => (
+    is      => 'ro',
+    isa     => 'App::Transfer::Plugin',
+    lazy    => 1,
+    default => sub {
+        return App::Transfer::Plugin->new( plugin_type => 'row' );
+    },
+);
+
 has 'src_header' => (
     is       => 'ro',
     isa      => 'ArrayRef',
@@ -343,6 +353,8 @@ sub job_transfer {
     my $src_type = $self->recipe->in_type;
     my $dst_type = $self->recipe->out_type;
 
+    $self->validate_plugin_methods;
+    
     my $meth_src = "validate_${src_type}_src";
     my $iter;
     if ( $self->can($meth_src) ) {
@@ -361,7 +373,7 @@ sub job_transfer {
         hurl run =>
             __x( "\nUnimplemented writer: '{type}'!", type => $dst_type );
     }
-
+        
     $self->do_transfer;
 
     $self->job_summary(
@@ -709,25 +721,27 @@ sub collect_recipe_fields {
 sub collect_recipe_methods {
     my $self = shift;
     my %methods_all;
+    $methods_all{column} = {};
+    $methods_all{row}    = {};
 
     # Collect methods from column trafos
     foreach my $step ( @{ $self->recipe->transform->column } ) {
         my $meth = $step->method;
         if ( ref $meth eq 'ARRAY' ) {
-            my %methods = map { $_ => 1 } @{$meth};
+            my %methods = map { $_ => 0 } @{$meth};
             while ( my ( $key, $val ) = each %methods ) {
                 $methods_all{column}{$key} = $val;
             }
         }
         else {
-            $methods_all{column}{$meth} = 1;
+            $methods_all{column}{$meth} = 0;
         }
     }
 
     # Collect methods from row trafos
     foreach my $step ( @{ $self->recipe->transform->row } ) {
         my $meth = $step->method;
-        $methods_all{row}{$meth} = 1;
+        $methods_all{row}{$meth} = 0;
     }
 
     return \%methods_all;
@@ -753,19 +767,43 @@ sub validate_dst_file_fields {
 }
 
 sub validate_plugin_methods {
-    my $self    = shift;
-    my $plugins = $self->plugin_column->plugins;
-    my $meths   = $self->collect_recipe_methods;
-    foreach my $method ( keys %{ $meths->{column} } ) {
-        print "method=$method";
-        if ( $plugins->can($method) ) {
-            print " found\n";
+    my $self = shift;
+    my $mets = $self->get_plugin_methods;
+    my @missing;
+    foreach my $rc ( keys %{$mets} ) {
+        while ( my ( $k, $v ) = each( %{ $mets->{$rc} } ) ) {
+            push @missing, "$rc: $k" if $v == 0;
         }
-        else {
-            print " NOT found\n";
-        }
-
     }
+    hurl plugins => __x(
+        'Missing plugins: "{list}"',
+        list  => join( ', ', @missing ),
+    ) if scalar @missing > 0;    
+    return;
+}
+
+sub get_plugin_methods {
+    my $self  = shift;
+    my $meths = $self->collect_recipe_methods;
+    foreach my $method ( keys %{ $meths->{column} } ) {
+      PLUGIN:
+        for my $plugin ( @{ $self->plugin_column->plugins } ) {
+            if ( $plugin->can($method) ) {
+                $meths->{column}{$method} = 1;
+                last PLUGIN;
+            }
+        }
+    }
+    foreach my $method ( keys %{ $meths->{row} } ) {
+      PLUGIN:
+        for my $plugin ( @{ $self->plugin_row->plugins } ) {
+            if ( $plugin->can($method) ) {
+                $meths->{row}{$method} = 1;
+                last PLUGIN;
+            }
+        }
+    }
+    return $meths;
 }
 
 sub validate_dst_db_fields {
@@ -901,6 +939,8 @@ names.
 
 =head3 _trafo_row_types
 
+=head2 METHODS
+
 =head3 job_transfer
 
 The dispatch method for the different input - output combinations for
@@ -956,6 +996,13 @@ This is the first type of transformation to be applied.
 
 =head3 record_trafos
 
+Transformations per record (row).  This type of transformation works
+on the entire current record of data.  It can be used to split a field
+data into two or more fields, or to join, copy or move data between
+fields.
+
+This is the second type of transformation to be applied.
+
 =head3 column_type_trafos
 
 Transformations per field type are used to validate the data for the
@@ -966,6 +1013,37 @@ overflows than a log entry is added.
 
 Collect all recipe field names from the row and column transformations
 and return them as an sorted array reference.
+
+=head3 collect_recipe_methods
+
+Collect all recipe method names from the row and column
+transformations and return them as a HoH with two keys: C<column> and
+C<row>.
+
+For example:
+
+    {
+        row => {
+            lookup_in_dbtable   => 0,
+            move_filtered       => 0,
+            split_field         => 0,
+        },
+        column => {
+            null_ifzero => 0,
+        },
+    };
+
+=head3 validate_dst_file_fields
+
+=head3 validate_plugin_methods
+
+Throw an exception with the list of missing plugins if any.
+
+=head3 get_plugin_methods
+
+Update the data structure returned by the L<collect_recipe_methods>,
+by setting the value to 1 for the method names that exists in the
+plugins list.
 
 =head3 validate_dst_db_fields
 
@@ -984,14 +1062,5 @@ Return true if a field is in the tempfields list.
 
 Return the logfield value from the recipe configuration, or the first
 column name from the database table.
-
-=head3 record_trafos
-
-Transformations per record (row).  This type of transformation works
-on the entire current record of data.  It can be used to split a field
-data into two or more fields, or to join, copy or move data between
-fields.
-
-This is the second type of transformation to be applied.
 
 =cut
