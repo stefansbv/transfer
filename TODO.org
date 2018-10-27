@@ -1,5 +1,5 @@
 
-* TODO [37%]
+* TODO [50%]
   - [X] Check early if the plugins can be used
   - [X] Add tests for copy type
   - [ ] Add tests for batch type
@@ -7,4 +7,4 @@
   - [ ] Test the map_fields_src_to_dst method from Transform
   - [ ] Implement the date_format in the writers
   - [X] Adapt the Printer module from App::Intersect and replace Perl6::Form
-  - [ ] Feature to allow dynamic value for the rectangle lower left corner attribute
+  - [X] Feature to allow dynamic value for the rectangle lower left corner attribute
