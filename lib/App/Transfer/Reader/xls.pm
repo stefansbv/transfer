@@ -7,7 +7,7 @@ use Moose;
 use MooseX::Types::Path::Tiny qw(File);
 use MooseX::Iterator;
 use Locale::TextDomain 1.20 qw(App-Transfer);
-use List::Util qw(first any all);
+use List::Util qw(any);
 use List::Compare;
 use Spreadsheet::Read;
 use App::Transfer::X qw(hurl);
@@ -61,7 +61,14 @@ has 'rect_v' => (
     default  => sub {
         my $self = shift;
         my ( $top, $bot ) = @{ $self->rectangle };
-        my ( $col, $row ) = $self->sheet->cell2cr($bot);
+        my ( $col, $row );
+        if ( $bot eq 'END' ) {
+            $col = $self->sheet->maxcol;
+            $row = $self->sheet->maxrow;
+        }
+        else {
+            ( $col, $row ) = $self->sheet->cell2cr($bot);
+        }
         return [$col, $row];
     },
 );
@@ -112,8 +119,14 @@ sub _read_rectangle {
             }
             $fld_idx++;
         }
-        push @aoh, $rec;
-        $self->inc_count;
+        if ( any { defined($_) } values %{$rec} ) {
+            push @aoh, $rec;
+            $self->inc_count;
+        }
+        else {
+            $self->inc_skip;
+        }
+        last if $self->record_skip >= 2;     # XXX maybe add an attribute for max empty records?
     }
     dump @aoh if $self->debug;
     return \@aoh;

@@ -270,4 +270,52 @@ subtest 'Full range - skip some inner fields' => sub {
     is $reader->record_count, $i, 'counted records match record_count';
 };
 
+subtest 'Full range - dynamic rectangle lower left corner' => sub {
+    ok my $recipe_file = path( 't', 'recipes', 'recipe-xls-rect-4.conf' ),
+        "Recipe file";
+    my $transfer = App::Transfer->new( debug => 1 );
+    my $options_href = { input_file => 't/rectangle.xls',  };
+    ok my $recipe = App::Transfer::Recipe->new(
+        recipe_file => $recipe_file->stringify,
+    ), 'new recipe instance';
+    my $options = App::Transfer::Options->new(
+        transfer => $transfer,
+        recipe   => $recipe,
+        options  => $options_href,
+        rw_type  => 'reader',
+    );
+    ok my @header = $recipe->table->src_header_raw,
+      'get the recipe table header';
+    my $tempfield = $recipe->table->tempfield;
+    my $rectangle = $recipe->table->rectangle;
+    ok my $reader = App::Transfer::Reader->load({
+        transfer  => $transfer,
+        header    => \@header,
+        tempfield => $tempfield,
+        rectangle => $rectangle,
+        reader    => 'xls',
+        options   => $options,
+    }), 'new reader spreadsheet object';
+    is $reader->input_file, 't/rectangle.xls', 'xls file name';
+    is $reader->worksheet, 1, 'worksheet name';
+    isa_ok $reader->workbook, 'Spreadsheet::Read', 'workbook';
+
+    cmp_deeply $reader->rectangle, [ 'A5', 'END' ],
+        'siruta data rectangle';
+    cmp_deeply $reader->rect_o, [1,5],'rext min col, min row';
+    cmp_deeply $reader->rect_v, [6,12],'rext max col, max row';
+
+    ok my $iter = $reader->contents_iter, 'get the iterator';
+    isa_ok $iter, 'MooseX::Iterator::Array', 'iterator';
+
+    my $i = 0;
+    while ( $iter->has_next ) {
+        my $rec = $iter->next;
+        cmp_deeply $rec, $expected->[$i], "record $i data ok";
+        $i++;
+    }
+    is $i, 5, 'compared all records';
+    is $reader->record_count, $i, 'counted records match record_count';
+};
+
 done_testing;
