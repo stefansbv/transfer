@@ -716,21 +716,21 @@ sub collect_recipe_methods {
         if ( ref $meth eq 'ARRAY' ) {
             my %methods = map { $_ => 1 } @{$meth};
             while ( my ( $key, $val ) = each %methods ) {
-                $methods_all{$key} = $val;
+                $methods_all{column}{$key} = $val;
             }
         }
         else {
-            $methods_all{$meth} = 1;
+            $methods_all{column}{$meth} = 1;
         }
     }
 
     # Collect methods from row trafos
     foreach my $step ( @{ $self->recipe->transform->row } ) {
         my $meth = $step->method;
-        $methods_all{$meth} = 1;
+        $methods_all{row}{$meth} = 1;
     }
-    my @trafo_methods = sort keys %methods_all;
-    return \@trafo_methods;
+
+    return \%methods_all;
 }
 
 sub validate_dst_file_fields {
@@ -750,6 +750,22 @@ sub validate_dst_file_fields {
     ) unless scalar @error == 0;
 
     return;
+}
+
+sub validate_plugin_methods {
+    my $self    = shift;
+    my $plugins = $self->plugin_column->plugins;
+    my $meths   = $self->collect_recipe_methods;
+    foreach my $method ( keys %{ $meths->{column} } ) {
+        print "method=$method";
+        if ( $plugins->can($method) ) {
+            print " found\n";
+        }
+        else {
+            print " NOT found\n";
+        }
+
+    }
 }
 
 sub validate_dst_db_fields {

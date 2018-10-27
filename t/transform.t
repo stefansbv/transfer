@@ -296,21 +296,25 @@ subtest 'transform: column_type_trafos' => sub {
 
     is $record, $expected_record, 'test column_type_trafos';
 
-    my @expected_meths = (
-        qw{
-            copy_nonzero
-            join_fields
-            lookup_in_dbtable
-            lookup_in_ds
-            move_filtered
-            move_filtered_regex
-            null_ifzero
-            number_only
-            split_field
-      }
-    );
+    my $expected_meths = {
+        row => {
+            copy_nonzero        => 1,
+            join_fields         => 1,
+            lookup_in_dbtable   => 1,
+            lookup_in_ds        => 1,
+            move_filtered       => 1,
+            move_filtered_regex => 1,
+            split_field         => 1,
+        },
+        column => {
+            null_ifzero => 1,
+            number_only => 1,
+        },
+    };
     ok my $meths = $trafo->collect_recipe_methods, 'collect recipe methods';
-    is $meths, \@expected_meths, 'recipe methods (plugin methods)';
+    is $meths, $expected_meths, 'recipe methods (plugin methods)';
+
+    ok $trafo->validate_plugin_methods;
 
     # like(
     #     dies { $trafo->reader->contents_iter },
@@ -405,7 +409,8 @@ subtest 'transform: column_trafos exception' => sub {
     );
 
     ok my $meths = $trafo->collect_recipe_methods, 'collect recipe methods';
-    is $meths, ['first_upper'], 'recipe methods (plugin methods)';
+    is $meths, { column => { first_upper => 1 } },
+        'recipe methods (plugin methods)';
 };
 
 # #--- Validations
