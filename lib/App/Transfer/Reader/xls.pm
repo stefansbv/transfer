@@ -42,6 +42,12 @@ has 'rectangle' => (
     required => 1,
 );
 
+has 'allowemptyrows' => (
+    is      => 'ro',
+    isa     => 'Num',
+    default => sub { 1 },
+);
+
 has 'rect_o' => (
     is       => 'ro',
     isa      => 'ArrayRef',
@@ -105,6 +111,7 @@ sub _read_rectangle {
     say "# row_min = $row_min  row_max = $row_max" if $self->debug;
     say "# col_min = $col_min  col_max = $col_max" if $self->debug;
     my @aoh = ();
+    my $ajacent_empty = 0;
     for my $row_cnt ( $row_min .. $row_max ) {
         my @row = $self->sheet->row($row_cnt);
         my $rec = {};
@@ -122,11 +129,13 @@ sub _read_rectangle {
         if ( any { defined($_) } values %{$rec} ) {
             push @aoh, $rec;
             $self->inc_count;
+            $ajacent_empty = 0;
         }
         else {
             $self->inc_skip;
+            $ajacent_empty++;
         }
-        last if $self->record_skip >= 2;     # XXX maybe add an attribute for max empty records?
+        last if $ajacent_empty > $self->allowemptyrows;
     }
     dump @aoh if $self->debug;
     return \@aoh;

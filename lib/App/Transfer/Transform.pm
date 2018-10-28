@@ -165,19 +165,20 @@ has 'reader' => (
     required => 1,
     lazy     => 1,
     default  => sub {
-        my $self = shift;
+        my $self   = shift;
         my @header = $self->recipe->table->src_header_raw;
         push @header, $self->all_temp_fields if $self->has_temp_fields;
-        return App::Transfer::Reader->load({
-            transfer  => $self->transfer,
-            header    => \@header,
-            table     => $self->recipe->source->table,
-            rectangle => $self->recipe->table->rectangle,
-            orderby   => $self->recipe->table->orderby,
-            filter    => $self->recipe->table->filter,
-            reader    => $self->recipe->source->reader,
-            options   => $self->reader_options,
-        });
+        return App::Transfer::Reader->load( {
+            transfer       => $self->transfer,
+            header         => \@header,
+            table          => $self->recipe->source->table,
+            rectangle      => $self->recipe->table->rectangle,
+            allowemptyrows => $self->recipe->table->allowemptyrows,
+            orderby        => $self->recipe->table->orderby,
+            filter         => $self->recipe->table->filter,
+            reader         => $self->recipe->source->reader,
+            options        => $self->reader_options,
+        } );
     },
 );
 

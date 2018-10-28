@@ -16,6 +16,12 @@ has 'rectangle' => (
     coerce => 1,
 );
 
+has 'allowemptyrows' => (
+    is      => 'ro',
+    isa     => 'Num',
+    default => sub { 1 },
+);
+
 has 'orderby' => (
     is     => 'ro',
     isa    => 'Str|ArrayRef|HashRef',
@@ -168,15 +174,25 @@ Example log record:
 Data rectangle defined by the label of the top left and bottom right
 cell.
 
-Example from siruta.xls for the siruta table:
+Example from siruta.C<xls> for the siruta table:
 
     rectangle = A7,C21
 
-=head3 C<skiprows>  !REMOVED!
+New feature in v0.44: for the C<xls> reader, the bottom right corner can
+be specified as C<END>. This means that the C<maxrow> ans C<maxcoll>
+attributes from the L<Spreadsheet::Read> module are used to determine
+the actual value of the attribute.
 
-The number of rows to skip between the header and the table data.
-Used for the C<xls> reader, when there are empty or unwanted rows
-after the header or there is a sub-header.
+    rectangle = A7,END
+
+See C<allowemptyrows> for more options.
+
+=head3 C<allowemptyrows>
+
+Specific for the C<xls> reader.
+
+Stop reading data from the C<xls> source file if more than
+C<allowemptyrows> empty adjacent rows are encountered.
 
 =head3 C<orderby>
 

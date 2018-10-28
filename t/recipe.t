@@ -260,6 +260,7 @@ subtest 'Table section minimum config' => sub {
         ), 'new recipe instance';
 
     is $recipe->table->logfield, 'id', 'log field name';
+    is $recipe->table->allowemptyrows, 1, 'allow empty rows count';
 
     ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
     is \@shr, $header_aref, 'source raw header';
@@ -287,6 +288,7 @@ subtest 'Table section maximum config - columns info' => sub {
     };
     is $recipe->table->filter, $expected, 'table filter';
     is $recipe->table->tempfield, [ 'seria', 'factura' ], 'tempfields';
+    is $recipe->table->allowemptyrows, 0, 'allow empty rows count';
 
     ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
     is \@shr, $bag1, 'source raw header';
@@ -311,6 +313,7 @@ subtest 'Table section medium config' => sub {
     ok $recipe->table->logfield, 'log field name';
     is $recipe->table->orderby, { -asc => 'denumire' }, 'table orderby';
     is $recipe->table->tempfield, [ 'seria' ], 'tempfields';
+    is $recipe->table->allowemptyrows, 1, 'allow empty rows count';
 
     ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
     is \@shr, $header_aref, 'source raw header';

@@ -273,7 +273,7 @@ subtest 'Full range - skip some inner fields' => sub {
 subtest 'Full range - dynamic rectangle lower left corner' => sub {
     ok my $recipe_file = path( 't', 'recipes', 'recipe-xls-rect-4.conf' ),
         "Recipe file";
-    my $transfer = App::Transfer->new( debug => 1 );
+    my $transfer = App::Transfer->new( debug => 0 );
     my $options_href = { input_file => 't/rectangle.xls',  };
     ok my $recipe = App::Transfer::Recipe->new(
         recipe_file => $recipe_file->stringify,
@@ -293,6 +293,7 @@ subtest 'Full range - dynamic rectangle lower left corner' => sub {
         header    => \@header,
         tempfield => $tempfield,
         rectangle => $rectangle,
+        # allowemptyrows => 1,
         reader    => 'xls',
         options   => $options,
     }), 'new reader spreadsheet object';
