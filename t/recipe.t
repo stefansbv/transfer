@@ -13,6 +13,8 @@ my $trans1 = __ "The recipe must have a 'recipe' section.";
 my $trans2 = __ "The recipe must have a valid 'syntaxversion' attribute (the current version is 2)";
 my $trans3 = __ "The recipe must have a 'table' section.";
 my $trans4 = __x("The v{sv} recipe table section must have a 'header' attribute instead of 'headermap'", sv => 2);
+my $trans5 = __x("Deprecated name attribute ({name}) for the table section in the recipe", name => 'skiprows');
+my $trans6 = __x("Unknown name attribute ({name}) for the table section in the recipe", name => 'unknownattr');
 
 my $bag1 = bag { item 'id'; item 'denumire'; end; };
 my $bag2 = bag { item 'ident'; item 'name'; end; };
@@ -269,6 +271,15 @@ subtest 'Table section minimum config' => sub {
     is $recipe->table->header_map, $header_href, 'header map';
 
     # Helper
+    ok !$recipe->validate_table_config, 'validate table config';
+    my $data_table = {
+        columns  => {},
+        header   => { field => [ "id", "denumire" ] },
+        logfield => "id",
+        src_header => [ "id", "denumire" ],
+    };
+    is $recipe->recipe_data_table, $data_table, 'recipe data table';
+
     is $recipe->has_field_list, T(), 'has field list';
     ok my @field_list = $recipe->field_list, 'get the field list';
     is \@field_list, $header_aref, 'the field list';
@@ -327,298 +338,328 @@ subtest 'Table section medium config' => sub {
     is \@field_list, $header_aref, 'the field list';
 };
 
-subtest 'Table section complex orderby config' => sub {
-    my $recipe_file = path(qw(t recipes table recipe-3.conf));
+subtest 'Table section - deprecated attribute' => sub {
+    my $recipe_file = path(qw(t recipes table recipe-depr_attr.conf));
     ok my $recipe
         = App::Transfer::Recipe->new(
             recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
-
-    ok $recipe->table->logfield, 'log field name';
-
-    is $recipe->table->orderby, [
-        { -asc  => "colA" },
-        { -desc => "colB" },
-        { -asc  => [ "colC", "colD" ] },
-    ], 'table orderby';
-    is $recipe->table->get_plugin('date'), 'date_german', 'plugin for date';
-
-    ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
-    is \@shr, $header_aref, 'source raw header';
-    is $recipe->table->src_header, $header_aref, 'source header';
-    is $recipe->table->dst_header, $header_aref, 'destination header';
-    is $recipe->table->header_map, $header_href, 'header map';
-
-    # Helper
-    is $recipe->has_field_list, T(), 'has field list';
-    ok my @field_list = $recipe->field_list, 'get the field list';
-    is \@field_list, $header_aref, 'the field list';
+    like(
+        dies {
+            $recipe->table->logfield;
+        },
+        qr/\Q$trans5/ms,
+        'Should get an exception - deprecated attribute'
+    );
 };
 
-subtest 'Table section - columns array' => sub {
-    my $recipe_file = path(qw(t recipes table recipe-4.conf));
-    ok my $recipe
-        = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
-        ), 'new recipe instance';
-
-    ok $recipe->table->logfield, 'log field name';
-    is $recipe->table->orderby, [qw(id denumire)], 'table orderby';
-    my $expected = {
-        status => { "!" => "= completed", "-not_like" => "pending%" },
-        user   => undef,
-    };
-    is $recipe->table->filter, $expected, 'table filter';
-    is $recipe->table->tempfield, [ 'seria', 'factura' ], 'tempfields';
-
-    ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
-    is \@shr, $bag1, 'source raw header';
-    is $recipe->table->src_header, $bag1, 'source header';
-    is $recipe->table->dst_header, $bag1, 'destination header';
-    is $recipe->table->header_map, $header_href, 'header map';
-
-    ok my $cols = $recipe->table->columns, 'get columns list';
-    is $cols, $header_aref, 'columns list';
-
-    # Helper
-    is $recipe->has_field_list, F(), 'has field list';
-};
-
-subtest 'Table section - columns include' => sub {
-    my $recipe_file = path(qw(t recipes table recipe-5.conf));
-    ok my $recipe
-        = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
-        ), 'new recipe instance';
-
-    ok !$recipe->table->logfield, 'no log field name';
-
-    ok my $cols = $recipe->table->columns, 'get columns list';
-    is $cols, {}, 'empty columns list';
-
-    is $recipe->table->filter, undef, 'table filter';
-    is $recipe->table->tempfield, undef, 'tempfields';
-
-    ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
-    is \@shr, $bag2, 'source raw header';
-    is $recipe->table->src_header, $bag2, 'source header';
-    is $recipe->table->dst_header, $bag1, 'destination header';
-
-    my $header_map = { ident => 'id', name => 'denumire' };
-    is $recipe->table->header_map, $header_map, 'header map';
-
-    ok my $columns = $recipe->table->columns, 'get columns list';
-    #is $columns, $header_aref, 'columns list';
-
-    # Helper
-    is $recipe->has_field_list, F(), 'has field list';
-};
-
-subtest 'Table section with empty field names in the header' => sub {
-    my $recipe_file = path(qw(t recipes recipe-xls3.conf));
+subtest 'Table section - unknown attribute' => sub {
+    my $recipe_file = path(qw(t recipes table recipe-unkn_attr.conf));
     ok my $recipe
         = App::Transfer::Recipe->new(
             recipe_file => $recipe_file->stringify,
         ), 'new recipe instance';
-
-    my $header_raw = [
-        'siruta', 'denloc', 'codp', '', 'sirsup',
-        '', '', '', '', 'rang',
-    ];
-    my $header     = [qw{siruta denloc codp sirsup rang}];
-    my $header_map = {
-        siruta => 'siruta',
-        denloc => 'denloc',
-        codp   => 'codp',
-        sirsup => 'sirsup',
-        rang   => 'rang',
-    };
-
-    is $recipe->table->logfield, 'siruta', 'log field name';
-    ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
-    is \@shr, $header_raw, 'source raw header';
-    is $recipe->table->src_header, $header, 'source header';
-    is $recipe->table->dst_header, $header, 'destination header';
-    is $recipe->table->header_map, $header_map, 'header map';
-
-    # Helper
-    # is $recipe->has_field_list, T(), 'has field list';
-    # ok my @field_list = $recipe->field_list, 'get the field list';
-    # is \@field_list, $header_aref, 'the field list';
+    like(
+        dies {
+            $recipe->table->logfield;
+        },
+        qr/\Q$trans6/ms,
+        'Should get an exception - unknown attribute'
+    );
 };
 
-#-- Transform section
+# subtest 'Table section complex orderby config' => sub {
+#     my $recipe_file = path(qw(t recipes table recipe-3.conf));
+#     ok my $recipe
+#         = App::Transfer::Recipe->new(
+#             recipe_file => $recipe_file->stringify,
+#         ), 'new recipe instance';
 
-subtest 'Column transformation type' => sub {
-    my $recipe_file = path(qw(t recipes recipe.conf));
-    ok my $recipe = App::Transfer::Recipe->new(
-        recipe_file => $recipe_file->stringify,
-    ), 'new recipe instance';
-    ok my $trafos_col = $recipe->transform->column, 'column trafos';
-    my $fields  = [qw(codp)];
-    my $methods = [[qw(number_only null_ifzero nonexistent)]];
-    my $idx     = 0;
-    foreach my $step ( @{$trafos_col} ) {
-        my $field  = $fields->[$idx];
-        my $method = $methods->[$idx];
-        ok $step->can('field'), 'the step has field';
-        ok $step->can('method'), 'the step has methods';
-        is $step->field, $field, qq(the field is $field');
-        is $step->method, $method, qq(the methods: "@$method");
-        $idx++;
-    }
-};
+#     ok $recipe->table->logfield, 'log field name';
 
-subtest 'Row transformation type' => sub {
-    my $recipe_file = path(qw(t recipes recipe.conf));
-    ok my $recipe = App::Transfer::Recipe->new(
-        recipe_file => $recipe_file->stringify,
-    ), 'new recipe instance';
-    ok my $trafos_row = $recipe->transform->row, 'row trafos';
+#     is $recipe->table->orderby, [
+#         { -asc  => "colA" },
+#         { -desc => "colB" },
+#         { -asc  => [ "colC", "colD" ] },
+#     ], 'table orderby';
+#     is $recipe->table->get_plugin('date'), 'date_german', 'plugin for date';
 
-    my $bags_fdst = [
-        bag { item 'cod'; item 'denloc'; end; },
-        bag { item 'cod'; item 'denloc'; end; },
-        bag { item 'siruta'; item 'denloc'; end; },
-        bag { item 'siruta'; end; },
-    ];
+#     ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
+#     is \@shr, $header_aref, 'source raw header';
+#     is $recipe->table->src_header, $header_aref, 'source header';
+#     is $recipe->table->dst_header, $header_aref, 'destination header';
+#     is $recipe->table->header_map, $header_href, 'header map';
 
-    my $bags_f = [
-        bag { item 'localitate'; item 'siruta'; end; },
-        bag { item 'localitate'; item 'siruta'; end; },
-        bag { item 'localitate'; item 'siruta'; end; },
-        bag { item 'siruta'; end; },
-    ];
+#     # Helper
+#     is $recipe->has_field_list, T(), 'has field list';
+#     ok my @field_list = $recipe->field_list, 'get the field list';
+#     is \@field_list, $header_aref, 'the field list';
+# };
 
-    # Expected result in the recipe order
-    my $expected_lookupdb = [
-        {   field_src     => 'denumire',
-            field_src_map => { denumire => 'localitate' },
-            method        => 'lookup_in_dbtable',
-            field_dst     => [ 'denloc', 'cod' ],
-            table         => 'test_dict',
-            hints         => 'localitati',
-            fields        => ['localitate', 'siruta'],
-            where_fld     => 'localitate',
-        },
-        {   field_src     => 'denumire',
-            field_src_map => { denumire => 'localitate' },
-            method        => 'lookup_in_dbtable',
-            field_dst     => [ 'denloc', 'cod' ],
-            table         => 'test_dict',
-            hints         => 'localitati',
-            fields        => ['localitate', 'siruta'],
-            where_fld     => 'localitate',
-        },
-        {   field_src     => 'denumire',
-            field_src_map => { denumire => 'localitate' },
-            method        => 'lookup_in_dbtable',
-            field_dst     => [ 'denloc', 'siruta' ],
-            table         => 'test_dict',
-            hints         => 'localitati',
-            fields        => ['localitate', 'siruta'],
-            where_fld     => 'localitate',
-        },
-        {   field_src     => 'localitate',
-            field_src_map => 'localitate',
-            method        => 'lookup_in_dbtable',
-            field_dst     => ['siruta'],
-            table         => 'test_dict',
-            hints         => undef,
-            fields        => ['siruta'],
-            where_fld     => 'localitate',
-        },
-    ];
+# subtest 'Table section - columns array' => sub {
+#     my $recipe_file = path(qw(t recipes table recipe-4.conf));
+#     ok my $recipe
+#         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
+#         ), 'new recipe instance';
 
-    foreach my $step ( @{$trafos_row} ) {
-        my $bag_dst = shift @{$bags_fdst};
-        my $bag_f   = shift @{$bags_f};
+#     ok $recipe->table->logfield, 'log field name';
+#     is $recipe->table->orderby, [qw(id denumire)], 'table orderby';
+#     my $expected = {
+#         status => { "!" => "= completed", "-not_like" => "pending%" },
+#         user   => undef,
+#     };
+#     is $recipe->table->filter, $expected, 'table filter';
+#     is $recipe->table->tempfield, [ 'seria', 'factura' ], 'tempfields';
 
-        ok my $type = $step->type, 'step type';
-        ok my $field_src = $step->field_src,  'src field(s)';
-        ok my $field_dst = $step->field_dst,  'dst field(s)';
-        ok my $method    = $step->method,     'method(s)';
-        if ($type eq 'split') {
-            ok $step->can('separator'), 'split separator';
-            is ref $field_src, '', 'split src field string';
-            is ref $field_dst, 'ARRAY', 'split dst fields array';
-        }
-        if ($type eq 'join') {
-            ok $step->can('separator'), 'join separator';
-            is ref $field_src, 'ARRAY', 'join src fields array';
-            is ref $field_dst, '', 'join dst field string';
-        }
-        if ($type eq 'copy') {
-            is ref $field_src, '', 'copy src field string';
-            is ref $field_dst, '', 'copy dst field string';
-            is $step->datasource, 'status', 'copy datasource';
-            is $step->valid_regex, '\d{4,4}', 'valid_regex';
-            is $step->invalid_regex, '', 'invalid_regex';
-        }
-        if ($type eq 'lookup') {
-            is $step->method, 'lookup_in_ds', 'lookup method';
-            is $field_src, 'category', 'lookup src field string';
-            is $field_dst, 'categ_code', 'lookup dst field array';
-            is $step->datasource, 'category', 'lookup datasource';
-        }
-        if ( $type eq 'lookupdb' ) {
-            my $expected = shift @{$expected_lookupdb};
-            # dd $expected->{field_dst};
-            is $field_src, $expected->{field_src},
-                'lookupdb src field string';
-            is $field_dst, $bag_dst, 'lookupdb dst fields array';
-            is $step->table, $expected->{table},
-                'lookupdb datasource table';
-            is $step->hints, $expected->{hints}, 'lookupdb hints';
-            is $step->field_src_map, $expected->{field_src_map},
-                'source field mapping';
-            # dd $expected->{fields};
-            is $step->fields, $bag_f, 'lookup fields list';
-            is $step->where_fld, $expected->{where_fld},
-                'lookupdb where field';
-        }
-    }
-};
+#     ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
+#     is \@shr, $bag1, 'source raw header';
+#     is $recipe->table->src_header, $bag1, 'source header';
+#     is $recipe->table->dst_header, $bag1, 'destination header';
+#     is $recipe->table->header_map, $header_href, 'header map';
 
-#-- Datasource
+#     ok my $cols = $recipe->table->columns, 'get columns list';
+#     is $cols, $header_aref, 'columns list';
 
-subtest 'Datasources' => sub {
-    my $recipe_file = path(qw(t recipes recipe.conf));
-    ok my $recipe = App::Transfer::Recipe->new(
-        recipe_file => $recipe_file->stringify,
-    ), 'new recipe instance';
-    is ref $recipe->datasource->get_valid_list('two_elements'), 'ARRAY',
-        'Two valid elements list';
-    is ref $recipe->datasource->get_valid_list('one_element'), 'ARRAY',
-        'One valid element list';
-    is ref $recipe->datasource->get_non_valid_list('two_elements'), 'ARRAY',
-        'Two invalid elements list';
-    is ref $recipe->datasource->get_non_valid_list('one_element'), 'ARRAY',
-        'One invalid elements list';
+#     # Helper
+#     is $recipe->has_field_list, F(), 'has field list';
+# };
 
-    # XXX Test thoroughly; fix module
-    # Passes on wrong input, example:
-    # <hints localitati>
-    #   <record>
-    #     item              = Izvorul Mures
-    #     hint              = Izvoru Mureșului
-    #   <record>
-    #   </record>
-    #     item              = Sfantu Gheorghe
-    #     hint              = Sfîntu Gheorghe
-    #   <record>
-    #   </record>
-    #     item              = Podu Olt
-    #     hint              = Podu Oltului
-    #   <record>
-    #   </record>
-    #     item              = Baile Tusnad
-    #     hint              = Băile Tușnad
-    #   </record>
-    # </hints>
+# subtest 'Table section - columns include' => sub {
+#     my $recipe_file = path(qw(t recipes table recipe-5.conf));
+#     ok my $recipe
+#         = App::Transfer::Recipe->new( recipe_file => $recipe_file->stringify,
+#         ), 'new recipe instance';
 
-    is ref $recipe->datasource->get_ds('one_element'), 'ARRAY',
-        'One element ds dictionary';
-    is ref $recipe->datasource->get_ds('two_elements'), 'ARRAY',
-        'Two elements ds dictionary';
-};
+#     ok !$recipe->table->logfield, 'no log field name';
+
+#     ok my $cols = $recipe->table->columns, 'get columns list';
+#     is $cols, {}, 'empty columns list';
+
+#     is $recipe->table->filter, undef, 'table filter';
+#     is $recipe->table->tempfield, undef, 'tempfields';
+
+#     ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
+#     is \@shr, $bag2, 'source raw header';
+#     is $recipe->table->src_header, $bag2, 'source header';
+#     is $recipe->table->dst_header, $bag1, 'destination header';
+
+#     my $header_map = { ident => 'id', name => 'denumire' };
+#     is $recipe->table->header_map, $header_map, 'header map';
+
+#     ok my $columns = $recipe->table->columns, 'get columns list';
+#     #is $columns, $header_aref, 'columns list';
+
+#     # Helper
+#     is $recipe->has_field_list, F(), 'has field list';
+# };
+
+# subtest 'Table section with empty field names in the header' => sub {
+#     my $recipe_file = path(qw(t recipes recipe-xls3.conf));
+#     ok my $recipe
+#         = App::Transfer::Recipe->new(
+#             recipe_file => $recipe_file->stringify,
+#         ), 'new recipe instance';
+
+#     my $header_raw = [
+#         'siruta', 'denloc', 'codp', '', 'sirsup',
+#         '', '', '', '', 'rang',
+#     ];
+#     my $header     = [qw{siruta denloc codp sirsup rang}];
+#     my $header_map = {
+#         siruta => 'siruta',
+#         denloc => 'denloc',
+#         codp   => 'codp',
+#         sirsup => 'sirsup',
+#         rang   => 'rang',
+#     };
+
+#     is $recipe->table->logfield, 'siruta', 'log field name';
+#     ok my @shr = $recipe->table->src_header_raw, 'got the src raw header';
+#     is \@shr, $header_raw, 'source raw header';
+#     is $recipe->table->src_header, $header, 'source header';
+#     is $recipe->table->dst_header, $header, 'destination header';
+#     is $recipe->table->header_map, $header_map, 'header map';
+
+#     # Helper
+#     # is $recipe->has_field_list, T(), 'has field list';
+#     # ok my @field_list = $recipe->field_list, 'get the field list';
+#     # is \@field_list, $header_aref, 'the field list';
+# };
+
+# #-- Transform section
+
+# subtest 'Column transformation type' => sub {
+#     my $recipe_file = path(qw(t recipes recipe.conf));
+#     ok my $recipe = App::Transfer::Recipe->new(
+#         recipe_file => $recipe_file->stringify,
+#     ), 'new recipe instance';
+#     ok my $trafos_col = $recipe->transform->column, 'column trafos';
+#     my $fields  = [qw(codp)];
+#     my $methods = [[qw(number_only null_ifzero nonexistent)]];
+#     my $idx     = 0;
+#     foreach my $step ( @{$trafos_col} ) {
+#         my $field  = $fields->[$idx];
+#         my $method = $methods->[$idx];
+#         ok $step->can('field'), 'the step has field';
+#         ok $step->can('method'), 'the step has methods';
+#         is $step->field, $field, qq(the field is $field');
+#         is $step->method, $method, qq(the methods: "@$method");
+#         $idx++;
+#     }
+# };
+
+# subtest 'Row transformation type' => sub {
+#     my $recipe_file = path(qw(t recipes recipe.conf));
+#     ok my $recipe = App::Transfer::Recipe->new(
+#         recipe_file => $recipe_file->stringify,
+#     ), 'new recipe instance';
+#     ok my $trafos_row = $recipe->transform->row, 'row trafos';
+
+#     my $bags_fdst = [
+#         bag { item 'cod'; item 'denloc'; end; },
+#         bag { item 'cod'; item 'denloc'; end; },
+#         bag { item 'siruta'; item 'denloc'; end; },
+#         bag { item 'siruta'; end; },
+#     ];
+
+#     my $bags_f = [
+#         bag { item 'localitate'; item 'siruta'; end; },
+#         bag { item 'localitate'; item 'siruta'; end; },
+#         bag { item 'localitate'; item 'siruta'; end; },
+#         bag { item 'siruta'; end; },
+#     ];
+
+#     # Expected result in the recipe order
+#     my $expected_lookupdb = [
+#         {   field_src     => 'denumire',
+#             field_src_map => { denumire => 'localitate' },
+#             method        => 'lookup_in_dbtable',
+#             field_dst     => [ 'denloc', 'cod' ],
+#             table         => 'test_dict',
+#             hints         => 'localitati',
+#             fields        => ['localitate', 'siruta'],
+#             where_fld     => 'localitate',
+#         },
+#         {   field_src     => 'denumire',
+#             field_src_map => { denumire => 'localitate' },
+#             method        => 'lookup_in_dbtable',
+#             field_dst     => [ 'denloc', 'cod' ],
+#             table         => 'test_dict',
+#             hints         => 'localitati',
+#             fields        => ['localitate', 'siruta'],
+#             where_fld     => 'localitate',
+#         },
+#         {   field_src     => 'denumire',
+#             field_src_map => { denumire => 'localitate' },
+#             method        => 'lookup_in_dbtable',
+#             field_dst     => [ 'denloc', 'siruta' ],
+#             table         => 'test_dict',
+#             hints         => 'localitati',
+#             fields        => ['localitate', 'siruta'],
+#             where_fld     => 'localitate',
+#         },
+#         {   field_src     => 'localitate',
+#             field_src_map => 'localitate',
+#             method        => 'lookup_in_dbtable',
+#             field_dst     => ['siruta'],
+#             table         => 'test_dict',
+#             hints         => undef,
+#             fields        => ['siruta'],
+#             where_fld     => 'localitate',
+#         },
+#     ];
+
+#     foreach my $step ( @{$trafos_row} ) {
+#         my $bag_dst = shift @{$bags_fdst};
+#         my $bag_f   = shift @{$bags_f};
+
+#         ok my $type = $step->type, 'step type';
+#         ok my $field_src = $step->field_src,  'src field(s)';
+#         ok my $field_dst = $step->field_dst,  'dst field(s)';
+#         ok my $method    = $step->method,     'method(s)';
+#         if ($type eq 'split') {
+#             ok $step->can('separator'), 'split separator';
+#             is ref $field_src, '', 'split src field string';
+#             is ref $field_dst, 'ARRAY', 'split dst fields array';
+#         }
+#         if ($type eq 'join') {
+#             ok $step->can('separator'), 'join separator';
+#             is ref $field_src, 'ARRAY', 'join src fields array';
+#             is ref $field_dst, '', 'join dst field string';
+#         }
+#         if ($type eq 'copy') {
+#             is ref $field_src, '', 'copy src field string';
+#             is ref $field_dst, '', 'copy dst field string';
+#             is $step->datasource, 'status', 'copy datasource';
+#             is $step->valid_regex, '\d{4,4}', 'valid_regex';
+#             is $step->invalid_regex, '', 'invalid_regex';
+#         }
+#         if ($type eq 'lookup') {
+#             is $step->method, 'lookup_in_ds', 'lookup method';
+#             is $field_src, 'category', 'lookup src field string';
+#             is $field_dst, 'categ_code', 'lookup dst field array';
+#             is $step->datasource, 'category', 'lookup datasource';
+#         }
+#         if ( $type eq 'lookupdb' ) {
+#             my $expected = shift @{$expected_lookupdb};
+#             # dd $expected->{field_dst};
+#             is $field_src, $expected->{field_src},
+#                 'lookupdb src field string';
+#             is $field_dst, $bag_dst, 'lookupdb dst fields array';
+#             is $step->table, $expected->{table},
+#                 'lookupdb datasource table';
+#             is $step->hints, $expected->{hints}, 'lookupdb hints';
+#             is $step->field_src_map, $expected->{field_src_map},
+#                 'source field mapping';
+#             # dd $expected->{fields};
+#             is $step->fields, $bag_f, 'lookup fields list';
+#             is $step->where_fld, $expected->{where_fld},
+#                 'lookupdb where field';
+#         }
+#     }
+# };
+
+# #-- Datasource
+
+# subtest 'Datasources' => sub {
+#     my $recipe_file = path(qw(t recipes recipe.conf));
+#     ok my $recipe = App::Transfer::Recipe->new(
+#         recipe_file => $recipe_file->stringify,
+#     ), 'new recipe instance';
+#     is ref $recipe->datasource->get_valid_list('two_elements'), 'ARRAY',
+#         'Two valid elements list';
+#     is ref $recipe->datasource->get_valid_list('one_element'), 'ARRAY',
+#         'One valid element list';
+#     is ref $recipe->datasource->get_non_valid_list('two_elements'), 'ARRAY',
+#         'Two invalid elements list';
+#     is ref $recipe->datasource->get_non_valid_list('one_element'), 'ARRAY',
+#         'One invalid elements list';
+
+#     # XXX Test thoroughly; fix module
+#     # Passes on wrong input, example:
+#     # <hints localitati>
+#     #   <record>
+#     #     item              = Izvorul Mures
+#     #     hint              = Izvoru Mureșului
+#     #   <record>
+#     #   </record>
+#     #     item              = Sfantu Gheorghe
+#     #     hint              = Sfîntu Gheorghe
+#     #   <record>
+#     #   </record>
+#     #     item              = Podu Olt
+#     #     hint              = Podu Oltului
+#     #   <record>
+#     #   </record>
+#     #     item              = Baile Tusnad
+#     #     hint              = Băile Tușnad
+#     #   </record>
+#     # </hints>
+
+#     is ref $recipe->datasource->get_ds('one_element'), 'ARRAY',
+#         'One element ds dictionary';
+#     is ref $recipe->datasource->get_ds('two_elements'), 'ARRAY',
+#         'Two elements ds dictionary';
+# };
 
 done_testing;

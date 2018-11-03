@@ -104,7 +104,7 @@ has 'recipe_data_table' => (
     default   => sub {
         my $self = shift;
         my %kv = %{ $self->recipe_data->{table} };
-        $self->is_deprecated_table_config( \%kv );
+        $self->validate_table_config( \%kv );
         return \%kv;
     },
 );
@@ -171,37 +171,38 @@ has 'key_list' => (
                 logfield
                 rectangle
                 plugins
+                allowemptyrows
             }
         ];
     },
 );
 
-sub is_deprecated_table_config {
+has 'deprecated_key_list' => (
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    default  => sub {
+        return [
+            qw{
+                description
+                skiprows
+            }
+        ];
+    },
+);
+
+sub validate_table_config {
     my ( $self, $kv ) = @_;
-    my @kys = keys %{$kv};
-    my $cnt = scalar @kys;
-    if ( $cnt == 1 ) {
-        if ( first { $_ eq $kys[0] } @{ $self->key_list } ) {
-            return;    # is an attribute name
+    foreach my $name ( keys %{$kv} ) {
+        next if first { $_ eq $name } @{ $self->key_list };
+        my $msg = 'Unknown';
+        if ( first { $_ eq $name } @{ $self->deprecated_key_list } ) {
+            $msg = 'Deprecated';
         }
-        else {
-            hurl __x
-                "Deprecated name attribute ({name}) for the table section in the recipe\n",
-                name => $kys[0];
-        }
+        hurl __x
+            "$msg name attribute ({name}) for the table section in the recipe",
+            name => $name;
     }
-    else {
-        foreach my $name (@kys) {
-            if ( any { $_ eq $name } @{ $self->key_list } ) {
-                return;    # found an attribute name
-            }
-            else {
-            hurl __x
-                "Deprecated name attribute ({name}) for the table section in the recipe\n",
-                name => $name;
-            }
-        }
-    }
+    return;
 }
 
 #-- Transformations
