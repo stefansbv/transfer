@@ -10,6 +10,7 @@ use Locale::TextDomain 1.20 qw(App-Transfer);
 use List::Util qw(any);
 use XBase;
 use App::Transfer::X qw(hurl);
+use Data::Dump;
 use namespace::autoclean;
 
 extends 'App::Transfer::Reader';
@@ -31,7 +32,7 @@ has 'dbf' => (
     isa      => 'XBase',
     lazy     => 1,
     init_arg => undef,
-    default => sub {
+    default  => sub {
         my $self = shift;
         return XBase->new(
             name => $self->input_file,
@@ -70,6 +71,10 @@ sub _build_contents {
     while (my $rec = $cursor->fetch_hashref) {
         push @aoh, $rec;
         $self->inc_count;
+    }
+    if ($self->debug) {
+        say "# records (read):";
+        ddx @aoh;
     }
     return \@aoh;
 }

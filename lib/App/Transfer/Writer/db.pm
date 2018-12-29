@@ -8,7 +8,7 @@ use Moose;
 use MooseX::Iterator;
 use App::Transfer::X qw(hurl);
 use App::Transfer::Target;
-use Data::Dump qw/dump/;
+use Data::Dump;
 use namespace::autoclean;
 
 extends 'App::Transfer::Writer';
@@ -39,16 +39,14 @@ has 'target' => (
 );
 
 sub insert {
-    my ($self, $table, $columns) = @_;
+    my ($self, $row, $table) = @_;
     if ($self->debug) {
-        say "---";
         say "record (before insert):";
-        dump $columns;
-        say "---";
+        ddx $row;
     }
     my $engine = $self->target->engine;
-    if( any { defined } values %{$columns} ) {
-        $engine->insert($table, $columns);
+    if( any { defined } values %{$row} ) {
+        $engine->insert($table, $row);
         $self->inc_inserted;
     }
     else {

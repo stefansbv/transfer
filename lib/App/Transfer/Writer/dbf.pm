@@ -11,6 +11,7 @@ use XBase;
 use Path::Tiny;
 use File::Basename;
 use App::Transfer::X qw(hurl);
+use Data::Dump;
 use namespace::autoclean;
 
 extends 'App::Transfer::Writer';
@@ -139,7 +140,11 @@ has 'dbf' => (
 sub insert_header { }
 
 sub insert {
-    my ( $self, $id, $row ) = @_;
+    my ( $self, $row, $id ) = @_;
+    if ($self->debug) {
+        say "# record (before insert):";
+        ddx $row;
+    }
     if ($self->dbf->set_record( $id, @{$row} ) ) {
         $self->inc_inserted;
     }

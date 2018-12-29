@@ -313,7 +313,7 @@ sub run {
         # Insert the records
 
         foreach my $row ( @{$records_dict} ) {
-            $trafo->writer->insert($table_dict, $row);
+            $trafo->writer->insert($row, $table_dict);
         }
         is $trafo->writer->records_inserted, 7, 'records inserted: 7';
         is $trafo->writer->records_skipped, 0, 'records skipped: 0';
@@ -355,7 +355,7 @@ sub run {
         # Insert the records
 
         foreach my $row ( @{$records_db} ) {
-            $trafo->writer->insert($table_db, $row);
+            $trafo->writer->insert($row, $table_db);
         }
         is $trafo->writer->records_inserted, 5, 'records inserted: 5';
         is $trafo->writer->records_skipped, 0, 'records skipped: 0';

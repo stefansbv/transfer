@@ -10,9 +10,9 @@ use List::Util qw(any);
 use Text::CSV;
 use Path::Tiny;
 use App::Transfer::X qw(hurl);
+use Data::Dump;
 use namespace::autoclean;
 
-use Data::Dump qw/dump/;
 
 extends 'App::Transfer::Writer';
 with    'App::Transfer::Role::Utils';
@@ -111,6 +111,10 @@ sub insert_header {
     hurl csv => __(
         "Empty header for CSV writer"
     ) if scalar @field_names == 0;
+    if ($self->debug) {
+        say "# header (before insert):";
+        ddx @field_names;
+    }
     $csv_o->column_names(\@field_names);
     say "# writer CSV header: \n# ", join ', ', @field_names if $self->debug;
     my $status = $csv_o->print( $out_fh, \@field_names );
@@ -119,10 +123,14 @@ sub insert_header {
 }
 
 sub insert {
-    my ( $self, $table, $row ) = @_;
+    my ( $self, $row, $table) = @_;
     my $csv_o  = $self->csv;
     my $out_fh = $self->csv_fh;
     my $status;
+    if ($self->debug) {
+        say "# record (before insert):";
+        ddx $row;
+    }
     if ( any { $_ } values %{$row} ) {
         $status = $csv_o->print_hr( $out_fh, $row );
     }

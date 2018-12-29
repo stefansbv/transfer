@@ -408,18 +408,14 @@ sub do_transfer {
         my $record = $iter->next;
         $record = $self->map_fields_src_to_dst($record);
         $record = $self->transformations( $record, $cols_info, $logfld );
-        $self->writer->insert( $table, $record );
+        $self->writer->insert( $record, $table );
         $progress->update( message => "Record $row_count|" )
             if $self->show_progress;
 
         #last;                                # DEBUG
     }
 
-    if ( $self->writer->can('finish') ) {
-        print "Call finish..." if $self->debug;
-        $self->writer->finish;
-        print " done\n" if $self->debug;
-    }
+    $self->writer->finish if $self->writer->can('finish');
 
     $progress->finish if $self->show_progress;
 

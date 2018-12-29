@@ -76,9 +76,7 @@ subtest 'Write CSV file - set output path/file' => sub {
         jud    => 1,
         codp   => 0,
     };
-    lives_ok {
-        $writer->insert( 'table', $row )
-    } 'insert row';
+    lives_ok { $writer->insert($row) } 'insert row';
     lives_ok { $writer->finish } 'finish';
     is $writer->records_inserted, 1, 'records inserted: 1';
     is $writer->records_skipped, 0, 'records skipped: 0';

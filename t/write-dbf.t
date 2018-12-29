@@ -69,13 +69,9 @@ subtest 'Write DBF file' => sub {
     lives_ok { $writer->dbf } 'create dbf instance and file';
 
     my $row = [1,1,695520,19249,0,396000,0,0,0,396000,0,0,0,0,0];
-    lives_ok {
-        $writer->insert( 1, $row )
-    } 'insert row';
+    lives_ok { $writer->insert( $row, 1 ) } 'insert row';
     $row = [3,1,8048160,197439,0,1943040,,0,0,1943040,0,0,0,0,0];
-    lives_ok {
-        $writer->insert( 2, $row )
-    } 'insert row';
+    lives_ok { $writer->insert( $row, 2 ) } 'insert row';
     is $writer->records_inserted, 2, 'records inserted: 1';
     is $writer->records_skipped, 0, 'records skipped: 0';
     lives_ok { $writer->finish } 'finish';
