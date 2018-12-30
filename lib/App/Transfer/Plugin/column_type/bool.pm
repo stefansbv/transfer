@@ -1,6 +1,6 @@
-package App::Transfer::Plugin::column_type::blob;
+package App::Transfer::Plugin::column_type::bool;
 
-# ABSTRACT: Transfer plugin for 'blob' columns - stub
+# ABSTRACT: Transfer plugin for 'bool' columns - stub
 
 use 5.010001;
 use Moose;
@@ -8,7 +8,7 @@ use namespace::autoclean;
 
 with 'MooX::Log::Any';
 
-sub blob {
+sub bool {
     my ( $self, $p ) = @_;
     my ( $text ) = @$p{qw( value )};
     return unless defined $text;
@@ -25,13 +25,13 @@ __END__
 
 =head1 Name
 
-App::Transfer::Plugin::blob - Transfer plugin for 'blob' columns - stub
+App::Transfer::Plugin::bool - Transfer plugin for 'bool' columns - stub
 
 =head1 Interface
 
 =head2 Instance Methods
 
-=head3 C<blob>
+=head3 C<bool>
 
 Parameters:
 

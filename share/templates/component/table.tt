@@ -1,4 +1,4 @@
-<table [% r.src_table %]>
+<table>
   # logfield              = id
   # rectangle             = A7,C21
   # <orderby>
