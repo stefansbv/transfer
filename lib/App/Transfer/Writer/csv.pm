@@ -109,7 +109,7 @@ sub insert_header {
             : @{$header};
     }
     hurl csv => __(
-        "Empty header for CSV writer"
+        "Empty header for the CSV writer"
     ) if scalar @field_names == 0;
     if ($self->debug) {
         say "# header (before insert):";

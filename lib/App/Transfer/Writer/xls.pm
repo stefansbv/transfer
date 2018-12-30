@@ -111,6 +111,9 @@ has 'doc' => (
 sub insert_header {
     my $self   = shift;
     my $header = $self->header;
+    hurl csv => __(
+        "Empty header for the XLS writer"
+    ) if scalar @{$header} == 0;
     if ($self->debug) {
         say "# header (before insert):";
         ddx $header;
