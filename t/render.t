@@ -12,11 +12,31 @@ bindtextdomain 'App-Transfer' => './.build/latest/share';
 
 use_ok('App::Transfer::Render');
 
+my $cols_info = {
+    id => {
+        pos    => 1,
+        name   => 'id',
+        type   => 'integer',
+        length => 2,
+        prec   => undef,
+        scale  => undef,
+    },
+    den => {
+        pos    => 1,
+        name   => 'den',
+        type   => 'varchar',
+        length => 20,
+        prec   => undef,
+        scale  => undef,
+    },
+};
+
 my $data = {
     copy_author => 'user_name',
     copy_email  => 'user_email',
     copy_year   => (localtime)[5] + 1900,
-    columns     => [qw {field1 field2 field3}],
+    columns     => [qw {id den}],
+    cols_meta   => $cols_info,
     reader      => 'db',
     writer      => 'db',
     src_target  => 'input_target',
