@@ -33,10 +33,14 @@ sub date {
         }
         return;
     }
-    if (length $text != 10) {
-        $self->log->info("$logstr date: $field='$text' is not a 10 character date\n");
-        return;
-    }
+
+    my $len = length $text;
+    SWITCH: {
+          $len == 8  && do { $src_format = 'short_iso'; last SWITCH; };
+          $len == 10 && do {                            last SWITCH; };
+          $self->log->info("$logstr date: $field='$text' is not a 10 or 8 character date\n");
+      }
+
     my $meth = "${src_format}_to_iso";
     if ( $self->can($meth) ) {
         return $self->$meth($field, $text, $logstr, $src_sep);
@@ -52,10 +56,24 @@ sub iso_to_iso {
     # Just return the value.
     if ( $text !~ /\d{4}-\d{2}-\d{2}/ ) {
         $self->log->error(
-            "$logstr date: $field='$text' is not a valid ISO date: Err: $_\n");
+            "$logstr date: $field='$text' is not a valid ISO date\n");
         return undef;
     }
     return $text;
+}
+
+sub short_iso_to_iso {
+    my ($self, $field, $text, $logstr) = @_;
+    my $y = substr($text, 0, 4);
+    my $m = substr($text, 4, 2);
+    my $d = substr($text, 6, 2);
+    my $date_iso = "${y}-${m}-${d}";
+    if ( $date_iso !~ /\d{4}-\d{2}-\d{2}/ ) {
+        $self->log->error(
+            "$logstr date: $field='$date_iso' is not a valid ISO date\n");
+        return undef;
+    }
+    return $date_iso;
 }
 
 sub dmy_to_iso {
@@ -134,7 +152,12 @@ C<date_format>.
 
 =head3 C<iso_to_iso>
 
-Empty method for the default date formats: ISOI 8601.
+Check the format and return the date string for the default date
+formats: ISO 8601.
+
+=head3 C<short_iso_to_iso>
+
+Just add separators when the date is in the 'YYYYMMDD' format.
 
 =head3 C<dmy_to_iso>
 

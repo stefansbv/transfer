@@ -50,6 +50,10 @@ subtest 'Column Type Transformations' => sub {
     $p->{src_format} = 'iso';
     is $ttr->do_transform( 'date', $p ), '2014-01-31', 'date iso to iso';
 
+    $p->{value}      = '20140131';
+    $p->{src_format} = 'short_iso';
+    is $ttr->do_transform( 'date', $p ), '2014-01-31', 'date short iso to iso';
+
     $p->{value}      = '2014-12';
     $p->{src_format} = 'iso';
     is $ttr->do_transform( 'date', $p ), undef, 'date iso to iso incomplete';
