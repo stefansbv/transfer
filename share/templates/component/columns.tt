@@ -1,0 +1,9 @@
+<columns>
+  [%- FOREACH field IN r.cols_meta.keys %]
+    <[% field %]>
+    [%- FOREACH pair IN r.cols_meta.$field.pairs %]
+       [% pair.key %] = [% pair.value -%]
+    [%- END %]
+    </[% field %]>
+  [%- END %]
+  </columns>

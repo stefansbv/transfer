@@ -11,17 +11,11 @@
   #     -not_like         = pending%
   #   </status>
   # </filter>
-  # <columns>
-  #   <id>
-  #     pos               = 1
-  #     name              = id
-  #     type              = integer
-  #     length            = 2
-  #     prec              =
-  #     scale             =
-  #   </id>
-  #   ...
-  # </columns>
+  [% IF r.cols_meta.defined -%]
+[% PROCESS component/columns.tt -%]
+  [%- ELSE -%]
+[% PROCESS component/columns_ex.tt -%]
+  [%- END -%]
   # tempfield             = name1
   # tempfield             = name2
   # <plugins>

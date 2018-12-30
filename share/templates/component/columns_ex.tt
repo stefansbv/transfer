@@ -1,0 +1,11 @@
+# <columns>
+  #   <id>
+  #     pos               = 1
+  #     name              = id
+  #     type              = integer
+  #     length            = 2
+  #     prec              =
+  #     scale             =
+  #   </id>
+  #   ...
+  # </columns>
