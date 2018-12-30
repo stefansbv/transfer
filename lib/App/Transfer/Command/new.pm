@@ -7,6 +7,7 @@ use utf8;
 use MooseX::App::Command;
 use MooseX::Types::Path::Tiny qw(Path File);
 use Moose::Util::TypeConstraints;
+use File::Basename;
 use Path::Tiny qw[cwd path];
 use File::HomeDir;
 use List::Compare;
@@ -17,8 +18,6 @@ use App::Transfer::Target;
 use App::Transfer::Render;
 use App::Transfer::DBFInfo;
 use namespace::autoclean;
-
-use Data::Dump;
 
 extends qw(App::Transfer);
 
@@ -39,7 +38,7 @@ option 'input_table' => (
     cmd_flag      => 'in-table',
     cmd_aliases   => [qw(itb)],
     documentation => q[The input table name.],
-    # depends       => [qw(input_target)],
+    #depends       => [qw(input_target)],
 );
 
 option 'output_table' => (
@@ -80,6 +79,7 @@ option 'input_file' => (
     cmd_flag      => 'in-file',
     cmd_aliases   => [qw(if)],
     documentation => q[The input file (xls|csv|dbf|odt).],
+    mutexgroup    => 'InputFileORDb',
 );
 
 option 'output_file' => (
@@ -90,25 +90,6 @@ option 'output_file' => (
     cmd_flag      => 'out-file',
     cmd_aliases   => [qw(of)],
     documentation => q[The output file (csv|dbf).],
-);
-
-option 'in_file_format' => (
-    is            => 'ro',
-    isa           => enum( [qw(xls csv dbf odt)] ),
-    required      => 0,
-    cmd_flag      => 'in-file-format',
-    cmd_aliases   => [qw(iff)],
-    documentation => q[The input file format.],
-    mutexgroup    => 'InputFileORDb',
-);
-
-option 'out_file_format' => (
-    is            => 'ro',
-    isa           => enum( [qw(csv dbf)] ),
-    required      => 0,
-    cmd_flag      => 'out-file-format',
-    cmd_aliases   => [qw(off)],
-    documentation => q[The output file format.],
     mutexgroup    => 'OutputFileORDb',
 );
 
@@ -187,10 +168,9 @@ has 'in_type' => (
     lazy    => 1,
     default => sub {
         my $self = shift;
-        my $type;
-        $type = 'file' if $self->in_file_format;
-        $type = 'db'   if $self->input_target;
-        return $type;
+        my $type = $self->reader_type;
+        return 'db' if $type eq 'db';
+        return 'file';
     },
 );
 
@@ -201,7 +181,7 @@ has 'reader_type' => (
     default => sub {
         my $self = shift;
         return 'db' if $self->input_target;
-        return $self->in_file_format if $self->in_file_format;
+        return $self->file_ext( $self->input_file ) if $self->input_file;
         return;
     },
 );
@@ -212,10 +192,9 @@ has 'out_type' => (
     lazy    => 1,
     default => sub {
         my $self = shift;
-        my $type;
-        $type = 'file' if $self->out_file_format;
-        $type = 'db'   if $self->output_target;
-        return $type;
+        my $type = $self->writer_type;
+        return 'db' if $type eq 'db';
+        return 'file';
     },
 );
 
@@ -226,10 +205,17 @@ has 'writer_type' => (
     default => sub {
         my $self = shift;
         return 'db' if $self->output_target;
-        return $self->out_file_format if $self->out_file_format;
+        return $self->file_ext( $self->output_file ) if $self->output_file;
         return;
     },
 );
+
+sub file_ext {
+    my ($self, $file_name) = @_;
+    my ($name, $path, $ext) = fileparse( $file_name, qr/\.[^\.]*/ );
+    $ext =~ s{^\.}{};
+    return lc $ext;
+}
 
 sub execute {
     my ( $self ) = @_;
@@ -288,7 +274,7 @@ sub dst_table_info {
 sub input_file_cols {
     my $self = shift;
     my $info = [];
-    if ( $self->in_file_format eq 'dbf' ) {
+    if ( $self->reader_type eq 'dbf' ) {
         my $dbf  = App::Transfer::DBFInfo->new( input_file => $self->input_file );
         my $info = $dbf->get_columns;
         my @padded;
@@ -303,7 +289,7 @@ sub input_file_cols {
 sub input_file_info {
     my $self = shift;
     my $info = [];
-    if ( $self->in_file_format eq 'dbf' ) {
+    if ( $self->reader_type eq 'dbf' ) {
         my $dbf  = App::Transfer::DBFInfo->new( input_file => $self->input_file );
         my $info = $dbf->_structure_meta;
         return $info;
@@ -344,7 +330,7 @@ sub generate_recipe {
 
     my ($user_name, $user_email) = $self->get_gitconfig;
 
-    my $table       = $self->input_table;
+    # my $table       = $self->input_table;
     my $recipe_fn   = $self->recipe_fn;
     my $output_path = cwd;
     if ( -f path($output_path, $recipe_fn) ) {
@@ -432,17 +418,17 @@ __END__
 
 =encoding utf8
 
-=head1 Name
+=head1 NAME
 
-Command to generate recipes
+new - generate recipes
 
-=head1 Description
+=head1 DESCRIPTION
 
-The C<new> command.
+C<new> - command for generating recipes.
 
-=head1 Interface
+=head1 INTERFACE
 
-=head2 Attributes
+=head2 ATTRIBUTES
 
 =head3 recipe_fn
 
@@ -462,7 +448,7 @@ The C<new> command.
 
 =head3 writer_type
 
-=head2 Instance Methods
+=head2 INSTANCE METHODS
 
 =head3 _build_src_uri
 
@@ -474,25 +460,27 @@ Call the method mapped to the subcommand.
 
 =head3 src_table_cols
 
+=head3 src_table_info
+
 =head3 dst_table_info
 
 =head3 input_file_cols
 
 Return meta-data regarding the input table fields.
 
+=head3 input_file_info
+
 =head3 input_db_cols
 
 Return meta-data regarding the input table fields.
-
-=head3 output_db_info
-
-Return meta-data regarding the output table fields.
 
 =head3 output_file_info
 
 Return meta-data regarding the output table fields.
 
-=head3 table_fields
+=head3 output_db_info
+
+Return meta-data regarding the output table fields.
 
 =head3 generate_recipe
 
@@ -503,31 +491,5 @@ Generate a recipe file, filled with the basic data.
 =head3 get_gitconfig
 
 Get the author name and email from the git configuration file.
-
-=head1 Author
-
-Ștefan Suciu <stefan@s2i2.ro>
-
-=head1 License
-
-Copyright (c) 2014-2015 Ștefan Suciu
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 
 =cut
