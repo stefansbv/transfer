@@ -292,6 +292,10 @@ subtest 'Column Type Transformations' => sub {
 
     @$p{qw(value prec scale)} = ( undef, undef, undef ); # reset
 
+    #-- Float
+
+    # TODO: the same as float?
+
     #-- Char
 
     @$p{qw(value length)} = ( "a char field", 12 );
