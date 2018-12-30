@@ -138,7 +138,7 @@ __END__
 
 =head1 Name
 
-Command to process a recipe file
+Command to process a recipe.
 
 =head1 Description
 

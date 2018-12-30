@@ -420,11 +420,13 @@ __END__
 
 =head1 NAME
 
-new - generate recipes
+Command to generate a recipe.
 
 =head1 DESCRIPTION
 
-C<new> - command for generating recipes.
+The C<new> command implementation.  Generates a recipe file from the
+info passed by the options and by reading the meta data of the
+input/output tables or files.
 
 =head1 INTERFACE
 
