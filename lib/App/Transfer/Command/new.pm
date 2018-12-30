@@ -15,7 +15,10 @@ use Locale::TextDomain qw(App-Transfer);
 use App::Transfer::X qw(hurl);
 use App::Transfer::Target;
 use App::Transfer::Render;
+use App::Transfer::DBFInfo;
 use namespace::autoclean;
+
+use Data::Dump;
 
 extends qw(App::Transfer);
 
@@ -230,15 +233,29 @@ has 'writer_type' => (
 
 sub execute {
     my ( $self ) = @_;
-
     $self->generate_recipe;
-
     return;
+}
+
+sub src_table_cols {
+    my $self = shift;
+    my $cols = [];
+    my $in_type = $self->in_type;
+    if ( $in_type eq 'file' ) {
+        $cols = $self->input_file_cols;
+    }
+    elsif ( $in_type eq 'db' ) {
+        $cols = $self->input_db_cols;
+    }
+    else {
+        die "Wrong input type: '$in_type'!";
+    }
+    return $cols;
 }
 
 sub src_table_info {
     my $self = shift;
-    my $info = [];
+    my $info = {};
     my $in_type = $self->in_type;
     if ( $in_type eq 'file' ) {
         $info = $self->input_file_info;
@@ -268,19 +285,39 @@ sub dst_table_info {
     return $info;
 }
 
-sub input_file_info {
+sub input_file_cols {
     my $self = shift;
-    # TODO
+    my $info = [];
+    if ( $self->in_file_format eq 'dbf' ) {
+        my $dbf  = App::Transfer::DBFInfo->new( input_file => $self->input_file );
+        my $info = $dbf->get_columns;
+        my @padded;
+        foreach my $field ( @{$info} ) {
+            push @padded, sprintf "%-10s", $field;
+        }
+        return \@padded;
+    }
     return [];
 }
 
-sub input_db_info {
+sub input_file_info {
+    my $self = shift;
+    my $info = [];
+    if ( $self->in_file_format eq 'dbf' ) {
+        my $dbf  = App::Transfer::DBFInfo->new( input_file => $self->input_file );
+        my $info = $dbf->_structure_meta;
+        return $info;
+    }
+    return [];
+}
+
+sub input_db_cols {
     my $self = shift;
     my $src_engine = $self->src_target->engine;
     my $src_table  = $self->input_table;
-    my $src_table_info = $src_engine->get_columns($src_table);
+    my $src_table_cols = $src_engine->get_columns($src_table);
     my @padded;
-    foreach my $field ( @{$src_table_info} ) {
+    foreach my $field ( @{$src_table_cols} ) {
         push @padded, sprintf "%-10s", $field;
     }
     return \@padded;
@@ -315,7 +352,8 @@ sub generate_recipe {
         return;
     }
 
-    my $columns  = $self->src_table_info;
+    my $columns  = $self->src_table_cols;
+    my $col_info = $self->src_table_info;
     my $src_file = $self->input_file
         ? $self->input_file->stringify
         : undef;
@@ -328,6 +366,7 @@ sub generate_recipe {
         copy_email  => $user_email,
         copy_year   => (localtime)[5] + 1900,
         columns     => $columns,
+        cols_meta   => $col_info,
         reader      => $self->reader_type,
         writer      => $self->writer_type,
         src_target  => $self->input_target,
@@ -433,15 +472,15 @@ The C<new> command.
 
 Call the method mapped to the subcommand.
 
-=head3 src_table_info
+=head3 src_table_cols
 
 =head3 dst_table_info
 
-=head3 input_file_info
+=head3 input_file_cols
 
 Return meta-data regarding the input table fields.
 
-=head3 input_db_info
+=head3 input_db_cols
 
 Return meta-data regarding the input table fields.
 
