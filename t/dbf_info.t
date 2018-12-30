@@ -62,7 +62,7 @@ my $stru_meta = {
         pos    => 8,
         prec   => undef,
         scale  => 0,
-        type   => "G"
+        type   => "blob"
     },
     F_INT => {
         length => 10,
