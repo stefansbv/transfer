@@ -24,6 +24,26 @@ has 'input_file' => (
     },
 );
 
+has '_field_type_map' => (
+    is        => 'ro',
+    traits    => ['Hash'],
+    isa       => 'HashRef[Str]',
+    default   => sub {
+        return {
+            C => 'varchar',
+            N => 'numeric',
+            D => 'date',            
+            M => 'text',
+            L => 'bool',
+            F => 'float',
+            G => 'blob',
+        };
+    },
+    handles   => {
+        get_type => 'get',
+    },
+);
+
 has 'dbf' => (
     is       => 'ro',
     isa      => 'XBase',
@@ -57,10 +77,11 @@ sub _build_structure_meta {
     my $pos  = 1;
     my $dbf  = $self->dbf;
     foreach my $field ( @{ $self->get_columns } ) {
+        my $type = $dbf->field_type($field);
         $info->{$field} = {
             pos    => $pos,
             name   => $field,
-            type   => $dbf->field_type($field),
+            type   => ( $self->get_type($type) // $type ), 
             length => $dbf->field_length($field),
             prec   => undef,
             scale  => $dbf->field_decimal($field),
