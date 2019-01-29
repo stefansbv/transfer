@@ -21,6 +21,7 @@ use Test::MockModule;
 use Log::Log4perl;
 use Capture::Tiny 0.12 qw(capture_stdout capture_merged);
 
+use App::Transfer;
 use App::Transfer::Config;
 use App::Transfer::Transform;
 
