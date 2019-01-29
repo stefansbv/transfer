@@ -10,7 +10,6 @@ use Path::Tiny;
 use Try::Tiny;
 use Test::Exception;
 use Locale::TextDomain qw(App-Transfer);
-use File::Temp 'tempdir';
 use lib 't/lib';
 use DBIEngineTest;
 
