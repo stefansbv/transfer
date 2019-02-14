@@ -274,6 +274,7 @@ sub BUILDARGS {
     return $p;
 }
 
+# Required for initializations
 sub BUILD {
     my $self = shift;
     my $head = $self->header;
