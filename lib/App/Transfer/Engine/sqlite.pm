@@ -47,7 +47,6 @@ has dbh => (
                     ident   => "db:$type",
                     message => __x( $message, name => $name ),
                 };
-
             },
             Callbacks        => {
                 connected => sub {
@@ -72,7 +71,7 @@ sub parse_error {
        : $err =~ m/not connected/smi                        ? "notconn"
        : $err =~ m/Field ($RE{quoted}) does not exist/smi   ? "colnotfound:$1"
        : $err =~ m/(.*) may not be NULL/smi                 ? "errnull:$1"
-       :                                                       "unknown";
+       :                                                      "unknown";
     my ( $type, $name ) = split /:/, $message_type, 2;
     $name = $name ? $name : '';
     return ($type, $name);
