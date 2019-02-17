@@ -11,8 +11,8 @@ use Locale::TextDomain qw(App-Transfer);
 use Scalar::Util qw(blessed);
 use List::Compare;
 use Try::Tiny;
-use Progress::Any;
-use Progress::Any::Output 'TermProgressBarColor';
+use Progress::Any;                                # == v0.20
+use Progress::Any::Output 'TermProgressBarColor'; # == v0.23
 
 use App::Transfer::Transform::Type;
 use App::Transfer::Transform::Info;
