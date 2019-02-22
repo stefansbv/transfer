@@ -113,7 +113,7 @@ sub get_info {
         my $info = {
             pos         => $cid,
             name        => $name,
-            type        => $type,
+            type        => lc($type),
             is_nullable => $notnull ? 0 : 1,
             defa        => $dflt_value,
             length      => $precision,
@@ -122,7 +122,6 @@ sub get_info {
         };
         $flds_ref->{ $info->{$key_field} } = $info;
     }
-
     return $flds_ref;
 }
 
