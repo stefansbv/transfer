@@ -145,6 +145,8 @@ sub get_info {
             if $flds_type->{$field}{type} eq 'character';
         $flds_type->{$field}{type} = 'timestamp'
             if $flds_type->{$field}{type} eq 'timestamp without time zone';
+        $flds_type->{$field}{type} = 'timestamptz'
+            if $flds_type->{$field}{type} eq 'timestamp with time zone';
     }
 
     return $flds_type;
