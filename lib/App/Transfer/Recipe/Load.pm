@@ -45,6 +45,7 @@ has 'load' => (
                         REPLACENULL     => 1,
                         IGNORECASE      => 1,
                         IGNOREDIACRITIC => 1,
+                        REGEX           => 1,
                     },
                 },
             );

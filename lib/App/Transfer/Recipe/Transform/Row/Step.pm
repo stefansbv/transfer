@@ -29,6 +29,7 @@ has 'attributes' => (
             REPLACENULL => 1,
             IGNORECASE  => undef,
             IGNOREDIACRITIC => undef,
+            REGEX           => undef,
         };
     },
 );

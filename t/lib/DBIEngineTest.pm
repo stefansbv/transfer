@@ -39,8 +39,8 @@ sub run {
     my @trafo_params = @{ $p{trafo_params} || [] };
 
     can_ok $class, qw(
-        get_info
-        table_exists
+      get_info
+      table_exists
     );
 
     subtest 'live database' => sub {
@@ -50,31 +50,31 @@ sub run {
         ok my $target = App::Transfer::Target->new(
             transfer => $transfer,
             @{ $p{target_params} || [] },
-        ), 'new target';
+          ),
+          'new target';
         isa_ok $target, 'App::Transfer::Target', 'target';
 
         ok my $engine = $class->new(
             transfer => $transfer,
             target   => $target,
             @{ $p{engine_params} || [] },
-        ), 'new engine';
-        if (my $code = $p{skip_unless}) {
+          ),
+          'new engine';
+        if ( my $code = $p{skip_unless} ) {
             try {
-                $code->( $engine ) || die 'NO';
-            } catch {
-                plan skip_all => sprintf(
-                    'Unable to live-test %s engine: %s',
-                    $class->name,
-                    eval { $_->message } || $_
-                );
+                $code->($engine) || die 'NO';
+            }
+            catch {
+                plan skip_all => sprintf( 'Unable to live-test %s engine: %s',
+                    $class->name, eval { $_->message } || $_ );
             };
         }
 
         ok $engine, 'Engine instantiated';
 
         throws_ok { $engine->dbh->do('INSERT blah INTO __bar_____') }
-            'App::Transfer::X',
-            'Database error should be converted to Transfer exception';
+        'App::Transfer::X',
+          'Database error should be converted to Transfer exception';
         like $@->ident, qr/db:\w+/, 'Ident should be db:syntax';
         ok $@->message, 'The message should be from the translation';
 
@@ -86,10 +86,10 @@ sub run {
             input_options  => $input_options,
             output_options => $output_options,
             @trafo_params,
-        ), 'new trafo instance';
+          ),
+          'new trafo instance';
 
         ok my $trafos_row = $trafo->recipe->transform->row, 'row trafos';
-
 
         #######################################################################
         # Test the info methods
@@ -106,18 +106,18 @@ sub run {
                     version        => 1,
                     suyntaxversion => 2,
                     description    => 'Description',
-                ) }, qr/$trans1/ms,
-                'job intro should work';
+                )
+            }, qr/$trans1/ms, 'job intro should work';
 
             my $trans2 = __('Input:');
             like capture_stdout { $trafo->job_info_input_db },
-                qr/$trans2/ms,
-                'job info input db should work';
+              qr/$trans2/ms,
+              'job info input db should work';
 
             my $trans3 = __('Output:');
             like capture_stdout { $trafo->job_info_output_db },
-                qr/$trans3/ms,
-            'job info input db should work';
+              qr/$trans3/ms,
+              'job info input db should work';
 
             # throws_ok { $trafo->transfer_file2db }
             #     'App::Transfer::X',
@@ -138,12 +138,10 @@ sub run {
             $code->( $engine->dbh );
         }
 
-
         #######################################################################
         # Test begin_work() and finish_work().
         can_ok $engine, qw(begin_work finish_work);
-        my $mock_dbh
-            = Test::MockModule->new( ref $engine->dbh, no_auto => 1 );
+        my $mock_dbh = Test::MockModule->new( ref $engine->dbh, no_auto => 1 );
         my $txn;
         $mock_dbh->mock( begin_work => sub { $txn = 1 } );
         $mock_dbh->mock( commit     => sub { $txn = 0 } );
@@ -165,20 +163,19 @@ sub run {
         is $txn, -1, 'Should have rolled back a transaction';
         $mock_dbh->unmock('do');
 
-
         ######################################################################
         # Test someting specific for Pg
 
-        if ($class eq 'App::Tpda3Dev::Engine::pg') {
-            my ($sch, $tbl) = $engine->get_schema_name('schema_name.table_name');
+        if ( $class eq 'App::Tpda3Dev::Engine::pg' ) {
+            my ( $sch, $tbl ) =
+              $engine->get_schema_name('schema_name.table_name');
             is $sch, 'schema_name', 'schema';
-            is $tbl, 'table_name', 'table';
+            is $tbl, 'table_name',  'table';
 
-            ($sch, $tbl) = $engine->get_schema_name('table_name');
-            is $sch, undef, 'schema';
+            ( $sch, $tbl ) = $engine->get_schema_name('table_name');
+            is $sch, undef,        'schema';
             is $tbl, 'table_name', 'table';
         }
-
 
         ######################################################################
         # Test the engine methods
@@ -193,7 +190,7 @@ sub run {
             [ 'field_06', 'varchar(10)' ],
         );
 
-        my @flds = map { $_->[0] } @fields_info;
+        my @flds      = map { $_->[0] } @fields_info;
         my $field_def = join " \n , ", map { join ' ', @{$_} } @fields_info;
         my $table_frn = 'test_info_frn';
         my $table     = 'test_info';
@@ -224,62 +221,56 @@ sub run {
         ok $engine->table_exists($table), "$table table exists";
 
         cmp_deeply $engine->table_keys($table_frn), ['field_10'],
-            'the pk keys data should match';
+          'the pk keys data should match';
 
         cmp_deeply $engine->table_keys($table), ['field_00'],
-            'the pk keys data should match';
+          'the pk keys data should match';
 
         cmp_deeply $engine->table_keys( $table, 'foreign' ),
-            ['field_01'],
-            'the fk keys data should match';
+          ['field_01'],
+          'the fk keys data should match';
 
         my $cols = $engine->get_columns($table);
         cmp_deeply $cols, \@flds, 'table columns';
 
-        cmp_deeply $engine->table_list(), [$table_frn, $table], 'table list';
+        cmp_deeply $engine->table_list(), [ $table_frn, $table ], 'table list';
 
         ok my $info = $engine->get_info($table), 'get info for table';
         foreach my $rec (@fields_info) {
-            my ($name, $type) = @{$rec};
-            $type =~ s{\(.*\)}{}gmx;       # just the type
-            $type =~ s{\s+precision}{}gmx; # just 'double', delete 'precision'
-            $type =~ s{bigint}{int64}gmx;  # made with 'bigint' but is 'int64'
+            my ( $name, $type ) = @{$rec};
+            $type =~ s{\(.*\)}{}gmx;         # just the type
+            $type =~ s{\s+precision}{}gmx;   # just 'double', delete 'precision'
+            $type =~ s{bigint}{int64}gmx;    # made with 'bigint' but is 'int64'
             is $info->{$name}{type}, $type, "type for field '$name' is '$type'";
         }
 
         throws_ok { $engine->records_aoh }
-            'App::Transfer::X',
-            'Should have error for missing table param';
+        'App::Transfer::X', 'Should have error for missing table param';
         is $@->ident, 'dev', 'Ident should be dev';
 
         throws_ok { $engine->records_aoh($table) }
-            'App::Transfer::X',
-            'Should have error for missing table param';
+        'App::Transfer::X', 'Should have error for missing table param';
         is $@->ident, 'dev', 'Ident should be dev';
 
-        cmp_deeply $engine->records_aoh($table, $cols), [], 'records AoH';
+        cmp_deeply $engine->records_aoh( $table, $cols ), [], 'records AoH';
 
         throws_ok { $engine->records_aoa }
-            'App::Transfer::X',
-            'Should have error for missing table param';
+        'App::Transfer::X', 'Should have error for missing table param';
         is $@->ident, 'dev', 'Ident should be dev';
 
         throws_ok { $engine->records_aoa($table) }
-            'App::Transfer::X',
-            'Should have error for missing table param';
+        'App::Transfer::X', 'Should have error for missing table param';
         is $@->ident, 'dev', 'Ident should be dev';
 
-        cmp_deeply $engine->records_aoa($table, $cols), [], 'records AoA';
+        cmp_deeply $engine->records_aoa( $table, $cols ), [], 'records AoA';
 
         ######################################################################
         # Test the DB writer and prepare test tables
 
-        my @fields_look = (
-            [ 'siruta', 'integer' ],
-            [ 'localitate', 'varchar(100)' ],
-        );
+        my @fields_look =
+          ( [ 'siruta', 'integer' ], [ 'localitate', 'varchar(100)' ], );
         my $fields_look = join " \n , ", map { join ' ', @{$_} } @fields_look;
-        my $table_dict = 'test_dict';
+        my $table_dict  = 'test_dict';
 
         # Create the dictionary test table
 
@@ -288,25 +279,32 @@ sub run {
         ok $engine->dbh->do($ddl), "create '$table_dict' table";
 
         my $records_dict = [
-            {   siruta     => 86357,
+            {
+                siruta     => 86357,
                 localitate => 'Izvoru Muresului',
             },
-            {   siruta     => 63394,
+            {
+                siruta     => 63394,
                 localitate => 'Sfintu Gheorghe',
             },
-            {   siruta     => 41104,
+            {
+                siruta     => 41104,
                 localitate => 'Podu Oltului',
             },
-            {   siruta     => 83428,
+            {
+                siruta     => 83428,
                 localitate => 'Baile Tusnad',
             },
-            {   siruta     => 40198,
+            {
+                siruta     => 40198,
                 localitate => 'Brasov',
             },
-            {   siruta     => 92792,
+            {
+                siruta     => 92792,
                 localitate => 'Albesti',
             },
-            {   siruta     => 60954,
+            {
+                siruta     => 60954,
                 localitate => 'Albesti',
             },
         ];
@@ -314,17 +312,15 @@ sub run {
         # Insert the records
 
         foreach my $row ( @{$records_dict} ) {
-            $trafo->writer->insert($row, $table_dict);
+            $trafo->writer->insert( $row, $table_dict );
         }
         is $trafo->writer->records_inserted, 7, 'records inserted: 7';
-        is $trafo->writer->records_skipped, 0, 'records skipped: 0';
+        is $trafo->writer->records_skipped,  0, 'records skipped: 0';
 
         # The source table
 
-        my @fields_db = (
-            [ 'id', 'integer' ],
-            [ 'denumire', 'varchar(100)' ],
-        );
+        my @fields_db =
+          ( [ 'id', 'integer' ], [ 'denumire', 'varchar(100)' ], );
         my $fields_db = join " \n , ", map { join ' ', @{$_} } @fields_db;
         my $table_db  = 'test_db';
 
@@ -334,19 +330,24 @@ sub run {
         ok $engine->dbh->do($ddl), "create '$table_db' table";
 
         my $records_db = [
-            {   id         => 1,
+            {
+                id       => 1,
                 denumire => 'Izvorul Mures',
             },
-            {   id         => 2,
+            {
+                id       => 2,
                 denumire => 'Sfantu Gheorghe',
             },
-            {   id         => 3,
+            {
+                id       => 3,
                 denumire => 'Podu Olt',
             },
-            {   id         => 4,
+            {
+                id       => 4,
                 denumire => 'Baile Tusnad',
             },
-            {   id         => 5,
+            {
+                id       => 5,
                 denumire => 'Brasov',
             },
         ];
@@ -356,20 +357,20 @@ sub run {
         # Insert the records
 
         foreach my $row ( @{$records_db} ) {
-            $trafo->writer->insert($row, $table_db);
+            $trafo->writer->insert( $row, $table_db );
         }
         is $trafo->writer->records_inserted, 5, 'records inserted: 5';
-        is $trafo->writer->records_skipped, 0, 'records skipped: 0';
+        is $trafo->writer->records_skipped,  0, 'records skipped: 0';
 
         # The destination table
 
         my @fields_import = (
-            [ 'id', 'integer' ],
-            [ 'cod', 'integer' ],
+            [ 'id',     'integer' ],
+            [ 'cod',    'integer' ],
             [ 'denloc', 'varchar(100)' ],
         );
         my $fields_import = join " \n , ",
-            map { join ' ', @{$_} } @fields_import;
+          map { join ' ', @{$_} } @fields_import;
         my $table_import = 'test_import';
 
         # Create the test table
@@ -381,18 +382,20 @@ sub run {
         #     'App::Transfer::X',
         #     'Should have error for destination fields not found';
 
-
         ######################################################################
         # Test the DB reader
 
         # Test for failure
         throws_ok { $trafo->reader->get_fields('nonexistenttable') }
-        'App::Transfer::X',
-            'Should have error for nonexistent table';
+        'App::Transfer::X', 'Should have error for nonexistent table';
         is $@->ident, 'reader',
-            'Nonexistent table error ident should be "reader"';
-        is $@->message, __x( "The '{table}' table does not exists or is not readable", table => 'nonexistenttable' ),
-            'Nonexistent table error should be correct';
+          'Nonexistent table error ident should be "reader"';
+        is $@->message,
+          __x(
+            "The '{table}' table does not exists or is not readable",
+            table => 'nonexistenttable'
+          ),
+          'Nonexistent table error should be correct';
 
         ok my $table_r = $trafo->reader->table, 'get the table name';
         is $table_r, $table_db, 'check the table name';
@@ -415,32 +418,38 @@ sub run {
             $count++;
         }
 
-        is $trafo->reader->record_count, $count, 'counted records match record_count';
+        is $trafo->reader->record_count, $count,
+          'counted records match record_count';
 
         ###
 
         my $expected = [
-            {   id       => 1,
+            {
+                id       => 1,
                 denumire => 'Izvorul Mures',
                 cod      => 86357,
                 denloc   => 'Izvoru Muresului',
             },
-            {   id       => 2,
+            {
+                id       => 2,
                 denumire => 'Sfantu Gheorghe',
                 cod      => 63394,
                 denloc   => 'Sfintu Gheorghe',
             },
-            {   id       => 3,
+            {
+                id       => 3,
                 denumire => 'Podu Olt',
                 cod      => 41104,
                 denloc   => 'Podu Oltului',
             },
-            {   id       => 4,
+            {
+                id       => 4,
                 denumire => 'Baile Tusnad',
                 cod      => 83428,
                 denloc   => 'Baile Tusnad',
             },
-            {   id       => 5,
+            {
+                id       => 5,
                 denumire => 'Brasov',
                 cod      => 40198,
                 denloc   => 'Brasov',
@@ -470,7 +479,6 @@ sub run {
         #     # );
         # };
 
-
         ######################################################################
         # Test the lookup_in_dbtable plugin and type_lookupdb trafo method
         # With field_dst as array ref
@@ -493,27 +501,26 @@ sub run {
         # </step>
         subtest 'a. type_lookupdb with dst: 2 mappings (AoH)' => sub {
 
-        ok my $step = shift @{$trafos_row}, 'the a. step';
+            ok my $step = shift @{$trafos_row}, 'the a. step';
 
-        my $records_4a = [
-            { denumire => "Izvorul Mures",   id => 1 },
-            { denumire => "Sfantu Gheorghe", id => 2 },
-            { denumire => "Podu Olt",        id => 3 },
-            { denumire => "Baile Tusnad",    id => 4 },
-            { denumire => "Brasov",          id => 5 },
-        ];
+            my $records_4a = [
+                { denumire => "Izvorul Mures",   id => 1 },
+                { denumire => "Sfantu Gheorghe", id => 2 },
+                { denumire => "Podu Olt",        id => 3 },
+                { denumire => "Baile Tusnad",    id => 4 },
+                { denumire => "Brasov",          id => 5 },
+            ];
 
-        my @records;
-        foreach my $rec ( @{$records_4a} ) {
-            my $id = $rec->{id} // '?';
-            my $logstr = "[id:$id]";
-            push @records, $trafo->type_lookupdb( $step, $rec, $logstr );
-        }
+            my @records;
+            foreach my $rec ( @{$records_4a} ) {
+                my $id     = $rec->{id} // '?';
+                my $logstr = "[id:$id]";
+                push @records, $trafo->type_lookupdb( $step, $rec, $logstr );
+            }
 
-        is_deeply \@records, $expected, 'a. resulting records';
+            is_deeply \@records, $expected, 'a. resulting records';
 
-        };                      # subtest a.
-
+        };    # subtest a.
 
         ######################################################################
         # Test the lookup_in_dbtable plugin and type_lookupdb trafo method
@@ -535,27 +542,26 @@ sub run {
         # </step>
         subtest 'b. type_lookupdb with dst: 2 mappings' => sub {
 
-        my $records_4b = [
-            { denumire => "Izvorul Mures",   id => 1 },
-            { denumire => "Sfantu Gheorghe", id => 2 },
-            { denumire => "Podu Olt",        id => 3 },
-            { denumire => "Baile Tusnad",    id => 4 },
-            { denumire => "Brasov",          id => 5 },
-        ];
+            my $records_4b = [
+                { denumire => "Izvorul Mures",   id => 1 },
+                { denumire => "Sfantu Gheorghe", id => 2 },
+                { denumire => "Podu Olt",        id => 3 },
+                { denumire => "Baile Tusnad",    id => 4 },
+                { denumire => "Brasov",          id => 5 },
+            ];
 
-        ok my $step = shift @{$trafos_row}, 'the b. step';
+            ok my $step = shift @{$trafos_row}, 'the b. step';
 
-        my @records;
-        foreach my $rec ( @{$records_4b} ) {
-            my $id = $rec->{id} // '?';
-            my $logstr = "[id:$id]";
-            push @records, $trafo->type_lookupdb( $step, $rec, $logstr );
-        }
+            my @records;
+            foreach my $rec ( @{$records_4b} ) {
+                my $id     = $rec->{id} // '?';
+                my $logstr = "[id:$id]";
+                push @records, $trafo->type_lookupdb( $step, $rec, $logstr );
+            }
 
-        is_deeply \@records, $expected, 'b. resulting records again';
+            is_deeply \@records, $expected, 'b. resulting records again';
 
-        };                      # subtest b.
-
+        };    # subtest b.
 
         ######################################################################
         # Test the lookup_in_dbtable plugin and type_lookupdb trafo method
@@ -577,61 +583,66 @@ sub run {
         # </step>
         subtest 'c. type_lookupdb with dst: a mapping and a field' => sub {
 
-        my $records_4c = [
-            { denumire => "Izvorul Mures",   id => 1 },
-            { denumire => "Sfantu Gheorghe", id => 2 },
-            { denumire => "Podu Olt",        id => 3 },
-            { denumire => "Baile Tusnad",    id => 4 },
-            { denumire => "Brasov",          id => 5 },
-            { denumire => "Albesti",         id => 6 },
-        ];
+            my $records_4c = [
+                { denumire => "Izvorul Mures",   id => 1 },
+                { denumire => "Sfantu Gheorghe", id => 2 },
+                { denumire => "Podu Olt",        id => 3 },
+                { denumire => "Baile Tusnad",    id => 4 },
+                { denumire => "Brasov",          id => 5 },
+                { denumire => "Albesti",         id => 6 },
+            ];
 
-        ok my $step = shift @{$trafos_row}, 'the c. step';
+            ok my $step = shift @{$trafos_row}, 'the c. step';
 
-        my @records;
-        foreach my $rec ( @{$records_4c} ) {
-            my $id = $rec->{id} // '?';
-            my $logstr = "[id:$id]";
-            push @records, $trafo->type_lookupdb( $step, $rec, $logstr );
-        }
+            my @records;
+            foreach my $rec ( @{$records_4c} ) {
+                my $id     = $rec->{id} // '?';
+                my $logstr = "[id:$id]";
+                push @records, $trafo->type_lookupdb( $step, $rec, $logstr );
+            }
 
-        my $expected_4c = [
-            {   id       => 1,
-                denumire => 'Izvorul Mures',
-                siruta   => 86357,
-                denloc   => 'Izvoru Muresului',
-            },
-            {   id       => 2,
-                denumire => 'Sfantu Gheorghe',
-                siruta   => 63394,
-                denloc   => 'Sfintu Gheorghe',
-            },
-            {   id       => 3,
-                denumire => 'Podu Olt',
-                siruta   => 41104,
-                denloc   => 'Podu Oltului',
-            },
-            {   id       => 4,
-                denumire => 'Baile Tusnad',
-                siruta   => 83428,
-                denloc   => 'Baile Tusnad',
-            },
-            {   id       => 5,
-                denumire => 'Brasov',
-                siruta   => 40198,
-                denloc   => 'Brasov',
-            },
-            {   id       => 6,
-                denumire => 'Albesti',
-                siruta   => undef,
-                denloc   => undef,
-            },
-        ];
+            my $expected_4c = [
+                {
+                    id       => 1,
+                    denumire => 'Izvorul Mures',
+                    siruta   => 86357,
+                    denloc   => 'Izvoru Muresului',
+                },
+                {
+                    id       => 2,
+                    denumire => 'Sfantu Gheorghe',
+                    siruta   => 63394,
+                    denloc   => 'Sfintu Gheorghe',
+                },
+                {
+                    id       => 3,
+                    denumire => 'Podu Olt',
+                    siruta   => 41104,
+                    denloc   => 'Podu Oltului',
+                },
+                {
+                    id       => 4,
+                    denumire => 'Baile Tusnad',
+                    siruta   => 83428,
+                    denloc   => 'Baile Tusnad',
+                },
+                {
+                    id       => 5,
+                    denumire => 'Brasov',
+                    siruta   => 40198,
+                    denloc   => 'Brasov',
+                },
+                {
+                    id       => 6,
+                    denumire => 'Albesti',
+                    siruta   => undef,
+                    denloc   => undef,
+                },
+            ];
 
-        is_deeply \@records, $expected_4c, 'c. resulting records again';
+            is_deeply \@records, $expected_4c, 'c. resulting records again';
 
-        };                      # subtest c.
-
+        };    # subtest c.
 
         ######################################################################
         # Test the lookup_in_dbtable plugin and type_lookupdb trafo method
@@ -647,58 +658,65 @@ sub run {
         # </step>
         subtest 'd. type_lookupdb with dst: a mapping and a field' => sub {
 
-        my $records_4d = [
-            { localitate => "Izvoru Muresului", id => 1 },
-            { localitate => "Sfintu Gheorghe",  id => 2 },
-            { localitate => "Podu Oltului",     id => 3 },
-            { localitate => "Baile Tusnad",     id => 4 },
-            { localitate => "Brasov",           id => 5 },
-            { localitate => "Albesti",          id => 6 },
-        ];
+            my $records_4d = [
+                { localitate => "Izvoru Muresului", id => 1 },
+                { localitate => "Sfintu Gheorghe",  id => 2 },
+                { localitate => "Podu Oltului",     id => 3 },
+                { localitate => "Baile Tusnad",     id => 4 },
+                { localitate => "Brasov",           id => 5 },
+                { localitate => "Albesti",          id => 6 },
+            ];
 
-        ok my $step = shift @{$trafos_row}, 'the d. step';
+            ok my $step = shift @{$trafos_row}, 'the d. step';
 
-        my @records;
-        foreach my $rec ( @{$records_4d} ) {
-            my $id = $rec->{id} // '?';
-            my $logstr = "[id:$id]";
-            push @records, $trafo->type_lookupdb( $step, $rec, $logstr );
-        }
+            my @records;
+            foreach my $rec ( @{$records_4d} ) {
+                my $id     = $rec->{id} // '?';
+                my $logstr = "[id:$id]";
+                push @records, $trafo->type_lookupdb( $step, $rec, $logstr );
+            }
 
-        my $expected_4d = [
-            {   id       => 1,
-                localitate => 'Izvoru Muresului',
-                siruta   => 86357,
-            },
-            {   id       => 2,
-                localitate => 'Sfintu Gheorghe',
-                siruta   => 63394,
-            },
-            {   id       => 3,
-                localitate => 'Podu Oltului',
-                siruta   => 41104,
-            },
-            {   id       => 4,
-                localitate => 'Baile Tusnad',
-                siruta   => 83428,
-            },
-            {   id       => 5,
-                localitate => 'Brasov',
-                siruta   => 40198,
-            },
-            {   id       => 6,
-                localitate => 'Albesti',
-                siruta   => undef,
-            },
-        ];
+            my $expected_4d = [
+                {
+                    id         => 1,
+                    localitate => 'Izvoru Muresului',
+                    siruta     => 86357,
+                },
+                {
+                    id         => 2,
+                    localitate => 'Sfintu Gheorghe',
+                    siruta     => 63394,
+                },
+                {
+                    id         => 3,
+                    localitate => 'Podu Oltului',
+                    siruta     => 41104,
+                },
+                {
+                    id         => 4,
+                    localitate => 'Baile Tusnad',
+                    siruta     => 83428,
+                },
+                {
+                    id         => 5,
+                    localitate => 'Brasov',
+                    siruta     => 40198,
+                },
+                {
+                    id         => 6,
+                    localitate => 'Albesti',
+                    siruta     => undef,
+                },
+            ];
 
-        is_deeply \@records, $expected_4d, 'd. resulting records again';
+            is_deeply \@records, $expected_4d, 'd. resulting records again';
 
-        };                      # subtest d.
+        };    # subtest d.
 
         ######################################################################
-        # Test the lookup_in_dbtable plugin and type_lookupdb trafo method
-        # With field_dst as hash ref and the IGNORECASE attribute on
+        # Test the lookup_in_dbtable plugin and type_lookupdb trafo
+        # method With field_dst as hash ref and the IGNORECASE and
+        # IGNOREDIACRITIC attributes on
 
         # The step config section
         # <step>
@@ -707,58 +725,65 @@ sub run {
         #   field_src           = localitate
         #   method              = lookup_in_dbtable
         #   field_dst           = siruta
+        #   attributes          = IGNORECASE | IGNOREDIACRITIC
         # </step>
+
         subtest 'd2. type_lookupdb with dst: a mapping and a field' => sub {
 
-        my $records_4d2 = [
-            { localitate => "IZVORU MUREŞULUI", id => 1 },
-            { localitate => "Sfîntu GHEORGHE",  id => 2 },
-            { localitate => "PODU Oltului",     id => 3 },
-            { localitate => "Băile Tuşnad",     id => 4 },
-            { localitate => "BRAȘOV",           id => 5 },
-            { localitate => "Albești",          id => 6 },
-        ];
+            my $records_4d2 = [
+                { localitate => "IZVORU MUREŞULUI", id => 1 },
+                { localitate => "Sfîntu GHEORGHE",  id => 2 },
+                { localitate => "PODU Oltului",      id => 3 },
+                { localitate => "Băile Tuşnad",    id => 4 },
+                { localitate => "BRAȘOV",           id => 5 },
+                { localitate => "Albești",          id => 6 },
+            ];
 
-        ok my $step = shift @{$trafos_row}, 'the d.2 step';
+            ok my $step = shift @{$trafos_row}, 'the d.2 step';
 
-        my @records;
-        foreach my $rec ( @{$records_4d2} ) {
-            my $id = $rec->{id} // '?';
-            my $logstr = "[id:$id]";
-            push @records, $trafo->type_lookupdb( $step, $rec, $logstr );
-        }
+            my @records;
+            foreach my $rec ( @{$records_4d2} ) {
+                my $id     = $rec->{id} // '?';
+                my $logstr = "[id:$id]";
+                push @records, $trafo->type_lookupdb( $step, $rec, $logstr );
+            }
 
-        my $expected_4d2 = [
-            {   id       => 1,
-                localitate => 'IZVORU MUREŞULUI',
-                siruta   => 86357,
-            },
-            {   id       => 2,
-                localitate => 'Sfîntu GHEORGHE',
-                siruta   => 63394,
-            },
-            {   id       => 3,
-                localitate => 'PODU Oltului',
-                siruta   => 41104,
-            },
-            {   id       => 4,
-                localitate => 'Băile Tuşnad',
-                siruta   => 83428,
-            },
-            {   id       => 5,
-                localitate => 'BRAȘOV',
-                siruta   => 40198,
-            },
-            {   id       => 6,
-                localitate => 'Albești',
-                siruta   => undef,
-            },
-        ];
+            my $expected_4d2 = [
+                {
+                    id         => 1,
+                    localitate => 'IZVORU MUREŞULUI',
+                    siruta     => 86357,
+                },
+                {
+                    id         => 2,
+                    localitate => 'Sfîntu GHEORGHE',
+                    siruta     => 63394,
+                },
+                {
+                    id         => 3,
+                    localitate => 'PODU Oltului',
+                    siruta     => 41104,
+                },
+                {
+                    id         => 4,
+                    localitate => 'Băile Tuşnad',
+                    siruta     => 83428,
+                },
+                {
+                    id         => 5,
+                    localitate => 'BRAȘOV',
+                    siruta     => 40198,
+                },
+                {
+                    id         => 6,
+                    localitate => 'Albești',
+                    siruta     => undef,
+                },
+            ];
 
-        is_deeply \@records, $expected_4d2, 'd.2 resulting records again';
+            is_deeply \@records, $expected_4d2, 'd.2 resulting records again';
 
-        };                      # subtest 2.d
-
+        };    # subtest 2.d
 
         ######################################################################
         # Test the split_field plugin and type_split trafo method
@@ -775,48 +800,50 @@ sub run {
         # </step>
         subtest 'e. split' => sub {
 
-        ok my $step = shift @{$trafos_row}, 'the e. step';
+            ok my $step = shift @{$trafos_row}, 'the e. step';
 
-        my $records_4e = [
-            { adresa => "Izvorul Mures, str. Brasovului, nr. 5", id => 1 },
-            { adresa => "Sfintu Gheorghe,  str. Covasna",        id => 2 },
-            { adresa => "Brasov, str. Bucurestilor,    nr. 23",  id => 3 },
-        ];
+            my $records_4e = [
+                { adresa => "Izvorul Mures, str. Brasovului, nr. 5", id => 1 },
+                { adresa => "Sfintu Gheorghe,  str. Covasna",        id => 2 },
+                { adresa => "Brasov, str. Bucurestilor,    nr. 23",  id => 3 },
+            ];
 
-        is $step->limit, 3, 'step limit is the number of dst fields';
+            is $step->limit, 3, 'step limit is the number of dst fields';
 
-        my @records;
-        foreach my $rec ( @{$records_4e} ) {
-            my $id = $rec->{id} // '?';
-            my $logstr = "[id:$id]";
-            push @records, $trafo->type_split( $step, $rec, $logstr );
-        }
+            my @records;
+            foreach my $rec ( @{$records_4e} ) {
+                my $id     = $rec->{id} // '?';
+                my $logstr = "[id:$id]";
+                push @records, $trafo->type_split( $step, $rec, $logstr );
+            }
 
-        my $expected_4e = [
-            {   adresa     => "Izvorul Mures, str. Brasovului, nr. 5",
-                id         => 1,
-                localitate => "Izvorul Mures",
-                numarul    => "nr. 5",
-                strada     => "str. Brasovului",
-            },
-            {   adresa     => "Sfintu Gheorghe,  str. Covasna",
-                id         => 2,
-                localitate => "Sfintu Gheorghe",
-                numarul    => undef,
-                strada     => "str. Covasna",
-            },
-            {   adresa     => "Brasov, str. Bucurestilor,    nr. 23",
-                id         => 3,
-                localitate => "Brasov",
-                numarul    => "nr. 23",
-                strada     => "str. Bucurestilor",
-            },
-        ];
+            my $expected_4e = [
+                {
+                    adresa     => "Izvorul Mures, str. Brasovului, nr. 5",
+                    id         => 1,
+                    localitate => "Izvorul Mures",
+                    numarul    => "nr. 5",
+                    strada     => "str. Brasovului",
+                },
+                {
+                    adresa     => "Sfintu Gheorghe,  str. Covasna",
+                    id         => 2,
+                    localitate => "Sfintu Gheorghe",
+                    numarul    => undef,
+                    strada     => "str. Covasna",
+                },
+                {
+                    adresa     => "Brasov, str. Bucurestilor,    nr. 23",
+                    id         => 3,
+                    localitate => "Brasov",
+                    numarul    => "nr. 23",
+                    strada     => "str. Bucurestilor",
+                },
+            ];
 
-        is_deeply \@records, $expected_4e, 'e. resulting records';
+            is_deeply \@records, $expected_4e, 'e. resulting records';
 
-        };                      # subtest e.
-
+        };    # subtest e.
 
         ######################################################################
         # Test the join_field plugin and type_join trafo method
@@ -833,56 +860,61 @@ sub run {
         # </step>
         subtest 'f. join' => sub {
 
-        ok my $step = shift @{$trafos_row}, 'the f. step';
+            ok my $step = shift @{$trafos_row}, 'the f. step';
 
-        my $records_4f = [
-            {   id         => 1,
-                localitate => "Izvorul Mures",
-                numarul    => "nr. 5",
-                strada     => "str. Brasovului",
-            },
-            {   id         => 2,
-                localitate => "Sfintu Gheorghe",
-                strada     => "str. Covasna",
-            },
-            {   id         => 3,
-                localitate => "Brasov",
-                numarul    => "nr. 23",
-                strada     => "str. Bucurestilor",
-            },
-        ];
+            my $records_4f = [
+                {
+                    id         => 1,
+                    localitate => "Izvorul Mures",
+                    numarul    => "nr. 5",
+                    strada     => "str. Brasovului",
+                },
+                {
+                    id         => 2,
+                    localitate => "Sfintu Gheorghe",
+                    strada     => "str. Covasna",
+                },
+                {
+                    id         => 3,
+                    localitate => "Brasov",
+                    numarul    => "nr. 23",
+                    strada     => "str. Bucurestilor",
+                },
+            ];
 
-        my @records;
-        foreach my $rec ( @{$records_4f} ) {
-            my $id = $rec->{id} // '?';
-            my $logstr = "[id:$id]";
-            push @records, $trafo->type_join( $step, $rec, $logstr );
-        }
+            my @records;
+            foreach my $rec ( @{$records_4f} ) {
+                my $id     = $rec->{id} // '?';
+                my $logstr = "[id:$id]";
+                push @records, $trafo->type_join( $step, $rec, $logstr );
+            }
 
-        my $expected_4f = [
-            {   adresa     => "Izvorul Mures, str. Brasovului, nr. 5",
-                id         => 1,
-                localitate => "Izvorul Mures",
-                numarul    => "nr. 5",
-                strada     => "str. Brasovului",
-            },
-            {   adresa     => "Sfintu Gheorghe, str. Covasna",
-                id         => 2,
-                localitate => "Sfintu Gheorghe",
-                strada     => "str. Covasna",
-            },
-            {   adresa     => "Brasov, str. Bucurestilor, nr. 23",
-                id         => 3,
-                localitate => "Brasov",
-                numarul    => "nr. 23",
-                strada     => "str. Bucurestilor",
-            },
-        ];
+            my $expected_4f = [
+                {
+                    adresa     => "Izvorul Mures, str. Brasovului, nr. 5",
+                    id         => 1,
+                    localitate => "Izvorul Mures",
+                    numarul    => "nr. 5",
+                    strada     => "str. Brasovului",
+                },
+                {
+                    adresa     => "Sfintu Gheorghe, str. Covasna",
+                    id         => 2,
+                    localitate => "Sfintu Gheorghe",
+                    strada     => "str. Covasna",
+                },
+                {
+                    adresa     => "Brasov, str. Bucurestilor, nr. 23",
+                    id         => 3,
+                    localitate => "Brasov",
+                    numarul    => "nr. 23",
+                    strada     => "str. Bucurestilor",
+                },
+            ];
 
-        is_deeply \@records, $expected_4f, 'f. resulting records';
+            is_deeply \@records, $expected_4f, 'f. resulting records';
 
-        };                      # subtest f.
-
+        };    # subtest f.
 
         ######################################################################
         # Test the move_filtered plugin and type_copy trafo method
@@ -899,39 +931,48 @@ sub run {
         # </step>
         subtest 'g. copy' => sub {
 
-        ok my $step = shift @{$trafos_row}, 'the g. step';
+            ok my $step = shift @{$trafos_row}, 'the g. step';
 
-        my $records_4g = [
-            { status => "Cancelled",      id => 1 },
-            { status => "Disputed",       id => 2 },
-            { status => "call the owner", id => 3 },
-            { status => "On Hold",        id => 4 },
-            { status => "tel 1234567890", id => 5, observations => 'some obs' },
-            { status => "Shipped",        id => 6 },
-        ];
+            my $records_4g = [
+                { status => "Cancelled",      id => 1 },
+                { status => "Disputed",       id => 2 },
+                { status => "call the owner", id => 3 },
+                { status => "On Hold",        id => 4 },
+                {
+                    status       => "tel 1234567890",
+                    id           => 5,
+                    observations => 'some obs'
+                },
+                { status => "Shipped", id => 6 },
+            ];
 
-        my @records;
-        foreach my $rec ( @{$records_4g} ) {
-            my $id = $rec->{id} // '?';
-            my $logstr = "[id:$id]";
-            push @records, $trafo->type_copy( $step, $rec, $logstr );
-        }
+            my @records;
+            foreach my $rec ( @{$records_4g} ) {
+                my $id     = $rec->{id} // '?';
+                my $logstr = "[id:$id]";
+                push @records, $trafo->type_copy( $step, $rec, $logstr );
+            }
 
-        my $expected_4g = [
-            { id => 1, status => "Cancelled" },
-            { id => 2, status => "Disputed" },
-            { id => 3, observations => "status: call the owner", status => undef
-            },
-            { id => 4, status => "On Hold" },
-            { id => 5, observations => "some obs, status: tel 1234567890", status => undef
-            },
-            { id => 6, status => "Shipped" },
-        ];
+            my $expected_4g = [
+                { id => 1, status => "Cancelled" },
+                { id => 2, status => "Disputed" },
+                {
+                    id           => 3,
+                    observations => "status: call the owner",
+                    status       => undef
+                },
+                { id => 4, status => "On Hold" },
+                {
+                    id           => 5,
+                    observations => "some obs, status: tel 1234567890",
+                    status       => undef
+                },
+                { id => 6, status => "Shipped" },
+            ];
 
-        is_deeply \@records, $expected_4g, 'g. resulting records';
+            is_deeply \@records, $expected_4g, 'g. resulting records';
 
-        };                      # subtest g.
-
+        };    # subtest g.
 
         ######################################################################
         # Test the copy_nonzero plugin and type_batch trafo method
@@ -948,35 +989,32 @@ sub run {
         # </step>
         subtest 'h. batch' => sub {
 
-        ok my $step = shift @{$trafos_row}, 'the h. step';
+            ok my $step = shift @{$trafos_row}, 'the h. step';
 
-        my $records_4h = [
-            { debit => 100, credit => 0   },
-            { debit => 0,   credit => 100 },
-        ];
+            my $records_4h =
+              [ { debit => 100, credit => 0 }, { debit => 0, credit => 100 }, ];
 
-        my @records;
-        foreach my $rec ( @{$records_4h} ) {
-            my $id = $rec->{id} // '?';
-            my $logstr = "[id:$id]";
-            push @records, $trafo->type_batch( $step, $rec, $logstr );
-        }
+            my @records;
+            foreach my $rec ( @{$records_4h} ) {
+                my $id     = $rec->{id} // '?';
+                my $logstr = "[id:$id]";
+                push @records, $trafo->type_batch( $step, $rec, $logstr );
+            }
 
-        my $expected_4h = [
-            { debit => undef, credit => undef, suma =>  100 },
-            { debit => undef, credit => undef, suma => -100 },
-        ];
+            my $expected_4h = [
+                { debit => undef, credit => undef, suma => 100 },
+                { debit => undef, credit => undef, suma => -100 },
+            ];
 
-        is_deeply \@records, $expected_4h, 'g. resulting records';
+            is_deeply \@records, $expected_4h, 'g. resulting records';
 
-        };                      # subtest h.
-
+        };    # subtest h.
 
         ######################################################################
         # Test the lookup_in_ds plugin and type_lookup_ds trafo method
 
         # The step config section
-        # # i.
+        # i.
         # <step>
         #   type                = lookup
         #   datasource          = category
@@ -986,35 +1024,106 @@ sub run {
         # </step>
         subtest 'i. type_lookup_ds' => sub {
 
-        ok my $step = shift @{$trafos_row}, 'the i. lookup step';
+            ok my $step = shift @{$trafos_row}, 'the i. lookup step';
 
-        my $records_4i = [
-            { category => "Planes",        id => 1 },
-            { category => "Trains",        id => 2 },
-            { category => "Some unknown ", id => 3 },
-            { category => "Planes",        id => 4 },
-            { category => "Another cat.",  id => 5 },
-        ];
+            my $records_4i = [
+                { category => "Planes",        id => 1 },
+                { category => "Trains",        id => 2 },
+                { category => "Some unknown ", id => 3 },
+                { category => "Planes",        id => 4 },
+                { category => "Another cat.",  id => 5 },
+                { category => "S",             id => 6 },
+            ];
 
-        my @records;
-        foreach my $rec ( @{$records_4i} ) {
-            my $id = $rec->{id} // '?';
-            my $logstr = "[id:$id]";
-            push @records, $trafo->type_lookup( $step, $rec, $logstr );
-        }
+            my @records;
+            foreach my $rec ( @{$records_4i} ) {
+                my $id     = $rec->{id} // '?';
+                my $logstr = "[id:$id]";
+                push @records, $trafo->type_lookup( $step, $rec, $logstr );
+            }
 
-        my $expected_4i = [
-            { category => "Planes",        categ_code => "P",   id => 1 },
-            { category => "Trains",        categ_code => "T",   id => 2 },
-            { category => "Some unknown ", categ_code => "Some unknown ", id => 3 },
-            { category => "Planes",        categ_code => "P",   id => 4 },
-            { category => "Another cat.",  categ_code => "Another cat.", id => 5 },
-        ];
+            my $expected_4i = [
+                { category => "Planes", categ_code => "P", id => 1 },
+                { category => "Trains", categ_code => "T", id => 2 },
+                {
+                    category   => "Some unknown ",
+                    categ_code => "Some unknown ",
+                    id         => 3
+                },
+                { category => "Planes", categ_code => "P", id => 4 },
+                {
+                    category   => "Another cat.",
+                    categ_code => "Another cat.",
+                    id         => 5
+                },
+                {
+                    category   => "S",
+                    categ_code => "S",
+                    id         => 6
+                },
+            ];
 
-        is_deeply \@records, $expected_4i, 'i. resulting records';
+            is_deeply \@records, $expected_4i, 'i. resulting records';
 
-        };                      # subtest i.
+        };    # subtest i.
 
+        ######################################################################
+        # Test the lookup_in_ds plugin and type_lookup_ds trafo method
+        # method with field_dst as hash ref and the IGNORECASE,
+        # IGNOREDIACRITIC and REGEX attributes on
+
+        # The step config section
+        # i.2
+        # <step>
+        #   type                = lookup
+        #   datasource          = category
+        #   field_src           = description
+        #   method              = lookup_in_ds
+        #   field_dst           = categ_code
+        #   attributes          = IGNORECASE | IGNOREDIACRITIC | REGEX
+        # </step>
+        subtest 'i.2 type_lookup_ds' => sub {
+
+            ok my $step = shift @{$trafos_row}, 'the i.2 lookup step';
+
+            my $records_4i2 = [
+                { description => "Planes with wings", id => 1 },
+                { description => "Old Trains",        id => 2 },
+                { description => "Some unknown ",     id => 3 },
+                { description => "Other planes",      id => 4 },
+                { description => "Another cat.",      id => 5 },
+            ];
+
+            my @records;
+            foreach my $rec ( @{$records_4i2} ) {
+                my $id     = $rec->{id} // '?';
+                my $logstr = "[id:$id]";
+                push @records, $trafo->type_lookup( $step, $rec, $logstr );
+            }
+
+            my $expected_4i2 = [
+                {
+                    description => "Planes with wings",
+                    categ_code  => "P",
+                    id          => 1
+                },
+                { description => "Old Trains", categ_code => "T", id => 2 },
+                {
+                    description => "Some unknown ",
+                    categ_code  => "",
+                    id          => 3
+                },
+                { description => "Other planes", categ_code => "P", id => 4 },
+                {
+                    description => "Another cat.",
+                    categ_code  => "",
+                    id          => 5
+                },
+            ];
+
+            is_deeply \@records, $expected_4i2, 'i. resulting records';
+
+        };    # subtest i.2
 
         ######################################################################
         # Test the move_filtered_regex plugin and type_copy trafo method
@@ -1031,39 +1140,42 @@ sub run {
         # </step>
         subtest 'j. copy' => sub {
 
-        ok my $step = shift @{$trafos_row}, 'the j. step';
+            ok my $step = shift @{$trafos_row}, 'the j. step';
 
-        my $records_4j = [
-            { year => "1890",         id => 1, obs => undef },
-            { year => "2021",         id => 2, obs => undef },
-            { year => "1950/1973",    id => 3, obs => undef },
-            { year => "1963",         id => 4, obs => undef },
-            { year => "1999",         id => 5, obs => undef },
-            { year => "unknown year", id => 6, obs => 'some obs' },
-            { year => "i don't know", id => 7, obs => undef },
-        ];
+            my $records_4j = [
+                { year => "1890",         id => 1, obs => undef },
+                { year => "2021",         id => 2, obs => undef },
+                { year => "1950/1973",    id => 3, obs => undef },
+                { year => "1963",         id => 4, obs => undef },
+                { year => "1999",         id => 5, obs => undef },
+                { year => "unknown year", id => 6, obs => 'some obs' },
+                { year => "i don't know", id => 7, obs => undef },
+            ];
 
-        my @records;
-        foreach my $rec ( @{$records_4j} ) {
-            my $id = $rec->{id} // '?';
-            my $logstr = "[id:$id]";
-            push @records, $trafo->type_copy( $step, $rec, $logstr );
-        }
+            my @records;
+            foreach my $rec ( @{$records_4j} ) {
+                my $id     = $rec->{id} // '?';
+                my $logstr = "[id:$id]";
+                push @records, $trafo->type_copy( $step, $rec, $logstr );
+            }
 
-        my $expected_4j = [
-            { id => 1, year => "1890",      obs => undef },
-            { id => 2, year => "2021",      obs => undef },
-            { id => 3, year => "1950/1973", obs => undef },
-            { id => 4, year => "1963",      obs => undef },
-            { id => 5, year => "1999",      obs => undef },
-            { id => 6, year => undef, obs => "some obs, year: unknown year" },
-            { id => 7, year => undef, obs => "year: i don't know" },
-        ];
+            my $expected_4j = [
+                { id => 1, year => "1890",      obs => undef },
+                { id => 2, year => "2021",      obs => undef },
+                { id => 3, year => "1950/1973", obs => undef },
+                { id => 4, year => "1963",      obs => undef },
+                { id => 5, year => "1999",      obs => undef },
+                {
+                    id   => 6,
+                    year => undef,
+                    obs  => "some obs, year: unknown year"
+                },
+                { id => 7, year => undef, obs => "year: i don't know" },
+            ];
 
-        cmp_deeply \@records, $expected_4j, 'j. resulting records';
+            cmp_deeply \@records, $expected_4j, 'j. resulting records';
 
-        };                      # subtest j.
-
+        };    # subtest j.
 
         ######################################################################
         # All done.
