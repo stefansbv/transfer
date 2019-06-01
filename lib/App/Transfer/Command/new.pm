@@ -315,6 +315,14 @@ sub output_file_info {
     return [];
 }
 
+sub input_db_info {
+    my $self = shift;
+    my $src_engine = $self->src_target->engine;
+    my $src_table = $self->input_table;
+    my $src_table_info = $src_engine->get_columns($src_table);
+    return $src_table_info;
+}
+
 sub output_db_info {
     my $self = shift;
     my $dst_engine = $self->dst_target->engine;
