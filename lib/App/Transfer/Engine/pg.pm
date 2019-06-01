@@ -224,18 +224,25 @@ sub get_columns {
 }
 
 sub table_exists {
-    my ( $self, $table ) = @_;
+    my ( $self, $table, $or_view ) = @_;
 
     hurl "The 'table' parameter is required for 'table_exists'" unless $table;
 
     my ($schema_name, $table_name) = $self->get_schema_name($table);
 
-    my $sql = qq( SELECT COUNT(table_name)
-                FROM information_schema.tables
-                WHERE table_type = 'BASE TABLE'
-                    AND table_schema NOT IN
-                    ('pg_catalog', 'information_schema')
-                    AND table_name = '$table_name'
+    my @types = (q{'BASE TABLE'});
+
+    # Allow to also check for views
+    push @types, q{'VIEW'} if $or_view;
+    my $type_list = join ',', @types;
+
+    my $sql = qq(
+         SELECT COUNT(table_name)
+             FROM information_schema.tables
+             WHERE table_type IN ($type_list)
+               AND table_schema NOT IN
+               ('pg_catalog', 'information_schema')
+               AND table_name = '$table_name'
     );
     $sql .= qq{AND table_schema = '$schema_name'} if $schema_name;
     $sql .= ';';

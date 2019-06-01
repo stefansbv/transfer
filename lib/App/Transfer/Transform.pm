@@ -12,7 +12,15 @@ use Scalar::Util qw(blessed);
 use List::Compare;
 use Try::Tiny;
 use Progress::Any;
-use Progress::Any::Output 'TermProgressBarColor';
+use Progress::Any::Output;
+
+# set Progress options
+Progress::Any::Output->set(
+    'TermProgressBarColor',
+    width      => 80,
+    fh         => \*STDERR,
+    show_delay => 5,
+);
 
 use App::Transfer::Transform::Type;
 use App::Transfer::Transform::Info;
@@ -542,7 +550,7 @@ sub validate_db_src {
         }
     };
 
-    $src_engine->table_exists($src_table);
+    $src_engine->table_exists($src_table, 'or view');
 
     # - db exists
     # - table exists
@@ -552,7 +560,7 @@ sub validate_db_src {
 
     hurl run => __x( "The source table '{table}' does not exists!",
         table => $src_table )
-        unless $src_engine->table_exists($src_table);
+        unless $src_engine->table_exists($src_table, 'or view');
 
     # XXX Have to also check the host
     # hurl run =>
@@ -813,7 +821,7 @@ sub validate_dst_db_fields {
 
     return unless scalar @{$trafo_fields}; # no trafos no columns to check
 
-    unless ( $engine->table_exists($table) ) {
+    unless ( $engine->table_exists($table, 'or view') ) {
         hurl table =>
             __x( 'Destination table "{table}" not found', table => $table );
     }

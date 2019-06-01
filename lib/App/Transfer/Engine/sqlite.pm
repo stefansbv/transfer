@@ -159,7 +159,7 @@ sub table_exists {
     my ( $self, $table ) = @_;
     my $sql = qq( SELECT COUNT(name)
                 FROM sqlite_master
-                WHERE type = 'table'
+                WHERE ( type = 'table' OR type = 'view' )
                     AND name = '$table';
     );
     my $val_ret;

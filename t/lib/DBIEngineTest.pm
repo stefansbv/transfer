@@ -218,7 +218,7 @@ sub run {
 
         ok $engine->dbh->do($ddl), "create '$table' table";
 
-        ok $engine->table_exists($table), "$table table exists";
+        ok $engine->table_exists($table, 'or view'), "$table table exists";
 
         cmp_deeply $engine->table_keys($table_frn), ['field_10'],
           'the pk keys data should match';

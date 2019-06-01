@@ -234,14 +234,13 @@ sub get_columns {
 }
 
 sub table_exists {
-    my ( $self, $table ) = @_;
+    my ( $self, $table, $or_view ) = @_;
 
     hurl "The 'table' parameter is required for 'table_exists'" unless $table;
 
     my $sql = qq(SELECT COUNT(RDB\$RELATION_NAME)
                      FROM RDB\$RELATIONS
                      WHERE RDB\$SYSTEM_FLAG=0
-                         AND RDB\$VIEW_BLR IS NULL
                          AND RDB\$RELATION_NAME = UPPER('$table');
     );
 
@@ -326,8 +325,10 @@ Return the column list for the table name provided as parameter.
 
 =head3 C<table_exists>
 
-Return true if the table name provided as parameter exists in the
-database.
+Return true if the table or view name provided as parameter exists in
+the database.
+
+The C<or_view> parameter is ignored.
 
 =head3 table_exists
 

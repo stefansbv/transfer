@@ -81,7 +81,7 @@ sub get_fields {
             table => $table
         ),
       }
-      unless $engine->table_exists($table);
+      unless $engine->table_exists($table, 'or view');
 
     # The fields from the table ordered by 'pos'
     my $fields = $engine->get_columns($table);
