@@ -10,6 +10,17 @@ use namespace::autoclean;
 
 has 'field' => ( is => 'ro', isa => 'Str' );
 
+has 'input' => ( is => 'ro', isa => 'Str' );
+
+has 'type' => (
+    is       => 'ro',
+    isa      => enum( [qw(transform default_value)] ),
+    required => 0,
+    default  => sub {
+        return 'transform';
+    },
+);
+
 has 'method' => (
     is     => 'ro',
     isa    => 'ArrayRefFromStr',
@@ -24,22 +35,22 @@ __END__
 
 =encoding utf8
 
-=head1 Name
+=head1 NAME
 
 App::Transfer::Recipe::Transform::Col::Step - Column transformation step
 
-=head1 Synopsis
+=head1 SYNOPSIS
 
    my $steps = App::Transfer::Recipe::Transform::Col::Step->new(
       $self->recipe_data->{step},
    );
 
-=head1 Description
+=head1 DESCRIPTION
 
 An object representing a C<step> section of the type C<column> recipe
 transformations.
 
-=head1 Interface
+=head1 INTERFACE
 
 =head3 C<new>
 
@@ -50,11 +61,25 @@ L<App::Transfer::Recipe::Transform::Col::Step> object.
       $self->recipe_data->{step},
    );
 
-=head2 Attributes
+=head2 ATTRIBUTES
 
 =head3 C<field>
 
 A string attribute representing the name of the field (column).
+
+=head3 C<input>
+
+Idea:
+
+Alternative value for the record.  If this attribute is defined the
+value passed to the plugin is NOT the value fo the C<field> but the
+value of the C<input>.
+
+Goal: make default values for fields from other info, for example the
+name of the input file.  Usefull for transfering data from files to
+databases, when we have a seperate file for every month.
+
+Not implemented! TODO!
 
 =head3 C<method>
 
@@ -62,31 +87,3 @@ An array reference with the name(s) of the plugin method to be called
 for the transformation.  If there is more than one method, all methods
 will be called in order and the result of the first is passed to the
 next, and so on.
-
-=head1 Author
-
-Ștefan Suciu <stefan@s2i2.ro>
-
-=head1 License
-
-Copyright (c) 2014-2015 Ștefan Suciu
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-=cut

@@ -457,6 +457,14 @@ subtest 'Column Transformations' => sub {
     $p->{value} = 'a str';
     is $ttr->do_transform( 'zero_ifnull', $p ), 'a str', 'zero if null "undef"';
 
+    $p->{value} = 'XXXX2002';
+    is $ttr->do_transform( 'year_from_filename', $p ), '2020',
+      'year from filename';
+
+    $p->{value} = 'XXXX2002';
+    is $ttr->do_transform( 'month_from_filename', $p ), '02',
+      'month from filename';
+
     #-- Non existent plugin
     throws_ok { $ttr->do_transform( 'nosuchplugin', $p ) } qr/nosuchplugin/,
         "No plugin for 'nosuchplugin' in 'do_transform'";
@@ -525,6 +533,15 @@ subtest 'Row Transformations' => sub {
     @$p{qw(value limit separator)} = ( $value, 5, ',' );
     ok @splited = $ttr->do_transform( 'split_field', $p ), 'split field';
     is scalar @splited, 4, 'split returns 4 elements (#sep+1)';
+
+    #-- copy_match_regex
+
+    $value = '08-001';
+    @$p{qw(field_src field_dst value valid_regex)} =
+        ( 'field1', 'field2', $value, '(\d{2})\-\d{3}' );
+    ok my $r = $ttr->do_transform( 'copy_match_regex', $p ), 'copy_match_regex';
+    is $r->{field1}, '08-001', 'original field match';
+    is $r->{field2}, '08', 'extracted string match';
 
     #-- Test load plugin from local ./plugins dir
     $p->{value} = 'does nothing';

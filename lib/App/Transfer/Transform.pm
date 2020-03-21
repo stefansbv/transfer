@@ -11,8 +11,9 @@ use Locale::TextDomain qw(App-Transfer);
 use Scalar::Util qw(blessed);
 use List::Compare;
 use Try::Tiny;
+use File::Basename;
 
-use Progress::Any;
+use Progress::Any '$progress';
 use Progress::Any::Output;
 
 # set Progress options
@@ -408,7 +409,7 @@ sub do_transfer {
 
     hurl run => __("No input records!") unless $rec_count;
 
-    my $progress;
+    # my $progress;
     if ( $self->show_progress ) {
         $progress = Progress::Any->get_indicator( target => $rec_count );
     }
@@ -509,6 +510,9 @@ sub validate_file_dst {
         my @ordered = $self->all_ordered_fields;
         $self->writer->insert_header(\@ordered);
     }
+
+    my $table_fields = $self->writer->header;
+
     my $worksheet
         = $self->writer->can('worksheet')
         ? $self->writer->worksheet
@@ -633,10 +637,19 @@ sub column_trafos {
 
     foreach my $step ( @{ $self->recipe->transform->column } ) {
         my $field = $step->field;
-        my $p;
+        my $type  = $step->type;
+        my $p = {};
         $p->{logstr} = $logstr;
         $p->{name}   = $field;
+        if ( $type eq 'default_value' ) {
+            my $file_name = $self->reader_options->file;
+            my ( $name, $path, $ext ) = fileparse( $file_name, qr/\.[^\.]*/ );
+            print " extension: $ext\n";
+            $p->{value} = $name;
+        }
+        else {
         $p->{value}  = $record->{$field};
+        }
         foreach my $meth ( @{ $step->method } ) {
             $p->{value} = $self->plugin_column->do_transform( $meth, $p );
         }
@@ -677,6 +690,7 @@ sub column_type_trafos {
         # say "FIELD: $field";
         next if $self->has_temp_field($field);
         my $info = $self->get_column_info($field);
+        next if $field eq '';                # skip skipped fields ;)
         hurl field_info => __x(
             "Field info for '{field}' not found! Header config. <--> DB schema inconsistency",
             field => $field
