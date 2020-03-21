@@ -11,6 +11,7 @@ use App::Transfer::X qw(hurl);
 use Locale::TextDomain qw(App-Transfer);
 use SQL::Abstract;
 use namespace::autoclean;
+use Data::Dump qw/ddx/;
 
 with 'MooX::Log::Any';
 
@@ -42,11 +43,11 @@ sub insert {
         $self->dbh->prepare($stmt)->execute(@bind);
     }
     catch {
-        print "EE: $_\n";                    # XXX
+        print "# record:\n";
+        ddx $row;
         hurl insert => __x(
-            'Insert failed: "{error}" for record "{record}"',
+            'Insert failed: "{error}"',
             error  => $_,
-            record => join '|', map { $_ || q( ) } @bind,
         );
     };
     return;
