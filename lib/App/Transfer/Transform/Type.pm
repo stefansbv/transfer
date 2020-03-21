@@ -316,6 +316,18 @@ __END__
 
 =head3 type_split
 
+Split a field into two or more fields, on a separator.
+
+  <step>
+    type                = split
+    separator           = " "
+    field_src           = adresa
+    method              = split_field
+    field_dst           = localitate
+    field_dst           = strada
+    field_dst           = numarul
+  </step>
+
 =head3 type_join
 
 Join two or more fields into one, with a separator.
