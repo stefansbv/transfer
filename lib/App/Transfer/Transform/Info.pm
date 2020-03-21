@@ -63,7 +63,7 @@ sub job_info_output_file {
 sub job_info_input_db {
     my ($self, $src_table, $src_db) = @_;
     my $input_l  = __ 'Input:';
-    print " -----------------------------\n";
+    print "   ---------------------------\n";
     $self->printer( '4i1c_l_', { label => $input_l } );
     my @i_l = (__ 'table:', __ 'database:');
     my @i_v = ($src_table, $src_db);
@@ -76,7 +76,7 @@ sub job_info_input_db {
 sub job_info_output_db {
     my ($self, $dst_table, $dst_db) = @_;
     my $output_l = __ 'Output:';
-    print " -----------------------------\n";
+    print "   ---------------------------\n";
     $self->printer( '4i1c_l_', { label => $output_l } );
     my @o_l = (__ 'table:', __ 'database:');
     my @o_v = ($dst_table, $dst_db);
