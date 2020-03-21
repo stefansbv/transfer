@@ -30,6 +30,7 @@ has 'attributes' => (
             IGNORECASE  => undef,
             IGNOREDIACRITIC => undef,
             REGEX           => undef,
+            IGNOREFAIL  => undef,
         };
     },
 );
@@ -42,22 +43,22 @@ __END__
 
 =encoding utf8
 
-=head1 Name
+=head1 NAME
 
 App::Transfer::Recipe::Transform::Row::Step - Row transformation step
 
-=head1 Synopsis
+=head1 SYNOPSIS
 
    my $steps = App::Transfer::Recipe::Transform::Row::Step->new(
       $self->recipe_data->{step},
    );
 
-=head1 Description
+=head1 DESCRIPTION
 
 Row transformation step abstract base class.  An object representing a
 C<step> section of the type C<row> recipe transformations.
 
-=head1 Interface
+=head1 INTERFACE
 
 =head3 C<new>
 
@@ -68,7 +69,7 @@ L<App::Transfer::Recipe::Transform::Row::Step> object.
       $self->recipe_data->{step},
    );
 
-=head2 Attributes
+=head2 ATTRIBUTES
 
 =head3 C<type>
 
@@ -155,6 +156,14 @@ Replaces the current value of the field.
 =item C<REPLACENULL>
 
 Replaces the current value of the field only if it's NULL.
+
+=item C<IGNORECASE>
+
+=item C<IGNOREDIACRITIC>
+
+=item C<REGEX>
+
+=item C<IGNOREFAIL>
 
 =back
 

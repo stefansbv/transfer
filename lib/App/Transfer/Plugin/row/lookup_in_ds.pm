@@ -26,7 +26,7 @@ sub lookup_in_ds {
     return unless $text;
 
     my $text_orig = $text;
-    
+
     # Return the value (text) if is in the valid list
     if ( $valid_list ) {
         return $text if any { $text eq $_ } @{$valid_list};
@@ -49,7 +49,8 @@ sub lookup_in_ds {
                 return $rec->{$key} if $text =~ m/${key}/i;
             }
         }
-        $self->log->info("$logstr regex lookup: failed for '$field'='$text'");
+        $self->log->info("$logstr regex lookup: failed for '$field'='$text'")
+          if !$attribs->{IGNOREFAIL};
         return '';
     }
     else {
@@ -58,7 +59,8 @@ sub lookup_in_ds {
                 return $rec->{$key} if $text eq $key;
             }
         }
-        $self->log->info("$logstr lookup: failed for '$field'='$text'");
+        $self->log->info("$logstr lookup: failed for '$field'='$text'")
+          if !$attribs->{IGNOREFAIL};
         return $text_orig;
     }
 }
