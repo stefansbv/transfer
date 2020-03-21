@@ -638,17 +638,21 @@ sub column_trafos {
     foreach my $step ( @{ $self->recipe->transform->column } ) {
         my $field = $step->field;
         my $type  = $step->type;
-        my $p = {};
+        my $p     = {};
         $p->{logstr} = $logstr;
         $p->{name}   = $field;
         if ( $type eq 'default_value' ) {
             my $file_name = $self->reader_options->file;
             my ( $name, $path, $ext ) = fileparse( $file_name, qr/\.[^\.]*/ );
-            print " extension: $ext\n";
+            say "input value is file name '$name', ext: '$ext'" if $self->debug;
             $p->{value} = $name;
         }
+        elsif ( !defined $type || $type eq 'transform' ) {
+            $p->{value} = $record->{$field};
+        }
         else {
-        $p->{value}  = $record->{$field};
+            hurl trafo_type =>
+                __x( "Trafo type {type} not implemented", type => $type );
         }
         foreach my $meth ( @{ $step->method } ) {
             $p->{value} = $self->plugin_column->do_transform( $meth, $p );
