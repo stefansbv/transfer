@@ -13,7 +13,6 @@ use App::Transfer::X qw(hurl);
 use Data::Dump;
 use namespace::autoclean;
 
-
 extends 'App::Transfer::Writer';
 with    'App::Transfer::Role::Utils';
 
@@ -54,7 +53,7 @@ has 'output' => (
 );
 
 has 'header' => (
-    is       => 'ro',
+    is       => 'rw',
     isa      => 'HashRef|ArrayRef',
     required => 1,
 );
@@ -119,6 +118,8 @@ sub insert_header {
     say "# writer CSV header: \n# ", join ', ', @field_names if $self->debug;
     my $status = $csv_o->print( $out_fh, \@field_names );
     $self->emit_error($csv_o) if !$status;
+
+    $self->header(\@field_names);
     return;
 }
 
@@ -175,15 +176,15 @@ __END__
 
 =encoding utf8
 
-=head1 Name
+=head1 NAME
 
 App::Transfer::Writer::csv - Writer for CSV files
 
-=head1 Synopsis
+=head1 SYNOPSIS
 
   my $writer = App::Transfer::Writer->load( { writer => 'csv' } );
 
-=head1 Description
+=head1 DESCRIPTION
 
 App::Transfer::Writer::csv reads a CSV file and builds a AoH data
 structure for the entire contents.
@@ -194,9 +195,9 @@ be inserted in the database.
 TODO: Consider Text::CSV::Encoded.  Tests failed for v0.22 with
 "Wide character in subroutine entry...".
 
-=head1 Interface
+=head1 INTERFACE
 
-=head2 Attributes
+=head2 ATTRIBUTES
 
 =head3 C<output_file>
 
@@ -206,12 +207,7 @@ A L<Path::Tiny::File> object representing the CSV output file.
 
 A L<Text::CSV> object.
 
-=head3 C<_headers>
-
-An array reference holding info about the table in the file.  The
-data-structure contains the table, row, header and skip attributes.
-
-=head2 Instance Methods
+=head2 INSTANCE METHODS
 
 =head3 C<insert_header>
 
