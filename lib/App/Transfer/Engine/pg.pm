@@ -147,6 +147,10 @@ sub get_info {
             if $flds_type->{$field}{type} eq 'timestamp without time zone';
         $flds_type->{$field}{type} = 'timestamptz'
             if $flds_type->{$field}{type} eq 'timestamp with time zone';
+        $flds_type->{$field}{type} = 'time'
+            if $flds_type->{$field}{type} eq 'time without time zone';
+        $flds_type->{$field}{type} = 'array'
+            if $flds_type->{$field}{type} eq 'ARRAY';
     }
 
     return $flds_type;
