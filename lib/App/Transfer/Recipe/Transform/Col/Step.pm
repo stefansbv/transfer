@@ -12,6 +12,8 @@ has 'field' => ( is => 'ro', isa => 'Str' );
 
 has 'input' => ( is => 'ro', isa => 'Str' );
 
+has 'pattern' => ( is => 'ro', isa => 'Str' );
+
 has 'type' => (
     is       => 'ro',
     isa      => enum( [qw(transform default_value)] ),

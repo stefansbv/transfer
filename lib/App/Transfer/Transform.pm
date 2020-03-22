@@ -642,9 +642,12 @@ sub column_trafos {
         $p->{logstr} = $logstr;
         $p->{name}   = $field;
         if ( $type eq 'default_value' ) {
+            # Default value from input file name...
+            my $pattern = $step->pattern;
             my $file_name = $self->reader_options->file;
             my ( $name, $path, $ext ) = fileparse( $file_name, qr/\.[^\.]*/ );
             say "input value is file name '$name', ext: '$ext'" if $self->debug;
+            $p->{pattern} = $pattern;
             $p->{value} = $name;
         }
         elsif ( !defined $type || $type eq 'transform' ) {
