@@ -353,7 +353,7 @@ subtest 'transform: column_trafos' => sub {
     my $bag2 = bag { item 'ident'; item 'name'; end; };
 
     ok my @shr = $trafo->recipe->table->src_header_raw, 'got the src raw header';
-    is \@shr, $bag2, 'source raw header';
+    is \@shr, $bag2, 'source raw header'; # XXX shouldn't be bag1 here?!
     is $trafo->recipe->table->src_header, $bag2, 'source header';
     is $trafo->recipe->table->dst_header, $bag1, 'destination header';
     my $header_map = { ident => 'id', name => 'denumire' };
@@ -385,6 +385,60 @@ subtest 'transform: column_trafos' => sub {
     my $expected = {
         id       => 100,
         denumire => 'a text with many spaces',
+    };
+    my $r = $trafo->column_trafos( $record, 'logstr' );
+    is $r, $expected, 'the record is like expected';
+};
+
+subtest 'transform: column_trafos default_value from file name' => sub {
+    my $input_options  = { input_file  => path(qw(t TM200331.csv)) };
+    my $output_options = { output_file => $output };
+    my $recipe_file    = path(qw(t recipes recipe-csv-default.conf));
+    my $trafo_params   = [ recipe_file => $recipe_file ];
+
+    my $transfer = App::Transfer->new;
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
+    ok my $trafo = App::Transfer::Transform->new(
+        transfer       => $transfer,
+        input_options  => $input_options,
+        output_options => $output_options,
+        @{$trafo_params},
+    ), 'new trafo instance';
+    isa_ok $trafo, ['App::Transfer::Transform'], 'transform instance';
+
+    my $bag = bag {
+        item 'place';
+        item 'year';
+        item 'month';
+        item 'day';
+        item 'temp_min';
+        item 'temp_max';
+        end;
+    };
+
+    ok my @shr = $trafo->recipe->table->src_header_raw, 'got the src raw header';
+    is \@shr, $bag, 'source raw header';
+    is $trafo->recipe->table->src_header, $bag, 'source header';
+    is $trafo->recipe->table->dst_header, $bag, 'destination header';
+
+    ok my $trafo_fields = $trafo->collect_recipe_fields, 'collect recipe fields';
+    is $trafo_fields, ['day', 'month', 'year'], 'recipe trafo fileds';
+
+    my $record = {
+        place    => 'Brasov',
+        year     => undef,
+        month    => undef,
+        day      => undef,
+        temp_min => -1,
+        temp_max => 4,
+    };
+    my $expected = {
+        place    => 'Brasov',
+        year     => '2020',
+        month    => '03',
+        day      => '31',
+        temp_min => -1,
+        temp_max => 4,
     };
     my $r = $trafo->column_trafos( $record, 'logstr' );
     is $r, $expected, 'the record is like expected';
