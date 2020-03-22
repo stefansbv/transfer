@@ -457,12 +457,19 @@ subtest 'Column Transformations' => sub {
     $p->{value} = 'a str';
     is $ttr->do_transform( 'zero_ifnull', $p ), 'a str', 'zero if null "undef"';
 
-    $p->{value} = 'XXXX2002';
+    $p->{value}   = 'XX200331';
+    $p->{pattern} = 'XX[dd]MMDD';
     is $ttr->do_transform( 'year_from_filename', $p ), '2020',
       'year from filename';
 
-    $p->{value} = 'XXXX2002';
-    is $ttr->do_transform( 'month_from_filename', $p ), '02',
+    $p->{value} = 'XX200331';
+    $p->{pattern} = 'XXYY[dd]DD';
+    is $ttr->do_transform( 'month_from_filename', $p ), '03',
+      'month from filename';
+
+    $p->{value} = 'XX200331';
+    $p->{pattern} = 'XXYYMM[dd]';
+    is $ttr->do_transform( 'month_from_filename', $p ), '31',
       'month from filename';
 
     #-- Non existent plugin
