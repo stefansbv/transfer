@@ -71,11 +71,11 @@ option 'debug' => (
     documentation => q[Debug output.],
 );
 
-option 'show_progress' => (
+option 'progress' => (
     is            => 'rw',
     isa           => 'Bool',
     cmd_aliases   => [qw(p)],
-    documentation => q[Verbose output.],
+    documentation => q[Show progress.],
     default       => sub { 0 },
 );
 

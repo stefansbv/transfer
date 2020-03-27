@@ -45,7 +45,7 @@ has transfer => (
     handles  => [qw(
         debug
         verbose
-        show_progress
+        progress
     )],
 );
 
@@ -409,8 +409,7 @@ sub do_transfer {
 
     hurl run => __("No input records!") unless $rec_count;
 
-    # my $progress;
-    if ( $self->show_progress ) {
+    if ( $self->progress ) {
         $progress = Progress::Any->get_indicator( target => $rec_count );
     }
     while ( $iter->has_next ) {
@@ -420,14 +419,14 @@ sub do_transfer {
         $record = $self->transformations( $record, $cols_info, $logfld );
         $self->writer->insert( $record, $table );
         $progress->update( message => "Record $row_count|" )
-            if $self->show_progress;
+            if $self->progress;
 
         #last;                                # DEBUG
     }
 
     $self->writer->finish if $self->writer->can('finish');
 
-    $progress->finish if $self->show_progress;
+    $progress->finish if $self->progress;
 
     $self->job_info_postwork($rec_count);
 
