@@ -14,15 +14,7 @@ use Try::Tiny;
 use File::Basename;
 
 use Progress::Any '$progress';
-use Progress::Any::Output;
-
-# set Progress options
-Progress::Any::Output->set(
-    'TermProgressBarColor',
-    width      => 80,
-    fh         => \*STDERR,
-    show_delay => 5,
-);
+use Progress::Any::Output 'TermProgressBarColor';
 
 use App::Transfer::Transform::Type;
 use App::Transfer::Transform::Info;
@@ -409,19 +401,15 @@ sub do_transfer {
 
     hurl run => __("No input records!") unless $rec_count;
 
-    if ( $self->progress ) {
-        $progress = Progress::Any->get_indicator( target => $rec_count );
-    }
+    $progress->target($rec_count) if $self->progress;
     while ( $iter->has_next ) {
         $row_count++;
         my $record = $iter->next;
         $record = $self->map_fields_src_to_dst($record);
         $record = $self->transformations( $record, $cols_info, $logfld );
         $self->writer->insert( $record, $table );
-        $progress->update( message => "Record $row_count|" )
+        $progress->update( message => "Record ${row_count}|" )
             if $self->progress;
-
-        #last;                                # DEBUG
     }
 
     $self->writer->finish if $self->writer->can('finish');
