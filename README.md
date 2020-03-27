@@ -1,12 +1,14 @@
 App/Transfer
 ============
 Ștefan Suciu
-2016-09-11
+2020-03-27
 
-Version: 0.30
+Version: 0.44
 
 Transform and transfer data between files and databases using recipes.
 
+NOTE: I replaced the master branch with the devel branch. (Couldn't
+properly merge or rebase).
 
 Disclaimer
 ----------
@@ -76,4 +78,4 @@ you!
 License And Copyright
 ---------------------
 
-TODO!
+GPL v3.
