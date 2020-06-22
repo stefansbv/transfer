@@ -11,14 +11,11 @@ with 'MooX::Log::Any';
 sub day_from_filename {
     my ( $self, $p ) = @_;
     my ( $logstr, $text, $pat ) = @$p{qw(logstr value pattern)};
-    say "day_from_filename: $text";
     return unless $text;
     die "The 'day_from_filename plugin' requires a pattern attribute"
         unless $pat;
     if ( my ( $i, $l ) = $self->params_from_pattern($pat) ) {
-        say "$i, $l";
         my $value = substr( $text, $i, $l );
-        say "return '$value'";
         return $value;
     }
     return;
@@ -26,12 +23,9 @@ sub day_from_filename {
 
 sub params_from_pattern {
     my ( $self, $pat ) = @_;
-    say "pat = $pat";
     my $p1 = index $pat, '[';
-    say "p1 = $p1";
     if ( $p1 > 0 ) {
         my $p2 = index $pat, ']';
-        say "p2 = $p2";
         return ( $p1, $p2 - 1 - $p1 );
     }
     return;
