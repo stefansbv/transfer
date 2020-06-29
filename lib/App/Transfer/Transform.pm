@@ -14,15 +14,7 @@ use Try::Tiny;
 use File::Basename;
 
 use Progress::Any '$progress';
-use Progress::Any::Output;
-
-# set Progress options
-Progress::Any::Output->set(
-    'TermProgressBarColor',
-    width      => 80,
-    fh         => \*STDERR,
-    show_delay => 5,
-);
+use Progress::Any::Output 'TermProgressBarColor';
 
 use App::Transfer::Transform::Type;
 use App::Transfer::Transform::Info;
@@ -45,7 +37,7 @@ has transfer => (
     handles  => [qw(
         debug
         verbose
-        show_progress
+        progress
     )],
 );
 
@@ -409,25 +401,20 @@ sub do_transfer {
 
     hurl run => __("No input records!") unless $rec_count;
 
-    # my $progress;
-    if ( $self->show_progress ) {
-        $progress = Progress::Any->get_indicator( target => $rec_count );
-    }
+    $progress->target($rec_count) if $self->progress;
     while ( $iter->has_next ) {
         $row_count++;
         my $record = $iter->next;
         $record = $self->map_fields_src_to_dst($record);
         $record = $self->transformations( $record, $cols_info, $logfld );
         $self->writer->insert( $record, $table );
-        $progress->update( message => "Record $row_count|" )
-            if $self->show_progress;
-
-        #last;                                # DEBUG
+        $progress->update( message => "Record ${row_count}|" )
+            if $self->progress;
     }
 
     $self->writer->finish if $self->writer->can('finish');
 
-    $progress->finish if $self->show_progress;
+    $progress->finish if $self->progress;
 
     $self->job_info_postwork($rec_count);
 
