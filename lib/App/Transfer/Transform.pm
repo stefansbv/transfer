@@ -51,6 +51,7 @@ has transform_types => (
             recipe => $self->recipe,
             reader => $self->reader,
             writer => $self->writer,
+            debug  => $self->debug,
         );
       },
     handles  => [qw(
@@ -410,6 +411,8 @@ sub do_transfer {
         $self->writer->insert( $record, $table );
         $progress->update( message => "Record ${row_count}|" )
             if $self->progress;
+
+        # last if $self->debug;   # DEBUG
     }
 
     $self->writer->finish if $self->writer->can('finish');
