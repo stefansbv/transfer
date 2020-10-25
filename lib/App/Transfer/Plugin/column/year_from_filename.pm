@@ -11,13 +11,10 @@ with 'MooX::Log::Any';
 sub year_from_filename {
     my ( $self, $p ) = @_;
     my ( $logstr, $text, $len, $pat ) = @$p{qw(logstr value length pattern)};
-    say "month_from_filename: $text";
     return unless $text;
     die "The 'month_from_filename plugin' requires a pattern attribute" unless $pat;
     my ($i, $l) = $self->params_from_pattern($pat);
-    say "$i, $l";
     my $value = '20' . substr( $text, $i, $l );
-    say "return '$value'";
     return $value;
 }
 
@@ -26,12 +23,9 @@ sub year_from_filename {
 # -> p2 = 5 | => (2, 2)
 sub params_from_pattern {
     my ( $self, $pat ) = @_;
-    say "pat = $pat";
     my $p1 = index $pat, '[';
-    say "p1 = $p1";
     if ( $p1 > 0 ) {
         my $p2 = index $pat, ']';
-        say "p2 = $p2";
         return ( $p1, $p2 - 1 - $p1 );
     }
     return;

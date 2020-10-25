@@ -18,6 +18,7 @@ has 'recipe' => (
     is       => 'ro',
     isa      => 'App::Transfer::Recipe',
     required => 1,
+    handles  => ['datasource'],
 );
 
 has 'reader' => (
@@ -31,6 +32,13 @@ has 'writer' => (
     isa      => 'App::Transfer::Writer',
     required => 1,
 );
+
+has 'debug' => (
+    is  => 'ro',
+    isa => 'Bool',
+);
+
+#---
 
 has 'plugin_row' => (
     is      => 'ro',
@@ -118,7 +126,7 @@ sub type_copy {
 
     if ( $step->datasource ) {
         $p->{lookup_list} =
-          $self->recipe->datasource->get_valid_list( $step->datasource );
+          $self->datasource->get_valid_list( $step->datasource );
     }
     if ( $step->valid_regex ) {
         $p->{valid_regex} = $step->valid_regex if $step->valid_regex;
@@ -209,15 +217,15 @@ sub type_lookup {
 
     return $record unless defined $lookup_val; # skip if undef
 
-    # say "Looking for '$field_src'='$lookup_val'" if $self->debug;
+    say "Looking for '$field_src'='$lookup_val'" if $self->debug;
 
     my $p;
     $p->{logstr}     = $logstr;
     $p->{value}      = $lookup_val;
     $p->{field_src}  = $field_src;
-    $p->{lookup_table} = $self->recipe->datasource->get_ds( $step->datasource );
+    $p->{lookup_table} = $self->datasource->get_ds( $step->datasource );
     if ( $step->valid_list ) {
-        $p->{valid_list} = $self->recipe->datasource->get_valid_list(
+        $p->{valid_list} = $self->datasource->get_valid_list(
             $step->valid_list
         );
     }
@@ -251,9 +259,13 @@ sub type_lookupdb {
 
     # Hints
     if ( my $hint = $step->hints ) {
-        if ( my $value = $self->recipe->datasource->hints->get_hint_for(
-                $hint, $lookup_val ) ) {
-            $lookup_val = $value;
+        if ( my $value = $self->datasource->hints->get_hint_for(
+            $hint, $lookup_val ) ) {
+            say "Searching for '$lookup_val' with hint '$hint'"
+                if $self->debug;
+            # workaround !!! XXX ???
+            # why is this an arrayref?
+            $lookup_val = ref $value eq 'ARRAY' ? $value->[0] : $value;
         }
     }
 
@@ -263,7 +275,7 @@ sub type_lookupdb {
         $lookup_val = uc $lookup_val;
     }
 
-    # say "Looking for '$where_fld'='$lookup_val'" if $self->debug;
+    say "Looking for '$where_fld'='$lookup_val'" if $self->debug;
 
     # Run-time parameters for the plugin
     my $p;
