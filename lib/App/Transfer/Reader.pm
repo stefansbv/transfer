@@ -111,7 +111,7 @@ App::Transfer::Reader - Base class for the reader interface
   ok my $reader = App::Transfer::Reader->load({
       transfer => $transfer,
       recipe   => $recipe,
-      reader   => 'xls',
+      reader   => 'excel',
       options  => $options,
   });
   my $records = $reader->get_data;
