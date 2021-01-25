@@ -51,8 +51,8 @@ has '_hints' => (
     lazy     => 1,
     builder  => '_build_hints',
     handles  => {
-		get_hint => 'get',
-	},
+        get_hint => 'get',
+    },
 );
 
 sub _build_hints {
@@ -77,6 +77,7 @@ sub get_hint_for {
     $value = $self->common_RON->translit($value) if $self->ignorediacritic;
     $value = lc $value if $self->ignorecase;
     if ( my $hint = $self->get_hint($name) ) {
+
         return $hint->{$value};
     }
     return;

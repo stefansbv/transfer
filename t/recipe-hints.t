@@ -15,8 +15,8 @@ my $records = {
 
 subtest 'hints plain' => sub {
     ok my $h = App::Transfer::Recipe::Hints->new(
-		hints => $records,
-	);
+        hints => $records,
+    );
     is $h->get_hint_for( 'loc', 'sfantu gheorghe' ), undef,
         'lower case, no diacritic';
     is $h->get_hint_for( 'loc', 'SFANTU GHEORGHE' ), undef,
@@ -67,7 +67,7 @@ subtest 'hints with ignorediacritic and ignorecase' => sub {
     ok my $h = App::Transfer::Recipe::Hints->new(
         hints           => $records,
         ignorediacritic => 1,
-		ignorecase      => 1,
+        ignorecase      => 1,
     );
     is $h->get_hint_for( 'loc', 'sfantu gheorghe' ), 'Sfîntu Gheorghe',
         'lower case, no diacritic';
