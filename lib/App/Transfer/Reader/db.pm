@@ -62,8 +62,16 @@ sub _build_contents {
     my $where   = $self->filter;
     my $orderby = $self->orderby;
     my $header  = $self->header;
+    if ( $self->debug ) {
+        say "# table  = $table";
+        say "# where  = ";
+        dump $where;
+        say "# orderby = ";
+        dump $orderby;
+        say "---";
+    }
     my $fields  = $self->validate_header_fields($table);
-    
+
     my $ah_ref = $engine->records_aoh( $table, $fields, $where, $orderby );
     $self->record_count( scalar @{$ah_ref} );
     return $ah_ref;

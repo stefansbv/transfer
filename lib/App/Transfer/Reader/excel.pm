@@ -1,4 +1,4 @@
-package App::Transfer::Reader::xls;
+package App::Transfer::Reader::excel;
 
 # ABSTRACT: Reader for spreadsheet files
 
@@ -162,7 +162,7 @@ has 'contents_iter' => (
 sub BUILDARGS {
     my $class = shift;
     my $p     = shift;
-    hurl xls => __ "For the 'xls' reader, the table section must have a 'rectangle' attribute"
+    hurl excel => __ "For the 'excel' reader, the table section must have a 'rectangle' attribute"
                 unless length( $p->{rectangle} // '' );
     return $p;
 }
@@ -174,13 +174,13 @@ sub BUILD {
     my ( $col_max, $row_max ) = ( $self->rect_v->[0], $self->rect_v->[1] );
     my $count = scalar @{ $self->header };
     my $range = $col_max - $col_min + 1;
-    hurl xls => __x(
+    hurl excel => __x(
         "The columns range ({range}) from the 'rectangle' attribute must match the fields count ({count})",
         range => $range,
         count => $count,
     ) if $range != $count;
-    hurl xls => __x(
-        "For the 'xls' reader, a valid 'rectangle' attribute with positive row range is required {min} < {max}",
+    hurl excel => __x(
+        "For the 'excel' reader, a valid 'rectangle' attribute with positive row range is required {min} < {max}",
         min => $row_min,
         max => $row_max,
     ) if $row_max <= $row_min;
@@ -196,15 +196,15 @@ __END__
 
 =head1 Name
 
-App::Transfer::Reader::xls - Reader for MSExcel files
+App::Transfer::Reader::excel - Reader for MSExcel files
 
 =head1 Synopsis
 
-  my $reader = App::Transfer::Reader->load( { reader => 'xls' } );
+  my $reader = App::Transfer::Reader->load( { reader => 'excel' } );
 
 =head1 Description
 
-App::Transfer::Reader::xls reads an MSExcel file worksheet and
+App::Transfer::Reader::excel reads an MSExcel file worksheet and
 builds a AoH data structure for the entire contents.
 
 =head1 Interface
@@ -213,11 +213,11 @@ builds a AoH data structure for the entire contents.
 
 =head3 C<input_file>
 
-A L<Path::Tiny::File> object representing the xls input file.
+A L<Path::Tiny::File> object representing the excel input file.
 
 =head3 C<worksheet>
 
-The name of the xls worksheet to read from.  It is a C<source> section
+The name of the excel worksheet to read from.  It is a C<source> section
 attribute in the recipe.  Defaults to 1, the first sheet in the file.
 
 =head3 C<workbook>
@@ -234,7 +234,7 @@ An array reference holding the contents of the spreadsheet.
 
 =head3 C<contents_iter>
 
-A L<MooseX::Iterator> object for the contents of the xls file.
+A L<MooseX::Iterator> object for the contents of the excel file.
 
 A L<Spreadsheet::Read> object.
 

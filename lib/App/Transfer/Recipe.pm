@@ -246,6 +246,8 @@ has 'in_type' => (
         my $prefix = $reader;
         $prefix = 'file'
             if $reader eq 'xls'
+            or $reader eq 'xlsx'
+            or $reader eq 'excel'
             or $reader eq 'csv'
             or $reader eq 'dbf'
             or $reader eq 'odt';
