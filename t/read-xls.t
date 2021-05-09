@@ -16,7 +16,7 @@ use App::Transfer::Recipe;
 
 my $CLASS;
 BEGIN {
-    $CLASS = 'App::Transfer::Reader::xls';
+    $CLASS = 'App::Transfer::Reader::excel';
     use_ok $CLASS or die;
 }
 
@@ -43,7 +43,7 @@ subtest 'Read the SIRUTA table' => sub {
         header    => \@header,
         tempfield => $tempfield,
         rectangle => $rectangle,
-        reader    => 'xls',
+        reader    => 'excel',
         options   => $options,
     }), 'new reader spreadsheet object';
     is $reader->input_file, 't/siruta.xls', 'xls file name';
@@ -106,12 +106,12 @@ subtest 'Missing rectangle attribute' => sub {
             header    => \@header,
             tempfield => $tempfield,
             rectangle => $rectangle,
-            reader    => 'xls',
+            reader    => 'excel',
             options   => $options,
         });
     } 'App::Transfer::X',
         'Should get an exception for missing rectangle attrib';
-    is $@->message, __("For the 'xls' reader, the table section must have a 'rectangle' attribute"),
+    is $@->message, __("For the 'excel' reader, the table section must have a 'rectangle' attribute"),
         'The message should be from the translation';
 };
 
@@ -138,7 +138,7 @@ subtest 'Read the SIRUTA table - skip fields' => sub {
         header    => \@header,
         tempfield => $tempfield,
         rectangle => $rectangle,
-        reader    => 'xls',
+        reader    => 'excel',
         options   => $options,
     }), 'new reader spreadsheet object';
     is $reader->input_file, 't/siruta.xls', 'xls file name';
