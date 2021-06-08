@@ -16,7 +16,7 @@ use App::Transfer::Recipe;
 
 my $CLASS;
 BEGIN {
-    $CLASS = 'App::Transfer::Reader::xls';
+    $CLASS = 'App::Transfer::Reader::excel';
     use_ok $CLASS or die;
 }
 
@@ -147,7 +147,7 @@ subtest 'Full range' => sub {
         header    => \@header,
         tempfield => $tempfield,
         rectangle => $rectangle,
-        reader    => 'xls',
+        reader    => 'excel',
         options   => $options,
     }), 'new reader spreadsheet object';
     is $reader->input_file, 't/rectangle.xls', 'xls file name';
@@ -195,7 +195,7 @@ subtest 'Partial range - no skip' => sub {
         header    => \@header,
         tempfield => $tempfield,
         rectangle => $rectangle,
-        reader    => 'xls',
+        reader    => 'excel',
         options   => $options,
     }), 'new reader spreadsheet object';
     is $reader->input_file, 't/rectangle.xls', 'xls file name';
@@ -244,7 +244,7 @@ subtest 'Full range - skip some inner fields' => sub {
             header    => \@header,
             tempfield => $tempfield,
             rectangle => $rectangle,
-            reader    => 'xls',
+            reader    => 'excel',
             options   => $options,
         }
       ),
@@ -294,7 +294,7 @@ subtest 'Full range - dynamic rectangle lower left corner' => sub {
         tempfield => $tempfield,
         rectangle => $rectangle,
         # allowemptyrows => 1,
-        reader    => 'xls',
+        reader    => 'excel',
         options   => $options,
     }), 'new reader spreadsheet object';
     is $reader->input_file, 't/rectangle.xls', 'xls file name';
