@@ -40,6 +40,7 @@ subtest 'Write DBF file' => sub {
         options   => $reader_opts_href,
         rw_type   => 'reader',
     ), 'reader options';
+    ok my $header = $recipe->table->dst_header, 'get the recipe table header';
     my $writer_options = App::Transfer::Options->new(
         transfer  => $transfer,
         recipe    => $recipe,
@@ -50,7 +51,7 @@ subtest 'Write DBF file' => sub {
     isa_ok $writer_options, 'App::Transfer::Options', 'writer options';
     ok my $writer = App::Transfer::Writer->load({
         transfer => $transfer,
-        recipe   => $recipe,
+        header    => $header,
         writer   => 'dbf',
         reader_options => $reader_options,
         writer_options => $writer_options,
@@ -104,9 +105,10 @@ subtest 'Refuse to overwrite DBF' => sub {
     );
     isa_ok $reader_options, 'App::Transfer::Options', 'reader options';
     isa_ok $writer_options, 'App::Transfer::Options', 'writer options';
+    ok my $header = $recipe->table->dst_header, 'get the recipe table header';
     ok my $writer = App::Transfer::Writer->load({
         transfer => $transfer,
-        recipe   => $recipe,
+        header   => $header,
         writer   => 'dbf',
         reader_options => $reader_options,
         writer_options => $writer_options,
@@ -114,7 +116,7 @@ subtest 'Refuse to overwrite DBF' => sub {
 
     throws_ok { $writer->dbf }
         'App::Transfer::X',
-        'Should have error for file exists and wont overwrite';
+        "Should have error for file exists and won't overwrite";
 };
 
 unlink $output or warn "unlink output $output: $!";

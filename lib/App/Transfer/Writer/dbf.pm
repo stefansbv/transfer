@@ -16,6 +16,12 @@ use namespace::autoclean;
 
 extends 'App::Transfer::Writer';
 
+has 'header' => (
+    is       => 'rw',
+    isa      => 'HashRef|ArrayRef',
+    required => 1,
+);
+
 has 'output_file' => (
     is       => 'ro',
     isa      => Path,
@@ -122,7 +128,7 @@ has 'dbf' => (
     init_arg => undef,
     default  => sub {
         my $self = shift;
-        hurl __x( "Wont overwrite existing file: {file}",
+        hurl __x( "Won't overwrite existing file: {file}",
             file => $self->output )
             if $self->output->is_file;
         say "Creating file: ", $self->output;
