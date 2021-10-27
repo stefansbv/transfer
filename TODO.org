@@ -1,5 +1,5 @@
 
-* TODO [50%]
+* TODO [44%]
   - [X] Check early if the plugins can be used
   - [X] Add tests for copy type
   - [ ] Add tests for batch type
@@ -8,3 +8,6 @@
   - [ ] Implement the date_format in the writers
   - [X] Adapt the Printer module from App::Intersect and replace Perl6::Form
   - [X] Feature to allow dynamic value for the rectangle lower left corner attribute
+  - [ ] Fix field output order when exporting to CSV
+    - [ ] Autoload columns.conf if exists?
+    - [ ] Allow a columns.[yml|conf] containing an array of ordered fields?
