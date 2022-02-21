@@ -72,6 +72,9 @@ sub _build_contents {
     }
     my $fields  = $self->validate_header_fields($table);
 
+    print "filter:\n";
+    use Data::Dump; dd $where;
+
     my $ah_ref = $engine->records_aoh( $table, $fields, $where, $orderby );
     $self->record_count( scalar @{$ah_ref} );
     return $ah_ref;
