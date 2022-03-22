@@ -292,6 +292,26 @@ sub table_list {
     return $table_list;
 }
 
+sub reset_sequence {
+    my ($self, $seq) = @_;
+    hurl "The 'seq' parameter is required for 'reset_sequence'" unless $seq;
+    my $dbh = $self->dbh;
+    $dbh->{AutoCommit} = 1;    # disable transactions
+    $dbh->{RaiseError} = 0;
+    my $val = 1;
+    my $para = 'false';                      # for reset
+    my $sql = qq{ SELECT setval(?, ?, ?) };
+    try {
+        my $sth = $dbh->prepare($sql);
+        $sth->execute($seq, $val, $para);
+    }
+    catch {
+        hurl pg =>
+            __x( "Transaction aborted because: {error}", error => $_ );
+    };
+    return;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

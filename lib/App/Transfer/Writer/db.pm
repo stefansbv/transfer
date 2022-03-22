@@ -62,6 +62,13 @@ sub table_truncate {
     return;
 }
 
+sub reset_sequence {
+    my ($self, $seq) = @_;
+    my $engine = $self->target->engine;
+    $engine->reset_sequence($seq);
+    return;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

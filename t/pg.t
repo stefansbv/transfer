@@ -58,7 +58,7 @@ END {
         $h->disconnect if $h->{Type} eq 'db' && $h->{Active} && $h ne $dbh;
     });
 
-    $dbh->do('DROP DATABASE __transfertest__') if $dbh->{Active};
+#    $dbh->do('DROP DATABASE __transfertest__') if $dbh->{Active};
 }
 
 my $err = try {
@@ -78,7 +78,7 @@ catch {
     eval { $_->message } || $_;
 };
 
-my $uri = 'db:pg://@localhost/__transfertest__';
+my $uri = 'db:pg://postgres@localhost/__transfertest__';
 DBIEngineTest->run(
     class         => $CLASS,
     trafo_params  => [ recipe_file => $recipe_file, ],

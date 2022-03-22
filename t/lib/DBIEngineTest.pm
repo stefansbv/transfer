@@ -1185,6 +1185,35 @@ sub run {
 
 
         ######################################################################
+        # Test the reset_sequence method - test_seq_id_seq
+
+        my @fields =
+          ( [ 'id', 'serial' ], [ 'letter', 'char(1)' ], );
+        my $fields_seq = join " \n , ", map { join ' ', @{$_} } @fields;
+        my $table_seq  = 'test_seq';
+
+        # Create the seq test table
+
+        $ddl = qq{CREATE TABLE $table_seq ( \n   $fields_seq \n);};
+
+        ok $engine->dbh->do($ddl), "create '$table_seq' table";
+
+        $trafo->writer->reset_inserted;
+
+        # Insert the records
+
+        foreach my $letter ( 'A' .. 'Z' ) {
+            note "# letter: $letter";
+            $trafo->writer->insert(
+                { letter => $letter },
+                $table_seq,
+            );
+        }
+        is $trafo->writer->records_inserted, 26, 'records inserted: 26';
+        is $trafo->writer->records_skipped,  0,  'records skipped: 0';
+
+
+        ######################################################################
         # All done.
         done_testing;
     };
