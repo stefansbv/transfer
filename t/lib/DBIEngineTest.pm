@@ -1177,6 +1177,13 @@ sub run {
 
         };    # subtest j.
 
+
+        ######################################################################
+        # Test the table_truncate method
+
+        $trafo->writer->table_truncate( $table_dict );
+
+
         ######################################################################
         # All done.
         done_testing;

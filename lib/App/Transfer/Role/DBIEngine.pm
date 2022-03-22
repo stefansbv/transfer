@@ -53,6 +53,22 @@ sub insert {
     return;
 }
 
+sub table_truncate {
+    my ($self, $table) = @_;
+    my ( $stmt );
+    try {
+        ( $stmt ) = $self->sql->delete( $table );
+        $self->dbh->prepare($stmt)->execute();
+    }
+    catch {
+        hurl truncate => __x(
+            'Truncate failed: "{error}"',
+            error  => $_,
+        );
+    };
+    return;
+}
+
 sub lookup {
     my ($self, $table, $fields, $where, $attribs) = @_;
 

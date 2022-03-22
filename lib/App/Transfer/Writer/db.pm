@@ -55,6 +55,13 @@ sub insert {
     return;
 }
 
+sub table_truncate {
+    my ($self, $table) = @_;
+    my $engine = $self->target->engine;
+    $engine->table_truncate($table);
+    return;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
