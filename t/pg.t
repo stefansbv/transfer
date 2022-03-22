@@ -58,7 +58,7 @@ END {
         $h->disconnect if $h->{Type} eq 'db' && $h->{Active} && $h ne $dbh;
     });
 
-#    $dbh->do('DROP DATABASE __transfertest__') if $dbh->{Active};
+    $dbh->do('DROP DATABASE __transfertest__') if $dbh->{Active};
 }
 
 my $err = try {
