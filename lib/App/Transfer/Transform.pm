@@ -632,13 +632,25 @@ sub column_trafos {
         $p->{logstr} = $logstr;
         $p->{name}   = $field;
         if ( $type eq 'default_value' ) {
+            my $src_type = $self->recipe->in_type;
+            if ( $src_type ne 'file' ) {
+                hurl {
+                    ident   => 'transform:wrongtype',
+                    message => __x(
+                        "The 'default_value' column transformation does not work with the '{src_type}' source input.",
+                        src_type => $src_type
+                    ),
+                };
+            }
+
             # Default value from input file name...
-            my $pattern = $step->pattern;
+            my $pattern   = $step->pattern;
             my $file_name = $self->reader_options->file;
             my ( $name, $path, $ext ) = fileparse( $file_name, qr/\.[^\.]*/ );
-            say "input value is file name '$name', ext: '$ext'" if $self->debug;
+            say "input value is file name '$name', ext: '$ext'"
+                if $self->debug;
             $p->{pattern} = $pattern;
-            $p->{value} = $name;
+            $p->{value}   = $name;
         }
         elsif ( !defined $type || $type eq 'transform' ) {
             $p->{value} = $record->{$field};

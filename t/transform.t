@@ -444,6 +444,32 @@ subtest 'transform: column_trafos default_value from file name' => sub {
     is $r, $expected, 'the record is like expected';
 };
 
+subtest 'transform: column_trafos default_value exception' => sub {
+    my $uri            = 'db:pg://@localhost/__transfertest__';
+    my $recipe_file    = path( 't', 'recipes', 'recipe-db-default.conf' );
+    my $input_options  = { input_uri  => $uri };
+    my $output_options = { output_uri => $uri };
+    my $trafo_params   = [ recipe_file => $recipe_file ];
+
+    my $transfer = App::Transfer->new( debug => 1 );
+    isa_ok $transfer, ['App::Transfer'], 'transfer instance';
+    ok my $trafo = App::Transfer::Transform->new(
+        transfer       => $transfer,
+        input_options  => $input_options,
+        output_options => $output_options,
+        @{$trafo_params},
+    ), 'new trafo instance';
+    my $record = {
+        id       => 100,
+        denumire => 'a text     with   many    spaces',
+    };
+    like(
+        dies { my $r = $trafo->column_trafos( $record, 'logstr' ) },
+        qr/\QThe 'default_value' column/,
+        'Should have error for dst fields missmatch'
+    );
+};
+
 subtest 'transform: column_trafos exception' => sub {
     my $input_options  = { input_file  => path(qw(t siruta.csv)) };
     my $output_options = { output_file => $output };
