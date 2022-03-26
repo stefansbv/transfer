@@ -1011,6 +1011,22 @@ Example:
 
 This is the first type of transformation to be applied.
 
+There is a new feature to get the value by parsing the input file
+name.  The column transform type must be set to 'default_value'.
+
+Here is an example configuration for getting the year from the file name:
+
+  <transform column>
+    <step>
+      type                = default_value
+      pattern             = TM[dd]MMDD
+      field               = year
+      method              = year_from_filename
+    </step>
+  </transform>
+
+For the month the pattern would be 'TMYY[dd]DD', and for the day 'TMYYMM[dd]'.
+
 =head3 record_trafos
 
 Transformations per record (row).  This type of transformation works
