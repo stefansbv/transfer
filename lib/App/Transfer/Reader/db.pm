@@ -64,16 +64,13 @@ sub _build_contents {
     my $header  = $self->header;
     if ( $self->debug ) {
         say "# table  = $table";
-        say "# where  = ";
+        say "# where (filter) = ";
         dump $where;
         say "# orderby = ";
         dump $orderby;
         say "---";
     }
     my $fields  = $self->validate_header_fields($table);
-
-    print "filter:\n";
-    use Data::Dump; dd $where;
 
     my $ah_ref = $engine->records_aoh( $table, $fields, $where, $orderby );
     $self->record_count( scalar @{$ah_ref} );
