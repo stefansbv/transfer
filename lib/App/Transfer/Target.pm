@@ -24,7 +24,7 @@ has name => (
     isa      => 'Str',
     required => 1,
     lazy     => 0,
-    default  => sub { 'anonim' },
+    default  => sub { '' },
 );
 
 sub target { shift->name }
@@ -39,6 +39,7 @@ has uri => (
         dsn        => 'dbi_dsn',
         username   => 'user',
         password   => 'password',
+        dbname     => 'dbname',
     },
 );
 

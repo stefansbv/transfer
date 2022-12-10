@@ -53,7 +53,7 @@ has 'target' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
-    default => sub {'anonim'},
+    default => sub {''},
 );
 
 has uri_str => (
@@ -422,7 +422,7 @@ Returns the L<App::Transfer::Recipe> object that instantiated the options.
 =head3 C<target>
 
 A string representing the target name passed to the options, if any.
-Defaults to 'anonim'.
+Defaults to ''.
 
 =head3 C<uri_str>
 

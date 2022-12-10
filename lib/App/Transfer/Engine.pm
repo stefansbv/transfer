@@ -27,6 +27,7 @@ has target => (
     handles => {
         uri         => 'uri',
         destination => 'name',
+        dbname      => 'dbname',
     }
 );
 

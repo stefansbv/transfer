@@ -72,6 +72,8 @@ sub run {
 
         ok $engine, 'Engine instantiated';
 
+        like $engine->dbname, qr/transfertest/, 'engine test dbname';
+
         throws_ok { $engine->dbh->do('INSERT blah INTO __bar_____') }
         'App::Transfer::X',
           'Database error should be converted to Transfer exception';

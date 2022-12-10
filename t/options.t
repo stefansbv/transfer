@@ -85,7 +85,7 @@ subtest '"db" reader: uri option; no config; reader, writer from recipe' => sub 
         'should get uri from the config';
 
     # Have to call 'target' after 'uri_str', else we get the default
-    is $options->target, 'anonim', 'should get name from the config';
+    is $options->target, '', 'should get default from the config';
     chdir '..';
 };
 

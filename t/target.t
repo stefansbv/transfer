@@ -66,7 +66,8 @@ is $target->transfer, $transfer, 'Transfer should be as passed';
 is $target->engine_key, 'pg', 'Engine key should be "pg"';
 isa_ok $target->engine, 'App::Transfer::Engine::pg', 'Engine';
 is $target->dsn, $uri->dbi_dsn, 'DSN should be from URI';
-is $target->username, $uri->user, 'Username should be from URI';
-is $target->password, $uri->password, 'Password should be from URI';
+is $target->username, $uri->user, 'username should be from URI';
+is $target->password, $uri->password, 'password should be from URI';
+is $target->dbname, $uri->dbname, 'dbname should be from URI';
 
 done_testing;

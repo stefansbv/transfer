@@ -520,7 +520,7 @@ sub validate_db_src {
     my $target = $self->reader->target;
 
     my $src_engine = $self->reader->target->engine;
-    my $database   = $src_engine->database;
+    my $dbname     = $src_engine->dbname;
     my $src_table  = $self->recipe->source->table;
 
     try {
@@ -532,7 +532,7 @@ sub validate_db_src {
         if ( $ident eq 'db:dbnotfound' ) {
             hurl run => __x(
                 "Could not connect to the '{dbname}' database.",
-                dbname => $database
+                dbname => $dbname
             );
         }
         elsif ( $ident eq 'options:missing' ) {
@@ -551,7 +551,7 @@ sub validate_db_src {
     # - table exists
     # - validate fields
 
-    $self->job_info_input_db($src_table, $database);
+    $self->job_info_input_db($src_table, $dbname);
 
     hurl run => __x( "The source table '{table}' does not exists!",
         table => $src_table )
@@ -584,7 +584,7 @@ sub validate_db_dst {
         $self->set_column_info( %{$info} );
     }
 
-    $self->job_info_output_db( $table, $engine->database );
+    $self->job_info_output_db( $table, $engine->dbname );
 
     $self->validate_dst_db_fields;
 
