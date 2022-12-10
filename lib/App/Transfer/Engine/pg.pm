@@ -37,6 +37,7 @@ has dbh => (
             HandleError      => sub {
                 my ($err, $dbh) = @_;
                 my ($type, $name) = $self->parse_error($err);
+                say "[EE]:(type=$type) $name" if $self->debug;
                 my $message = $self->get_message($type);
                 hurl {
                     ident   => "db:$type",
@@ -50,7 +51,7 @@ has dbh => (
 sub parse_error {
     my ($self, $err) = @_;
 
-    say "DBIError: $err" if $self->debug;
+    say "[EE] DBI: $err" if $self->debug;
 
     my $message_type =
          $err eq q{}                                          ? "nomessage"
@@ -71,6 +72,8 @@ sub parse_error {
        : $err =~ m/permission denied for relation (\w+)/smi   ? "relforbid:$1"
        : $err =~ m/permission denied for sequence (\w+)/smi   ? "seqforbid:$1"
        : $err =~ m/could not connect to server/smi            ? "servererror"
+       : $err =~ m/server not available/smi                   ? "servererror"
+       : $err =~ m/Is the server running/smi                  ? "servererror"
        : $err =~ m/not connected/smi                          ? "notconn"
        : $err =~ m/duplicate key value violates unique constraint ($RE{quoted})/smi   ? "duplicate:$1"
        :                                                       "unknown";
