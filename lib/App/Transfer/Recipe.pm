@@ -199,7 +199,8 @@ sub validate_table_config {
             $msg = 'Deprecated';
         }
         hurl __x
-            "$msg name attribute ({name}) for the table section in the recipe",
+            "{msg} name attribute ({name}) for the table section in the recipe",
+            msg  => $msg,
             name => $name;
     }
     return;

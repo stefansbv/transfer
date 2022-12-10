@@ -164,7 +164,7 @@ sub insert {
 sub finish {
     my $self = shift;
     $self->dbf->close or hurl io => __x(
-        "Cannot close DBF file': {error}",
+        "Cannot close DBF file: {error}",
         error => $!
     );
 }

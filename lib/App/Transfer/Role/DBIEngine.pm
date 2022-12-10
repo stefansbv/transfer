@@ -61,9 +61,11 @@ sub table_truncate {
         $self->dbh->prepare($stmt)->execute();
     }
     catch {
+        my $error = $_ =~ s/\n$//gr;
         hurl truncate => __x(
-            'Truncate failed: "{error}"',
-            error  => $_,
+            '[EE] "{table}" table truncate failed: "{error}"',
+            error  => $error,
+            table  => $table,
         );
     };
     return;
